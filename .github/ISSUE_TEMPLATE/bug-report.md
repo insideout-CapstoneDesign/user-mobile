@@ -1,5 +1,5 @@
 ---
-name: 'Issue: 버그 리포트 이슈'
+name: Bug Report
 about: 버그가 발생하면 이슈를 작성해 공유합니다.
 title: "[BUG] 헤더 겹침 오류"
 labels: ''

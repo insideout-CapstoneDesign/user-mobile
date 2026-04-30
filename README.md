@@ -16,14 +16,14 @@
 - docs: API 명세서 최신화 (#4)
 
 ## 🏷 prefix 목록
-- **feat** : 새로운 기능 구현 `[feat] 구글 로그인 API 기능 구현 (#11)`
-- **fix** : 코드 오류 수정 `[fix] 회원가입 비즈니스 로직 오류 수정 (#10)`
+- **feat** : 새로운 기능 구현 `[feat] 구글 로그인 API 기능 구현 (#11)`
+- **fix** : 코드 오류 수정 `[fix] 회원가입 비즈니스 로직 오류 수정 (#10)`
 - **design** : CSS, UI/UX 레이아웃 변경 `[design] 메인 화면 로그인 버튼 위치 변경 (#9)`
-- **del** : 쓸모없는 코드 삭제 `[del] 불필요한 import 제거 (#12)`
-- **docs** : README나 wiki 등의 문서 개정 `[docs] 리드미 수정(#14)`
-- **refactor** : 내부 로직은 변경 하지 않고 기존의 코드를 개선하는 리팩터링 `[refactor] 코드 로직 개선(#15)`
-- **chore** : 의존성 추가, yml 추가와 수정, 패키지 구조 변경, 파일 이동 `[chore] yml 수정(#21)`, `[chore] MAC-8 lombok 의존성 추가(#22)`
-- **test**: 테스트 코드 작성, 수정 `[test] 로그인 API 테스트 코드 작성(#20)`
+- **del** : 쓸모없는 코드 삭제 `[del] 불필요한 import 제거 (#12)`
+- **docs** : README나 wiki 등의 문서 개정 `[docs] 리드미 수정(#14)`
+- **refactor** : 내부 로직은 변경 하지 않고 기존의 코드를 개선하는 리팩터링 `[refactor] 코드 로직 개선(#15)`
+- **chore** : 의존성 추가, yml 추가와 수정, 패키지 구조 변경, 파일 이동 `[chore] yml 수정(#21)`, `[chore] MAC-8 lombok 의존성 추가(#22)`
+- **test** : 테스트 코드 작성, 수정 `[test] 로그인 API 테스트 코드 작성(#20)`
 - **style** : 코드에 관련 없는 주석 달기, 줄바꿈
 
 ## 2️⃣ Issue Creation Rules
@@ -46,12 +46,35 @@
 
 ## 4️⃣ Branch & PR Rules
 이슈가 생성되면 해당 이슈 번호를 기반으로 브랜치를 생성합니다.
+
 ### 🌱 Branch Naming
 타입/#이슈번호-영문설명
 - feat/#12-jwt-login
 - fix/#15-astar-timeout
-### 🚀 Pull Request (PR) 
-1. Process작업 전 최신화: 작업 시작 전 항상 dev 브랜치를 pull 받아서 최신 상태를 유지합니다.
-2. PR 제목: 이슈 제목과 동일하게 맞추거나 작업 성격이 한눈에 보이게 작성합니다.예: feat: 건물 관리자 JWT 로그인 구현 (#12)이슈 연결:
-3. PR 내용(Description) 상단에 Closes #이슈번호를 반드시 적어 머지 시 이슈가 자동 종료되도록 합니다.
-4. 코드 리뷰: 최소 **1명 이상의 팀원에게 Approve(승인)**를 받아야하며 리뷰를 모두 resolve해야 Merge 할 수 있습니다.
+
+### 🚀 Pull Request (PR)
+1. Process 작업 전 최신화: 작업 시작 전 항상 dev 브랜치를 pull 받아서 최신 상태를 유지합니다.
+2. PR 제목: 이슈 제목과 동일하게 맞추거나 작업 성격이 한눈에 보이게 작성합니다.
+   - 예: feat: 건물 관리자 JWT 로그인 구현 (#12)
+3. 이슈 연결: PR 내용(Description) 상단에 Closes #이슈번호를 반드시 적어 머지 시 이슈가 자동 종료되도록 합니다.
+4. 코드 리뷰: 최소 **1명 이상의 팀원에게 Approve(승인)**를 받아야 하며 리뷰를 모두 resolve해야 Merge 할 수 있습니다.
+
+## 5️⃣ 프론트엔드 디렉토리 가이드
+```text
+src/
+  apis/          API 클라이언트 및 요청 함수
+  assets/        정적 리소스(이미지, 아이콘)
+  components/    재사용 가능한 UI 컴포넌트
+  constants/     상수 및 enum 관리
+  hooks/         재사용 가능한 커스텀 훅
+  layouts/       페이지/앱 공통 레이아웃 컴포넌트
+  pages/         라우트(화면) 단위 페이지 컴포넌트
+  styles/        글로벌 스타일 및 테마 토큰
+  utils/         공통 유틸리티 함수
+
+네이밍 규칙
+컴포넌트/페이지 파일: PascalCase 사용 (예: LoginPage.jsx, PrimaryButton.jsx)
+훅 파일: use 접두사 + camelCase 사용 (예: useAuth.js)
+유틸/API 파일: camelCase 사용 (예: formatDate.js, authApi.js)
+파일/폴더는 하나의 주요 책임만 가지도록 구성합니다.
+```

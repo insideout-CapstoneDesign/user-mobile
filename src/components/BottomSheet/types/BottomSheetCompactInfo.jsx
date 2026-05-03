@@ -1,17 +1,34 @@
+import BottomSheetActionBar from '../BottomSheetActionBar'
 import {
+  AddressText,
+  StickyActionSection,
   TypeContainer,
-  TypeDescription,
   TypeTitle,
 } from './BottomSheetTypes.styles'
 
 export default function BottomSheetCompactInfo({
-  title = '정보',
-  description = '간단한 안내 문구',
+  place = {
+    name: '학생회관',
+    address: '서울시 관악구 관악로 3',
+  },
+  onDeparture,
+  onArrival,
 }) {
   return (
     <TypeContainer $compact>
-      <TypeTitle>{title}</TypeTitle>
-      <TypeDescription>{description}</TypeDescription>
+      <TypeTitle>{place.name}</TypeTitle>
+      <AddressText>{place.address}</AddressText>
+
+      <StickyActionSection $noBorder>
+        <BottomSheetActionBar
+          leftLabel="출발"
+          rightLabel="도착"
+          leftVariant="outline"
+          rightVariant="primary"
+          onLeftClick={onDeparture}
+          onRightClick={onArrival}
+        />
+      </StickyActionSection>
     </TypeContainer>
   )
 }

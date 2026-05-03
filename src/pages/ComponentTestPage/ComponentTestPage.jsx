@@ -10,6 +10,7 @@ import {
   mockReviews,
   mockReviewSummary,
 } from '../../mocks/bottomSheet/buildingDetail.mock'
+import { mockCompactPlace } from '../../mocks/bottomSheet/compactInfo.mock'
 import { mockRouteOptions } from '../../mocks/bottomSheet/routeOptions.mock'
 import './ComponentTestPage.css'
 
@@ -130,8 +131,9 @@ export default function ComponentTestPage() {
 
         {sheetType === 'C' ? (
           <BottomSheetCompactInfo
-            title="현재 위치 확인"
-            description="도착지까지 약 120m 남았습니다."
+            place={mockCompactPlace}
+            onDeparture={closeSheet}
+            onArrival={closeSheet}
           />
         ) : null}
       </BottomSheetBase>

@@ -1,12 +1,10 @@
 import AppLayout from './layouts/AppLayout'
-import './App.css'
+import ComponentTestPage from './pages/ComponentTestPage/ComponentTestPage'
 
 function App() {
   return (
     <AppLayout>
-      <main>
-        <h1>insideout</h1>
-      </main>
+      <ComponentTestPage />
     </AppLayout>
   )
 }

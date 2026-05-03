@@ -26,4 +26,15 @@
   --black-1000: #000000;
   --black-950: #0a0a0a;
   --black-900: #101828;
+
+  /* Typography */
+  --font-sans: 'Pretendard', sans-serif;
+  --text-16: 1rem;
+  --fw-semibold: 600;
+
+  /* Radius / Spacing */
+  --radius-10: 10px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
 }

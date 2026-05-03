@@ -3,7 +3,7 @@ function AppLayout({ children }) {
     <div
       style={{
         width: '100%',
-        maxWidth: '375px',
+        maxWidth: 'var(--layout-mobile-width)',
         minHeight: '100dvh',
         margin: '0 auto',
         overflow: 'hidden',

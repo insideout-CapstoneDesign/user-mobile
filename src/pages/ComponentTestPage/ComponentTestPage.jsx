@@ -11,7 +11,11 @@ import {
   mockReviewSummary,
 } from '../../mocks/bottomSheet/buildingDetail.mock'
 import { mockCompactPlace } from '../../mocks/bottomSheet/compactInfo.mock'
-import { mockRouteOptions } from '../../mocks/bottomSheet/routeOptions.mock'
+import {
+  mockCarRouteOptions,
+  mockTransitRouteOptions,
+  mockWalkRouteOptions,
+} from '../../mocks/bottomSheet/routeOptions.mock'
 import './ComponentTestPage.css'
 
 export default function ComponentTestPage() {
@@ -75,8 +79,20 @@ export default function ComponentTestPage() {
       </div>
 
       <div className="button-section">
-        <Button variant="outline" onClick={() => setSheetType('B')}>
-          Type B 열기 (경로 선택형)
+        <Button variant="outline" onClick={() => setSheetType('B_WALK')}>
+          Type B 열기 (도보)
+        </Button>
+      </div>
+
+      <div className="button-section">
+        <Button variant="outline" onClick={() => setSheetType('B_TRANSIT')}>
+          Type B 열기 (대중교통)
+        </Button>
+      </div>
+
+      <div className="button-section">
+        <Button variant="outline" onClick={() => setSheetType('B_CAR')}>
+          Type B 열기 (자동차)
         </Button>
       </div>
 
@@ -122,10 +138,30 @@ export default function ComponentTestPage() {
           />
         ) : null}
 
-        {sheetType === 'B' ? (
+        {sheetType === 'B_WALK' ? (
           <BottomSheetRouteOptions
-            options={mockRouteOptions}
-            onSelectOption={closeSheet}
+            mode="walk"
+            options={mockWalkRouteOptions}
+            onSelectOption={() => {}}
+            onStartNavigation={closeSheet}
+          />
+        ) : null}
+
+        {sheetType === 'B_TRANSIT' ? (
+          <BottomSheetRouteOptions
+            mode="transit"
+            options={mockTransitRouteOptions}
+            onSelectOption={() => {}}
+            onStartNavigation={closeSheet}
+          />
+        ) : null}
+
+        {sheetType === 'B_CAR' ? (
+          <BottomSheetRouteOptions
+            mode="car"
+            options={mockCarRouteOptions}
+            onSelectOption={() => {}}
+            onStartNavigation={closeSheet}
           />
         ) : null}
 

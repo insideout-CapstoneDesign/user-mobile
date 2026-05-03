@@ -10,7 +10,7 @@ const variantStyles = {
   outline: css`
     background: var(--surface-0);
     color: var(--black-1000);
-    border: 1px solid var(--gray-200);
+    border: var(--size-1) solid var(--gray-200);
   `,
   danger: css`
     background: var(--red-500);
@@ -24,7 +24,7 @@ export const StyledButton = styled.button.attrs({ type: 'button' })`
   justify-content: center;
   align-items: center;
   width: 100%;
-  min-height: 48px;
+  min-height: var(--size-48);
   padding: 0 var(--space-12);
   border-radius: var(--radius-10);
   font-family: var(--font-sans);

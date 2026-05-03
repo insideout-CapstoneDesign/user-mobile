@@ -31,29 +31,6 @@ export const StyledSheetContent = styled(Sheet.Content)`
   padding-bottom: calc(var(--space-20) + env(safe-area-inset-bottom));
 `
 
-export const SheetHead = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-12);
-`
-
-export const SheetTitle = styled.h2`
-  margin: 0;
-  font-size: var(--text-16);
-  font-weight: 600;
-  color: var(--black-900);
-`
-
-export const SheetCloseButton = styled.button`
-  border: none;
-  background: transparent;
-  color: var(--gray-600);
-  font-family: var(--font-sans);
-  font-size: var(--text-14);
-  cursor: pointer;
-`
-
 export const SheetBody = styled.div`
   display: grid;
   gap: var(--space-8);

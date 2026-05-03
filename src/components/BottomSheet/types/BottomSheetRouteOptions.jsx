@@ -76,7 +76,6 @@ export default function BottomSheetRouteOptions({
     if (step.type === 'bus') return <FaBus size={12} />
     if (step.type === 'subway') return <FaSubway size={12} />
     if (step.type === 'car') return <FaCarAlt size={12} />
-    if (step.type === 'walk') return <RoutePointDot />
     return <RoutePointDot />
   }
 

@@ -13,12 +13,6 @@ export const TypeTitle = styled.h3`
   font-size: var(--text-16);
 `
 
-export const TypeDescription = styled.p`
-  margin: 0;
-  color: var(--gray-600);
-  font-size: var(--text-14);
-`
-
 export const PlaceHead = styled.div`
   display: flex;
   align-items: center;
@@ -230,24 +224,6 @@ export const RouteSectionTitle = styled.p`
   font-weight: 500;
 `
 
-export const RouteModeTabs = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-8);
-`
-
-export const RouteModeButton = styled.button`
-  border: var(--size-1) solid
-    ${({ $active }) => ($active ? 'var(--blue-600)' : 'var(--gray-200)')};
-  background: ${({ $active }) => ($active ? 'var(--blue-50)' : 'var(--surface-0)')};
-  color: ${({ $active }) => ($active ? 'var(--blue-600)' : 'var(--gray-600)')};
-  border-radius: var(--radius-10);
-  padding: var(--space-8) var(--space-6);
-  font-family: var(--font-sans);
-  font-size: var(--text-13);
-  font-weight: 600;
-  cursor: pointer;
-`
 
 export const RouteList = styled.div`
   display: grid;
@@ -273,11 +249,6 @@ export const RouteCardHead = styled.div`
 export const RouteTimeText = styled.strong`
   color: var(--black-900);
   font-size: var(--text-16);
-`
-
-export const RouteMetaText = styled.span`
-  color: var(--gray-500);
-  font-size: var(--text-12);
 `
 
 export const RouteBar = styled.div`

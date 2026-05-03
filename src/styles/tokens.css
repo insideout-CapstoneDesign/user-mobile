@@ -1,4 +1,7 @@
 :root {
+  /* Base */
+  --white: #ffffff;
+
   /* Blue */
   --blue-50: #eff6ff;
   --blue-100: #dbeafe;
@@ -26,6 +29,17 @@
   --black-1000: #000000;
   --black-950: #0a0a0a;
   --black-900: #101828;
+
+  /* Surface */
+  --surface-0: var(--white);
+  --surface-50: #f8fafc;
+
+  /* Text */
+  --text-inverse: var(--white);
+
+  /* Overlay / Shadow */
+  --overlay-dim: rgba(10, 10, 10, 0.36);
+  --shadow-bottom-sheet: 0 -8px 24px rgba(16, 24, 40, 0.12);
 
   /* Typography */
   --font-sans: 'Pretendard', sans-serif;

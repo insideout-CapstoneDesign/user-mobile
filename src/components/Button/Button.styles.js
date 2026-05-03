@@ -4,17 +4,17 @@ import styled, { css } from 'styled-components'
 const variantStyles = {
   primary: css`
     background: var(--blue-600);
-    color: #fff;
+    color: var(--text-inverse);
     border: none;
   `,
   outline: css`
-    background: #fff;
+    background: var(--surface-0);
     color: var(--black-1000);
     border: 1px solid var(--gray-200);
   `,
   danger: css`
     background: var(--red-500);
-    color: #fff;
+    color: var(--text-inverse);
     border: none;
   `,
 }
@@ -37,7 +37,7 @@ export const StyledButton = styled.button.attrs({ type: 'button' })`
 
   &:disabled {
     background: var(--gray-400);
-    color: #fff;
+    color: var(--text-inverse);
     border: none;
     cursor: not-allowed;
   }

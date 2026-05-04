@@ -9,6 +9,8 @@ import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
 import BottomSheetCompactInfo from '../../components/BottomSheet/types/BottomSheetCompactInfo'
 import BottomSheetPlaceDetail from '../../components/BottomSheet/types/BottomSheetPlaceDetail'
 import BottomSheetRouteOptions from '../../components/BottomSheet/types/BottomSheetRouteOptions'
+
+// Mock 데이터 임포트
 import {
   mockBuilding,
   mockPOIs,
@@ -21,6 +23,9 @@ import {
   mockTransitRouteOptions,
   mockWalkRouteOptions,
 } from '../../mocks/bottomSheet/routeOptions.mock'
+import { mockSearchResults } from '../../mocks/search/searchResult.mock'
+import { mockFloorList } from '../../mocks/floor/floorData.mock'
+
 import './ComponentTestPage.css'
 
 export default function ComponentTestPage() {
@@ -33,18 +38,12 @@ export default function ComponentTestPage() {
   const [destination, setDestination] = useState('충무로 4호선 1번출구')
   const [transport, setTransport] = useState('transit')
 
-  const floorList = mockBuilding.floors.map(f => f < 0 ? `B${Math.abs(f)}` : `${f}F`);
-  const searchResults = [
-    { id: 1, title: mockBuilding.name, address: mockBuilding.address, isRegistered: true },
-    { id: 2, title: mockCompactPlace.name, address: mockCompactPlace.address, isRegistered: false },
-    { id: 3, title: '중앙도서관', address: '서울시 관악구 관악로 2', isRegistered: true },
-  ];
-
   const handleSwap = () => {
     const temp = origin
     setOrigin(destination)
     setDestination(temp)
   }
+  
   const closeSheet = () => {
     setSheetType(null)
     setShowPOIs(false)
@@ -54,10 +53,12 @@ export default function ComponentTestPage() {
     <main className='component-test-page' style={{ padding: '0', maxWidth: '375px', margin: '0 auto', background: '#fff', minHeight: '100vh' }}>
       <h1>insideout</h1>
       <p className="component-test-description">
-        Button/BottomSheet 공통 컴포넌트 테스트
+        컴포넌트 및 디자인 시스템 통합 테스트
       </p>
 
-        {searchResults.map((item) => (
+      {/* 검색 결과 리스트 */}
+      <section style={{ padding: '0 1rem' }}>
+        {mockSearchResults.map((item) => (
           <SearchResultItem 
             key={item.id}
             title={item.title}
@@ -66,14 +67,17 @@ export default function ComponentTestPage() {
             onClick={() => alert(`${item.title} 선택됨`)}
           />
         ))}
+      </section>
       
+      {/* 층 선택기 */}
       <FloorSelector 
         buildingName={mockBuilding.name}
-        floors={floorList} 
+        floors={mockFloorList} 
         activeFloor={selectedFloor} 
         onSelect={setSelectedFloor} 
       />
 
+      {/* 길찾기 검색바 */}
       <DirectionSearch 
         origin={origin}
         destination={destination}
@@ -81,164 +85,76 @@ export default function ComponentTestPage() {
         onBack={() => alert('이전 페이지로 이동!')} 
       />
 
+      {/* 입력 필드 섹션 */}
+      <section style={{ padding: '0 1rem' }}>
         <Input 
           label="이메일" 
           placeholder="example@email.com" 
           value={testEmail}
           onChange={(e) => setTestEmail(e.target.value)}
         />
-        <Input 
-          label="비밀번호" 
-          type="password" 
-          placeholder="8자 이상 입력" 
-        />
-        <Input 
-          label="전화번호" 
-          subLabel="선택" 
-          placeholder="010-0000-0000" 
-        />
+        <Input label="비밀번호" type="password" placeholder="8자 이상 입력" />
+        <Input label="전화번호" subLabel="선택" placeholder="010-0000-0000" />
+      </section>
 
+      {/* 교통수단 선택기 */}
       <TransportSelector 
         activeMode={transport} 
         onSelect={(mode) => setTransport(mode)} 
       />
 
-      <div className="button-section">
+      {/* 버튼 섹션 */}
+      <section className="button-group" style={{ padding: '1rem' }}>
         <Button variant="outline">로그아웃</Button>
-      </div>
-
-      <div className="button-section">
         <Button variant="primary">저장</Button>
-      </div>
-
-      <div className="button-section">
         <Button disabled>저장 (비활성화)</Button>
-      </div>
-
-      <div className="button-row two-col">
-        <div className="button-cell">
+        
+        <div className="button-row two-col" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
           <Button variant="outline">출발</Button>
-        </div>
-        <div className="button-cell">
           <Button variant="primary">도착</Button>
         </div>
-      </div>
+      </section>
 
-      <div className="button-row two-col danger-row">
-        <div className="button-cell">
-          <Button variant="outline">취소</Button>
-        </div>
-        <div className="button-cell">
-          <Button variant="danger">탈퇴하기</Button>
-        </div>
-      </div>
+      {/* 바텀시트 트리거 버튼들 */}
+      <section style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <Button variant="primary" onClick={() => setSheetType('A_AUTH')}>장소 상세 (로그인)</Button>
+        <Button variant="outline" onClick={() => setSheetType('B_TRANSIT')}>대중교통 경로 정보</Button>
+        <Button variant="danger" onClick={() => setSheetType('C')}>간이 정보 (Type C)</Button>
+      </section>
 
-      <div className="button-section">
-        <Button variant="primary" onClick={() => setSheetType('A_AUTH')}>
-          Type A 열기 (로그인 - {mockBuilding.name})
-        </Button>
-      </div>
-
-      <div className="button-section">
-        <Button variant="outline" onClick={() => setSheetType('A_GUEST')}>
-          Type A 열기 (비로그인)
-        </Button>
-      </div>
-
-      <div className="button-section">
-        <Button variant="outline" onClick={() => setSheetType('B_WALK')}>
-          Type B 열기 (도보 경로)
-        </Button>
-      </div>
-
-      <div className="button-section">
-        <Button variant="outline" onClick={() => setSheetType('B_TRANSIT')}>
-          Type B 열기 (대중교통 경로)
-        </Button>
-      </div>
-
-      <div className="button-section">
-        <Button variant="outline" onClick={() => setSheetType('B_CAR')}>
-          Type B 열기 (자동차 경로)
-        </Button>
-      </div>
-
-      <div className="button-section">
-        <Button variant="danger" onClick={() => setSheetType('C')}>
-          Type C 열기 ({mockCompactPlace.name})
-        </Button>
-      </div>
-
+      {/* 공통 바텀시트 구성 */}
       <BottomSheetBase isOpen={!!sheetType} onClose={closeSheet}>
-        {sheetType === 'A_AUTH' ? (
+        {sheetType === 'A_AUTH' && (
           <BottomSheetPlaceDetail
             isLoggedIn
             building={mockBuilding}
             isFavorite={isFavorite}
-            onToggleFavorite={() => setIsFavorite((prev) => !prev)}
+            onToggleFavorite={() => setIsFavorite(p => !p)}
             onSelectFloor={setSelectedFloor}
             selectedFloor={selectedFloor}
             onDeparture={closeSheet}
             onArrival={closeSheet}
             pois={mockPOIs}
             showPOIs={showPOIs}
-            onTogglePOIs={() => setShowPOIs((prev) => !prev)}
+            onTogglePOIs={() => setShowPOIs(p => !p)}
             reviewSummary={mockReviewSummary}
             reviews={mockReviews}
-            onWriteReview={closeSheet}
-            onMoreReviews={() => {}}
           />
-        ) : null}
-
-        {sheetType === 'A_GUEST' ? (
-          <BottomSheetPlaceDetail
-            isLoggedIn={false}
-            building={mockBuilding}
-            onSelectFloor={setSelectedFloor}
-            selectedFloor={selectedFloor}
-            onDeparture={closeSheet}
-            onArrival={closeSheet}
-            pois={mockPOIs}
-            showPOIs={showPOIs}
-            onTogglePOIs={() => setShowPOIs((prev) => !prev)}
-            reviews={mockReviews}
-          />
-        ) : null}
-
-        {sheetType === 'B_WALK' ? (
-          <BottomSheetRouteOptions
-            mode="walk"
-            options={mockWalkRouteOptions}
-            onSelectOption={() => {}}
-            onStartNavigation={closeSheet}
-          />
-        ) : null}
-
-        {sheetType === 'B_TRANSIT' ? (
+        )}
+        {sheetType === 'B_TRANSIT' && (
           <BottomSheetRouteOptions
             mode="transit"
             options={mockTransitRouteOptions}
-            onSelectOption={() => {}}
             onStartNavigation={closeSheet}
           />
-        ) : null}
-
-        {sheetType === 'B_CAR' ? (
-          <BottomSheetRouteOptions
-            mode="car"
-            options={mockCarRouteOptions}
-            onSelectOption={() => {}}
-            onStartNavigation={closeSheet}
-          />
-        ) : null}
-
-        {sheetType === 'C' ? (
+        )}
+        {sheetType === 'C' && (
           <BottomSheetCompactInfo
             place={mockCompactPlace}
             onDeparture={closeSheet}
             onArrival={closeSheet}
           />
-        ) : null}
+        )}
       </BottomSheetBase>
     </main>
   )

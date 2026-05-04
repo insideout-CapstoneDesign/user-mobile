@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Button from '../../components/Button/Button'
+import SearchInput from '../../components/SearchInput/SearchInput'
 import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
 import BottomSheetCompactInfo from '../../components/BottomSheet/types/BottomSheetCompactInfo'
 import BottomSheetPlaceDetail from '../../components/BottomSheet/types/BottomSheetPlaceDetail'
@@ -20,6 +21,7 @@ import './ComponentTestPage.css'
 
 export default function ComponentTestPage() {
   const [sheetType, setSheetType] = useState(null)
+  const [searchKeyword, setSearchKeyword] = useState('')
   const [isFavorite, setIsFavorite] = useState(false)
   const [showPOIs, setShowPOIs] = useState(false)
   const [selectedFloor, setSelectedFloor] = useState(null)
@@ -35,6 +37,14 @@ export default function ComponentTestPage() {
       <p className="component-test-description">
         Button/BottomSheet 공통 컴포넌트 테스트
       </p>
+
+      <div className="button-section">
+        <SearchInput
+          value={searchKeyword}
+          onChange={setSearchKeyword}
+          onSearch={() => setSheetType('A_GUEST')}
+        />
+      </div>
 
       <div className="button-section">
         <Button variant="outline">로그아웃</Button>

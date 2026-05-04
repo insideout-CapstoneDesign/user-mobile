@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Button from '../../components/Button/Button'
 import SearchInput from '../../components/SearchInput/SearchInput'
+import BottomNav from '../../components/BottomNav/BottomNav'
 import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
 import BottomSheetCompactInfo from '../../components/BottomSheet/types/BottomSheetCompactInfo'
 import BottomSheetPlaceDetail from '../../components/BottomSheet/types/BottomSheetPlaceDetail'
@@ -22,6 +23,7 @@ import './ComponentTestPage.css'
 export default function ComponentTestPage() {
   const [sheetType, setSheetType] = useState(null)
   const [searchKeyword, setSearchKeyword] = useState('')
+  const [currentNav, setCurrentNav] = useState('map')
   const [isFavorite, setIsFavorite] = useState(false)
   const [showPOIs, setShowPOIs] = useState(false)
   const [selectedFloor, setSelectedFloor] = useState(null)
@@ -111,6 +113,10 @@ export default function ComponentTestPage() {
           Type C 열기 (간이 정보형)
         </Button>
       </div>
+
+      <p className="component-test-description">현재 선택: {currentNav}</p>
+
+      <BottomNav currentKey={currentNav} onChange={setCurrentNav} />
 
       <BottomSheetBase isOpen={!!sheetType} onClose={closeSheet}>
         {sheetType === 'A_AUTH' ? (

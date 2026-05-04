@@ -2,30 +2,30 @@
 import styled from 'styled-components'
 
 export const FloatingContainer = styled.div`
-  background: var(--surface-0, #ffffff);
-  width: 15.75rem; /* 252px */
-  height: 3.25rem;  /* 52px */
-  padding: 0.4rem 0.6rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--surface-0); 
+  width: 15.75rem; 
+  height: 3.25rem;  
+  padding: var(--space-6) var(--space-10); 
+  border-radius: var(--radius-12);
+  box-shadow: var(--shadow-bottom-sheet);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.25rem;
+  gap: var(--space-4);
   position: relative; 
 `;
 
 export const FloorInfo = styled.div`
-  font-family: 'Pretendard', sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--gray-700, #4b5563);
-  margin-left: 0.125rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-13);
+  font-weight: var(--fw-medium); 
+  color: var(--gray-700);
+  margin-left: var(--space-2);
 `;
 
 export const ButtonGrid = styled.div`
   display: flex;
-  gap: 0.25rem;
+  gap: var(--space-4);
   overflow-x: auto;
   
   &::-webkit-scrollbar { display: none; }
@@ -33,21 +33,21 @@ export const ButtonGrid = styled.div`
 `;
 
 export const SquareButton = styled.button`
-  min-width: 1.875rem; /* 30px */
-  height: 1.5rem;    /* 24px */
-  border-radius: 0.25rem;
+  min-width: 1.875rem;
+  height: var(--size-26);
+  border-radius: var(--radius-4);
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Pretendard', sans-serif;
-  font-size: 0.75rem; /* 12px */
-  font-weight: 500;
+  font-family: var(--font-sans);
+  font-size: var(--text-12);
+  font-weight: var(--fw-medium); 
   cursor: pointer;
   transition: all 0.1s ease;
 
-  background: ${({ $active }) => ($active ? 'var(--blue-600, #2563eb)' : 'var(--gray-100, #f3f4f6)')};
-  color: ${({ $active }) => ($active ? '#ffffff' : 'var(--gray-600, #6b7280)')};
+  background: ${({ $active }) => ($active ? 'var(--blue-600)' : 'var(--gray-100)')};
+  color: ${({ $active }) => ($active ? 'var(--white)' : 'var(--gray-600)')};
 
   &:active {
     transform: scale(0.95);

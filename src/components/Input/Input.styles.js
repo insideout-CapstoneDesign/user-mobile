@@ -1,35 +1,34 @@
-// src/components/Input/Input.styles.js
 import styled from 'styled-components'
 
 export const InputContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-8);
   width: 100%;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-16);
 `;
 
 export const Label = styled.label`
-  font-family: 'Pretendard', sans-serif;
-  font-size: 0.875rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-14);
   font-weight: var(--fw-semibold);
   color: var(--black-1000);
   
   span {
     color: var(--gray-500);
-    font-weight: var(--fw-regular);
-    margin-left: 0.25rem;
+    font-weight: var(--fw-medium);
+    margin-left: var(--space-4);
   }
 `;
 
 export const StyledInput = styled.input`
   width: 100%;
-  height: 3.25rem;
-  padding: 0 1rem;
+  height: var(--size-48);
+  padding: 0 var(--space-16);
   border-radius: var(--radius-10);
-  border: var(--size-1, 1px) solid var(--gray-200);
-  font-family: 'Pretendard', sans-serif;
-  font-size: 1rem;
+  border: var(--size-1) solid var(--gray-200);
+  font-family: var(--font-sans);
+  font-size: var(--text-16);
   background: var(--surface-0);
   transition: all 0.2s ease;
 

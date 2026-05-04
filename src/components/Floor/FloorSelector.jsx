@@ -12,6 +12,7 @@ export default function FloorSelector({ buildingName, floors, activeFloor, onSel
       <S.ButtonGrid>
         {floors.map((floor) => (
           <S.SquareButton
+            type="button"
             key={floor}
             $active={activeFloor === floor}
             onClick={() => onSelect(floor)}

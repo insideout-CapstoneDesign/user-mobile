@@ -16,6 +16,8 @@ export default function TransportSelector({ activeMode, onSelect }) {
       {modes.map((mode) => (
         <S.TabItem 
           key={mode.id}
+          as="button"
+          type="button"
           $active={activeMode === mode.id}
           onClick={() => onSelect(mode.id)}
         >

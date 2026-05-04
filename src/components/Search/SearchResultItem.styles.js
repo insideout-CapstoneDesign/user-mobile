@@ -1,57 +1,63 @@
-// src/components/Search/SearchResultItem.styles.js
 import styled from 'styled-components'
 
 export const Container = styled.div`
+  border: none;
+  width: 100%;
+  text-align: left;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 0.5rem;
-  background: var(--surface-0, #ffffff);
-  border-bottom: 1px solid var(--gray-100, #f1f3f5);
+  padding: var(--space-16) var(--space-8);
+  background: var(--surface-0);
+  border-bottom: var(--size-1) solid var(--gray-100);
   cursor: pointer;
   transition: background 0.2s ease;
 
   &:active {
-    background: var(--gray-50, #f8f9fa);
+    background: var(--surface-50);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--blue-600);
+    outline-offset: 2px;
   }
 `;
 
 export const InfoWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--space-4);
 `;
 
 export const TitleRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-8);
 `;
 
 export const Title = styled.span`
-  font-family: 'Pretendard', sans-serif;
-  font-size: 1rem;
-  font-weight: var(--fw-semibold, 600);
-  color: var(--black-1000, #1a1a1a);
+  font-family: var(--font-sans);
+  font-size: var(--text-16);
+  font-weight: var(--fw-semibold);
+  color: var(--black-1000);
 `;
 
 export const Badge = styled.span`
-  background: var(--blue-50, #eef2ff);
-  color: var(--blue-600, #2563eb);
-  font-size: 0.6875rem; /* 11px */
-  font-weight: var(--fw-bold, 700);
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
+  background: var(--blue-50);
+  color: var(--blue-600);
+  font-size: var(--text-11);
+  font-weight: 700;
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-4);
 `;
 
 export const Address = styled.span`
-  font-family: 'Pretendard', sans-serif;
-  font-size: 0.875rem;
-  color: var(--gray-500, #868e96);
+  font-family: var(--font-sans);
+  font-size: var(--text-14);
+  color: var(--gray-500);
 `;
 
 export const ArrowIcon = styled.img`
-  width: 1.25rem;
-  height: 1.25rem;
+  width: var(--size-20);
+  height: var(--size-20);
   opacity: 0.3;
 `;

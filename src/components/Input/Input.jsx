@@ -5,17 +5,18 @@ import * as S from './Input.styles'
 export default function Input({ 
   label, 
   subLabel, 
+  id,
   ...props 
 }) {
   return (
     <S.InputContainer>
       {label && (
-        <S.Label>
+        <S.Label htmlFor={id}>
           {label}
           {subLabel && <span>({subLabel})</span>}
         </S.Label>
       )}
-      <S.StyledInput {...props} />
+      <S.StyledInput id={id} {...props} />
     </S.InputContainer>
   )
 }

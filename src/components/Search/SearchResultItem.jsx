@@ -5,7 +5,7 @@ import RightArrow from '../../assets/icons/right-arrow.svg'
 
 export default function SearchResultItem({ title, address, isRegistered, onClick }) {
   return (
-    <S.Container onClick={onClick}>
+    <S.Container as="button" type="button" onClick={onClick}>
       <S.InfoWrapper>
         <S.TitleRow>
           <S.Title>{title}</S.Title>

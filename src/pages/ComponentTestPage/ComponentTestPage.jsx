@@ -33,7 +33,6 @@ export default function ComponentTestPage() {
   const [destination, setDestination] = useState('충무로 4호선 1번출구')
   const [transport, setTransport] = useState('transit')
 
-  // Mock 데이터를 활용한 변수들
   const floorList = mockBuilding.floors.map(f => f < 0 ? `B${Math.abs(f)}` : `${f}F`);
   const searchResults = [
     { id: 1, title: mockBuilding.name, address: mockBuilding.address, isRegistered: true },

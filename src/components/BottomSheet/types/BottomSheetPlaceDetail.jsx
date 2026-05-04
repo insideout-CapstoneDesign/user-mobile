@@ -61,14 +61,17 @@ export default function BottomSheetPlaceDetail({
     onMoreReviews?.()
   }
 
-  const renderStars = (rating = 0) =>
-    Array.from({ length: 5 }).map((_, idx) =>
-      idx < rating ? (
+  const renderStars = (rating = 0) => {
+    const filledCount = Math.max(0, Math.min(5, Math.floor(rating)))
+
+    return Array.from({ length: 5 }).map((_, idx) =>
+      idx < filledCount ? (
         <IoStar key={idx} size={13} color="var(--yellow-500)" />
       ) : (
         <IoStarOutline key={idx} size={13} color="var(--gray-400)" />
-      )
+      ),
     )
+  }
 
   return (
     <TypeContainer>

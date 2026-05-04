@@ -7,17 +7,17 @@ import {
 } from './BottomSheetTypes.styles'
 
 export default function BottomSheetCompactInfo({
-  place = {
-    name: '학생회관',
-    address: '서울시 관악구 관악로 3',
-  },
+  place,
   onDeparture,
   onArrival,
 }) {
+  const placeName = place?.name ?? '장소명'
+  const placeAddress = place?.address ?? '주소 정보 없음'
+
   return (
     <TypeContainer $compact>
-      <TypeTitle>{place.name}</TypeTitle>
-      <AddressText>{place.address}</AddressText>
+      <TypeTitle>{placeName}</TypeTitle>
+      <AddressText>{placeAddress}</AddressText>
 
       <StickyActionSection $noBorder>
         <BottomSheetActionBar

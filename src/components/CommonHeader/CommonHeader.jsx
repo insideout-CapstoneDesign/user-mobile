@@ -83,7 +83,7 @@ export default function CommonHeader({
 
       <HeaderCenter $variant={resolvedVariant}>
         {resolvedVariant === 'search' ? (
-          children ?? <SearchInput variant="inline" {...searchProps} />
+          children ?? <SearchInput {...searchProps} variant="inline" />
         ) : (
           <HeaderTitle $variant={resolvedVariant}>{title}</HeaderTitle>
         )}

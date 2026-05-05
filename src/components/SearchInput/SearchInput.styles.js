@@ -21,6 +21,11 @@ export const SearchInputWrapper = styled.div`
           border: none;
           box-shadow: var(--shadow-searchbar);
         `}
+
+  &:focus-within {
+    border: var(--size-1) solid var(--blue-600);
+    box-shadow: 0 0 0 var(--space-3) rgba(21, 93, 252, 0.16);
+  }
 `
 
 export const SearchIconWrap = styled.span`
@@ -45,5 +50,9 @@ export const SearchField = styled.input`
 
   &::placeholder {
     color: var(--gray-400);
+  }
+
+  &:focus-visible {
+    outline: none;
   }
 `

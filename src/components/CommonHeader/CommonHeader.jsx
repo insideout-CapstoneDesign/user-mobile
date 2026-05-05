@@ -38,7 +38,7 @@ export default function CommonHeader({
 
   if (resolvedVariant === 'routeInfo') {
     return (
-      <HeaderContainer $variant={resolvedVariant}>
+      <HeaderContainer $variant={resolvedVariant} $overlay={overlay}>
         <IconButton
           type="button"
           $variant={resolvedVariant}

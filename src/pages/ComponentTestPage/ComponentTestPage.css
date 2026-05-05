@@ -29,6 +29,12 @@
 .header-demo-list {
   display: grid;
   gap: var(--space-8);
+  margin-inline: calc(-1 * var(--space-16));
+}
+
+.header-demo-frame {
+  position: relative;
+  min-height: var(--size-56);
 }
 
 .button-section {

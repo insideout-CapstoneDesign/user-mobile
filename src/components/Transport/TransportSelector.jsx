@@ -1,5 +1,5 @@
 import 'react'
-import * as S from './TransportSelector.styles'
+import { Container, TabItem } from './TransportSelector.styles'
 import CarIcon from '../../assets/icons/car.svg'
 import BusIcon from '../../assets/icons/bus.svg'
 import WalkIcon from '../../assets/icons/walk.svg'
@@ -12,9 +12,9 @@ export default function TransportSelector({ activeMode, onSelect }) {
   ];
 
   return (
-    <S.Container>
+    <Container>
       {modes.map((mode) => (
-        <S.TabItem 
+        <TabItem 
           key={mode.id}
           as="button"
           type="button"
@@ -23,8 +23,8 @@ export default function TransportSelector({ activeMode, onSelect }) {
         >
           <img src={mode.icon} alt={mode.label} />
           <span>{mode.label}</span>
-        </S.TabItem>
+        </TabItem>
       ))}
-    </S.Container>
+    </Container>
   )
 }

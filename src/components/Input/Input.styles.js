@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 
 export const InputContainer = styled.div`
   display: flex;
@@ -22,22 +22,24 @@ export const Label = styled.label`
 `;
 
 export const StyledInput = styled.input`
-  width: 100%;
-  height: var(--size-48);
-  padding: 0 var(--space-16);
-  border-radius: var(--radius-10);
-  border: var(--size-1) solid var(--gray-200);
-  font-family: var(--font-sans);
-  font-size: var(--text-16);
-  background: var(--surface-0);
-  transition: all 0.2s ease;
+  ${() => css`
+    width: 100%;
+    height: var(--size-48);
+    padding: 0 var(--space-16);
+    border-radius: var(--radius-10);
+    border: var(--size-1) solid var(--gray-200);
+    font-family: var(--font-sans);
+    font-size: var(--text-16);
+    background: var(--surface-0);
+    transition: all 0.2s ease;
 
-  &::placeholder {
-    color: var(--gray-400);
-  }
+    &::placeholder {
+      color: var(--gray-400);
+    }
 
-  &:focus {
-    outline: none;
-    border-color: var(--blue-600);
-  }
+    &:focus {
+      outline: none;
+      border-color: var(--blue-600);
+    }
+  `}
 `;

@@ -10,7 +10,6 @@ import BottomSheetCompactInfo from '../../components/BottomSheet/types/BottomShe
 import BottomSheetPlaceDetail from '../../components/BottomSheet/types/BottomSheetPlaceDetail'
 import BottomSheetRouteOptions from '../../components/BottomSheet/types/BottomSheetRouteOptions'
 
-// Mock 데이터 임포트
 import {
   mockBuilding,
   mockPOIs,
@@ -33,10 +32,36 @@ export default function ComponentTestPage() {
   const [isFavorite, setIsFavorite] = useState(false)
   const [showPOIs, setShowPOIs] = useState(false)
   const [selectedFloor, setSelectedFloor] = useState(null)
+  
+  const [testName, setTestName] = useState('')
   const [testEmail, setTestEmail] = useState('')
+  const [testPassword, setTestPassword] = useState('')
+  const [testPhone, setTestPhone] = useState('')
+
   const [origin, setOrigin] = useState('공학관 601호')
   const [destination, setDestination] = useState('충무로 4호선 1번출구')
   const [transport, setTransport] = useState('transit')
+
+const formatPhoneNumber = (value) => {
+  if (!value) return value;
+  
+  const phoneNumber = value.replace(/[^\d]/g, '');
+  const phoneNumberLength = phoneNumber.length;
+
+  if (phoneNumberLength > 11) return value.substring(0, 13); 
+
+  if (phoneNumberLength < 4) return phoneNumber;
+  if (phoneNumberLength < 8) {
+    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
+  }
+  return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 7)}-${phoneNumber.slice(7, 11)}`;
+};
+
+const handlePhoneChange = (e) => {
+  const formattedValue = formatPhoneNumber(e.target.value);
+  setTestPhone(formattedValue); 
+};
+  
 
   const handleSwap = () => {
     const temp = origin
@@ -56,7 +81,6 @@ export default function ComponentTestPage() {
         컴포넌트 및 디자인 시스템 통합 테스트
       </p>
 
-      {/* 검색 결과 리스트 */}
       <section style={{ padding: '0 1rem' }}>
         {mockSearchResults.map((item) => (
           <SearchResultItem 
@@ -69,7 +93,6 @@ export default function ComponentTestPage() {
         ))}
       </section>
       
-      {/* 층 선택기 */}
       <FloorSelector 
         buildingName={mockBuilding.name}
         floors={mockFloorList} 
@@ -77,7 +100,6 @@ export default function ComponentTestPage() {
         onSelect={setSelectedFloor} 
       />
 
-      {/* 길찾기 검색바 */}
       <DirectionSearch 
         origin={origin}
         destination={destination}
@@ -85,25 +107,43 @@ export default function ComponentTestPage() {
         onBack={() => alert('이전 페이지로 이동!')} 
       />
 
-      {/* 입력 필드 섹션 */}
       <section style={{ padding: '0 1rem' }}>
         <Input 
+          label="이름" 
+          type="text"
+          placeholder="이름을 입력해주세요" 
+          value={testName}
+          onChange={(e) => setTestName(e.target.value)}
+        />
+        <Input 
           label="이메일" 
+          type="email"
           placeholder="example@email.com" 
           value={testEmail}
           onChange={(e) => setTestEmail(e.target.value)}
         />
-        <Input label="비밀번호" type="password" placeholder="8자 이상 입력" />
-        <Input label="전화번호" subLabel="선택" placeholder="010-0000-0000" />
+        <Input 
+          label="비밀번호" 
+          type="password" 
+          placeholder="8자 이상 입력" 
+          value={testPassword}
+          onChange={(e) => setTestPassword(e.target.value)}
+        />
+        <Input 
+          label="전화번호" 
+          subLabel="선택" 
+          type="tel"
+          placeholder="010-0000-0000" 
+          value={testPhone}
+          onChange={handlePhoneChange}
+        />
       </section>
 
-      {/* 교통수단 선택기 */}
       <TransportSelector 
         activeMode={transport} 
-        onSelect={(mode) => setTransport(mode)} 
+        onSelect={setTransport} 
       />
 
-      {/* 버튼 섹션 */}
       <section className="button-group" style={{ padding: '1rem' }}>
         <Button variant="outline">로그아웃</Button>
         <Button variant="primary">저장</Button>
@@ -115,14 +155,12 @@ export default function ComponentTestPage() {
         </div>
       </section>
 
-      {/* 바텀시트 트리거 버튼들 */}
       <section style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <Button variant="primary" onClick={() => setSheetType('A_AUTH')}>장소 상세 (로그인)</Button>
-        <Button variant="outline" onClick={() => setSheetType('B_TRANSIT')}>대중교통 경로 정보</Button>
+        <Button variant="outline" onClick={() => setSheetType('B_TRANSIT')}>경로 정보 상세</Button>
         <Button variant="danger" onClick={() => setSheetType('C')}>간이 정보 (Type C)</Button>
       </section>
 
-      {/* 공통 바텀시트 구성 */}
       <BottomSheetBase isOpen={!!sheetType} onClose={closeSheet}>
         {sheetType === 'A_AUTH' && (
           <BottomSheetPlaceDetail
@@ -143,8 +181,14 @@ export default function ComponentTestPage() {
         )}
         {sheetType === 'B_TRANSIT' && (
           <BottomSheetRouteOptions
-            mode="transit"
-            options={mockTransitRouteOptions}
+             mode={transport}
+             options={
+               transport === 'car'
+               ? mockCarRouteOptions
+               : transport === 'walk'
+               ? mockWalkRouteOptions
+               : mockTransitRouteOptions
+              }
             onStartNavigation={closeSheet}
           />
         )}

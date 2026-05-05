@@ -1,5 +1,4 @@
-// src/components/Direction/DirectionSearch.styles.js
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 
 export const Container = styled.div`
   display: flex;
@@ -33,7 +32,7 @@ export const ContentWrapper = styled.div`
 export const InputRow = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--space-8); 
+  gap: var(--space-8);
   height: var(--size-36);
 `;
 
@@ -41,30 +40,37 @@ export const Dot = styled.div`
   width: 0.5625rem;
   height: 0.5625rem;
   border-radius: var(--radius-pill);
-  background: ${props => props.$color};
   flex-shrink: 0; 
+
+  ${({ $color }) => css`
+    background: ${$color};
+  `}
 `;
 
 export const PlainInput = styled.input`
   border: none;
   background: transparent;
   font-family: var(--font-sans);
-  font-size: var(--text-16); 
+  font-size: var(--text-16);
   font-weight: var(--fw-medium);
   color: var(--black-1000);
   flex: 1;
   
   &:focus { outline: none; }
+  
   &:focus-visible {
     outline: 2px solid var(--blue-500);
     outline-offset: 2px;
     border-radius: var(--radius-6);
   }
-  &::placeholder { color: var(--gray-400); }
+
+  &::placeholder { 
+    color: var(--gray-400); 
+  }
 `;
 
 export const HorizontalDivider = styled.div`
-  height: var(--size-1); 
+  height: var(--size-1);
   background: var(--gray-100);
   width: 100%;
   margin: var(--space-4) 0;

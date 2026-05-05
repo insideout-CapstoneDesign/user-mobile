@@ -1,26 +1,30 @@
-// src/components/Floor/FloorSelector.jsx
 import 'react'
-import * as S from './FloorSelector.styles'
+import {
+  FloatingContainer,
+  FloorInfo,
+  ButtonGrid,
+  SquareButton
+} from './FloorSelector.styles'
 
 export default function FloorSelector({ buildingName, floors, activeFloor, onSelect }) {
   return (
-    <S.FloatingContainer>
-      <S.FloorInfo>
-        {buildingName} {activeFloor}
-      </S.FloorInfo>
+    <FloatingContainer>
+      <FloorInfo>
+        {buildingName} {activeFloor ? `· ${activeFloor}` : ''}
+      </FloorInfo>
 
-      <S.ButtonGrid>
+      <ButtonGrid>
         {floors.map((floor) => (
-          <S.SquareButton
+          <SquareButton
             type="button"
             key={floor}
             $active={activeFloor === floor}
             onClick={() => onSelect(floor)}
           >
             {floor}
-          </S.SquareButton>
+          </SquareButton>
         ))}
-      </S.ButtonGrid>
-    </S.FloatingContainer>
+      </ButtonGrid>
+    </FloatingContainer>
   )
 }

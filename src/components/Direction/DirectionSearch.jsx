@@ -1,33 +1,41 @@
-// src/components/Direction/DirectionSearch.jsx
 import 'react'
-import * as S from './DirectionSearch.styles'
+import {
+  Container,
+  BackButton,
+  ContentWrapper,
+  InputRow,
+  Dot,
+  PlainInput,
+  HorizontalDivider,
+  SwapButton
+} from './DirectionSearch.styles'
 import SwapIcon from '../../assets/icons/swap-icon.svg';
 import BackIcon from '../../assets/icons/back-icon.svg';
 
 export default function DirectionSearch({ origin, destination, onSwap, onBack }) {
   return (
-    <S.Container>
-      <S.BackButton type="button" onClick={onBack}>
+    <Container>
+      <BackButton type="button" onClick={onBack}>
         <img src={BackIcon} alt="뒤로가기" width="24" height="24" />
-      </S.BackButton>
+      </BackButton>
 
-      <S.ContentWrapper>
-        <S.InputRow>
-          <S.Dot $color="#3B82F6" />
-          <S.PlainInput placeholder="출발지" value={origin} readOnly />
-        </S.InputRow>
+      <ContentWrapper>
+        <InputRow>
+          <Dot $color="var(--blue-500)" />
+          <PlainInput placeholder="출발지" value={origin} readOnly />
+        </InputRow>
 
-        <S.HorizontalDivider />
+        <HorizontalDivider />
 
-        <S.InputRow>
-          <S.Dot $color="#EF4444" />
-          <S.PlainInput placeholder="도착지" value={destination} readOnly />
-        </S.InputRow>
-      </S.ContentWrapper>
+        <InputRow>
+          <Dot $color="var(--red-500)" />
+          <PlainInput placeholder="도착지" value={destination} readOnly />
+        </InputRow>
+      </ContentWrapper>
 
-      <S.SwapButton type="button" onClick={onSwap}>
+      <SwapButton type="button" onClick={onSwap}>
         <img src={SwapIcon} alt="위치 바꾸기" width="20" height="20" />
-      </S.SwapButton>
-    </S.Container>
+      </SwapButton>
+    </Container>
   )
 }

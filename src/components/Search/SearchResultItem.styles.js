@@ -1,25 +1,28 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 
 export const Container = styled.div`
-  border: none;
-  width: 100%;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-16) var(--space-8);
-  background: var(--surface-0);
-  border-bottom: var(--size-1) solid var(--gray-100);
-  cursor: pointer;
-  transition: background 0.2s ease;
+  ${() => css`
+    border: none;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-16) var(--space-8);
+    background: var(--surface-0);
+    border-bottom: var(--size-1) solid var(--gray-100);
+    cursor: pointer;
+    transition: background 0.2s ease;
 
-  &:active {
-    background: var(--surface-50);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--blue-600);
-    outline-offset: 2px;
-  }
+    &:active {
+      background: var(--surface-50);
+    }
+      
+    &:focus-visible {
+      outline: 2px solid var(--blue-600);
+      outline-offset: 2px;
+    }
+  `}
 `;
 
 export const InfoWrapper = styled.div`
@@ -45,7 +48,7 @@ export const Badge = styled.span`
   background: var(--blue-50);
   color: var(--blue-600);
   font-size: var(--text-11);
-  font-weight: 700;
+  font-weight: var(--fw-semibold);
   padding: var(--space-2) var(--space-6);
   border-radius: var(--radius-4);
 `;
@@ -57,7 +60,7 @@ export const Address = styled.span`
 `;
 
 export const ArrowIcon = styled.img`
-  width: var(--size-20);
-  height: var(--size-20);
+  width: var(--size-18); 
+  height: var(--size-18);
   opacity: 0.3;
 `;

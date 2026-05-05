@@ -1,22 +1,24 @@
 // src/components/Input/Input.jsx
 import 'react'
-import * as S from './Input.styles'
+import { InputContainer, Label, StyledInput } from './Input.styles'
 
 export default function Input({ 
   label, 
   subLabel, 
   id,
+  type = "text", // 기본값을 text로 설정
   ...props 
 }) {
   return (
-    <S.InputContainer>
+    <InputContainer>
       {label && (
-        <S.Label htmlFor={id}>
+        <Label htmlFor={id}>
           {label}
           {subLabel && <span>({subLabel})</span>}
-        </S.Label>
+        </Label>
       )}
-      <S.StyledInput id={id} {...props} />
-    </S.InputContainer>
+
+      <StyledInput id={id} type={type} {...props} />
+    </InputContainer>
   )
 }

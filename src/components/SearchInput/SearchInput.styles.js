@@ -1,15 +1,26 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 
 export const SearchInputWrapper = styled.div`
   width: 100%;
   min-height: var(--size-48);
-  border-radius: var(--radius-pill);
+  border-radius: ${({ $variant }) =>
+    $variant === 'inline' ? 'var(--radius-10)' : 'var(--radius-pill)'};
   background: var(--surface-0);
-  box-shadow: var(--shadow-searchbar);
   padding: var(--space-12) var(--space-16);
   display: inline-flex;
   align-items: center;
   gap: var(--space-12);
+
+  ${({ $variant }) =>
+    $variant === 'inline'
+      ? css`
+          border: var(--size-1) solid var(--gray-200);
+          box-shadow: none;
+        `
+      : css`
+          border: none;
+          box-shadow: var(--shadow-searchbar);
+        `}
 `
 
 export const SearchIconWrap = styled.span`

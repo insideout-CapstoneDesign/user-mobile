@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Button from '../../components/Button/Button'
 import SearchInput from '../../components/SearchInput/SearchInput'
 import BottomNav from '../../components/BottomNav/BottomNav'
+import CommonHeader from '../../components/CommonHeader/CommonHeader'
 import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
 import BottomSheetCompactInfo from '../../components/BottomSheet/types/BottomSheetCompactInfo'
 import BottomSheetPlaceDetail from '../../components/BottomSheet/types/BottomSheetPlaceDetail'
@@ -40,6 +41,36 @@ export default function ComponentTestPage() {
         Button/BottomSheet 공통 컴포넌트 테스트
       </p>
 
+      <p className="component-section-title">Header 공통 컴포넌트 테스트</p>
+      <div className="header-demo-list">
+        <CommonHeader variant="title" title="즐겨찾기" onBack={() => {}} />
+        <CommonHeader
+          variant="search"
+          onBack={() => {}}
+          searchProps={{
+            value: searchKeyword,
+            onChange: setSearchKeyword,
+            placeholder: '건물, 장소 검색',
+          }}
+        />
+        <CommonHeader
+          variant="menu"
+          title="공학관1층"
+          onBack={() => {}}
+          onMenuClick={() => {}}
+          overlay
+        />
+        <CommonHeader
+          variant="routeInfo"
+          onBack={() => {}}
+          onClose={() => {}}
+          origin="공학관"
+          destination="학생회관"
+          onRouteClick={() => {}}
+        />
+      </div>
+
+      <p className="component-section-title">SearchInput 공통 컴포넌트 테스트</p>
       <div className="button-section">
         <SearchInput
           value={searchKeyword}

@@ -5,7 +5,7 @@
   gap: var(--space-12);
 }
 
-.component-test-page h1 {
+.component-test-page > h1 {
   margin: 0;
   color: var(--black-900);
   font-family: var(--font-sans);
@@ -16,6 +16,19 @@
   margin: 0 0 var(--space-8);
   color: var(--gray-600);
   font-family: var(--font-sans);
+}
+
+.component-section-title {
+  margin: var(--space-8) 0 var(--space-4);
+  color: var(--black-900);
+  font-size: var(--text-14);
+  font-family: var(--font-sans);
+  font-weight: var(--fw-semibold);
+}
+
+.header-demo-list {
+  display: grid;
+  gap: var(--space-8);
 }
 
 .button-section {

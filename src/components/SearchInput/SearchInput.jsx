@@ -10,6 +10,7 @@ export default function SearchInput({
   onChange,
   placeholder = '건물, 장소 검색',
   onSearch,
+  variant = 'floating',
   ariaLabel = '건물 및 장소 검색',
 }) {
   const handleKeyDown = (event) => {
@@ -18,7 +19,7 @@ export default function SearchInput({
   }
 
   return (
-    <SearchInputWrapper>
+    <SearchInputWrapper $variant={variant}>
       <SearchIconWrap>
         <IoSearchOutline size={20} />
       </SearchIconWrap>

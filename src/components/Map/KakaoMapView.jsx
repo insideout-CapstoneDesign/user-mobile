@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { MapState, MapViewport } from './KakaoMapView.styles'
+import useCurrentLocation from '../../hooks/useCurrentLocation'
+import CurrentLocationControl from './CurrentLocationControl'
+import { MapRoot, MapState, MapViewport } from './KakaoMapView.styles'
 
 const KAKAO_SDK_URL = 'https://dapi.kakao.com/v2/maps/sdk.js'
 let kakaoSdkPromise
@@ -38,8 +40,11 @@ export default function KakaoMapView({
 }) {
   const appKey = import.meta.env.VITE_KAKAO_MAP_APP_KEY
   const mapRef = useRef(null)
+  const mapInstanceRef = useRef(null)
+  const currentMarkerRef = useRef(null)
   const [status, setStatus] = useState(appKey ? 'loading' : 'error-key')
   const [errorMessage, setErrorMessage] = useState('')
+  const { isLocating, geoMessage, requestCurrentLocation } = useCurrentLocation()
 
   useEffect(() => {
     if (!appKey) return
@@ -52,7 +57,8 @@ export default function KakaoMapView({
 
         const mapCenter = new kakao.maps.LatLng(center.lat, center.lng)
         // 지도 초기 렌더링 1회만 수행
-        new kakao.maps.Map(mapRef.current, { center: mapCenter, level })
+        const map = new kakao.maps.Map(mapRef.current, { center: mapCenter, level })
+        mapInstanceRef.current = map
         setStatus('ready')
       })
       .catch((error) => {
@@ -81,10 +87,39 @@ export default function KakaoMapView({
     )
   }
 
+  const handleCurrentLocation = () => {
+    if (status !== 'ready' || !mapInstanceRef.current || !window.kakao?.maps) return
+    requestCurrentLocation({
+      onSuccess: ({ latitude, longitude }) => {
+        const target = new window.kakao.maps.LatLng(latitude, longitude)
+        const map = mapInstanceRef.current
+
+        map.panTo(target)
+
+        if (currentMarkerRef.current) {
+          currentMarkerRef.current.setPosition(target)
+          return
+        }
+
+        currentMarkerRef.current = new window.kakao.maps.Marker({
+          map,
+          position: target,
+        })
+      },
+    })
+  }
+
   return (
-    <>
+    <MapRoot>
       <MapViewport ref={mapRef} />
       {status === 'loading' ? <MapState>지도를 불러오는 중...</MapState> : null}
-    </>
+      {status === 'ready' ? (
+        <CurrentLocationControl
+          isLocating={isLocating}
+          message={geoMessage}
+          onLocate={handleCurrentLocation}
+        />
+      ) : null}
+    </MapRoot>
   )
 }

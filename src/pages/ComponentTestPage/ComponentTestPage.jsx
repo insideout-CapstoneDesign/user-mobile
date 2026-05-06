@@ -82,6 +82,9 @@ const handlePhoneChange = (e) => {
   return (
     <main className='component-test-page' style={{ padding: '0', maxWidth: '375px', margin: '0 auto', background: '#fff', minHeight: '100vh' }}>
       <h1>insideout</h1>
+      <p className="component-test-description">
+        컴포넌트 및 디자인 시스템 통합 테스트
+      </p>
       <div className="header-demo-list">
         <div className="header-demo-frame">
           <CommonHeader

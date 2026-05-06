@@ -5,6 +5,9 @@ import DirectionSearch from '../../components/Direction/DirectionSearch'
 import TransportSelector from '../../components/Transport/TransportSelector'
 import FloorSelector from '../../components/Floor/FloorSelector'
 import SearchResultItem from '../../components/Search/SearchResultItem'
+import SearchInput from '../../components/SearchInput/SearchInput'
+import BottomNav from '../../components/BottomNav/BottomNav'
+import CommonHeader from '../../components/CommonHeader/CommonHeader'
 import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
 import BottomSheetCompactInfo from '../../components/BottomSheet/types/BottomSheetCompactInfo'
 import BottomSheetPlaceDetail from '../../components/BottomSheet/types/BottomSheetPlaceDetail'
@@ -29,6 +32,8 @@ import './ComponentTestPage.css'
 
 export default function ComponentTestPage() {
   const [sheetType, setSheetType] = useState(null)
+  const [searchKeyword, setSearchKeyword] = useState('')
+  const [currentNav, setCurrentNav] = useState('map')
   const [isFavorite, setIsFavorite] = useState(false)
   const [showPOIs, setShowPOIs] = useState(false)
   const [selectedFloor, setSelectedFloor] = useState(null)
@@ -77,9 +82,57 @@ const handlePhoneChange = (e) => {
   return (
     <main className='component-test-page' style={{ padding: '0', maxWidth: '375px', margin: '0 auto', background: '#fff', minHeight: '100vh' }}>
       <h1>insideout</h1>
-      <p className="component-test-description">
-        컴포넌트 및 디자인 시스템 통합 테스트
-      </p>
+      <div className="header-demo-list">
+        <div className="header-demo-frame">
+          <CommonHeader
+            variant="title"
+            title="즐겨찾기"
+            onBack={() => {}}
+            overlay
+          />
+        </div>
+        <div className="header-demo-frame">
+          <CommonHeader
+            variant="search"
+            onBack={() => {}}
+            overlay
+            searchProps={{
+              value: searchKeyword,
+              onChange: setSearchKeyword,
+              placeholder: '건물, 장소 검색',
+            }}
+          />
+        </div>
+        <div className="header-demo-frame">
+          <CommonHeader
+            variant="menu"
+            title="공학관1층"
+            onBack={() => {}}
+            onMenuClick={() => {}}
+            overlay
+          />
+        </div>
+        <div className="header-demo-frame">
+          <CommonHeader
+            variant="routeInfo"
+            onBack={() => {}}
+            onClose={() => {}}
+            origin="공학관"
+            destination="학생회관"
+            onRouteClick={() => {}}
+            overlay
+          />
+        </div>
+      </div>
+
+      <p className="component-section-title">SearchInput 공통 컴포넌트 테스트</p>
+      <div className="button-section">
+        <SearchInput
+          value={searchKeyword}
+          onChange={setSearchKeyword}
+          onSearch={() => setSheetType('A_GUEST')}
+        />
+      </div>
 
       <section style={{ padding: '0 1rem' }}>
         {mockSearchResults.map((item) => (
@@ -160,6 +213,10 @@ const handlePhoneChange = (e) => {
         <Button variant="outline" onClick={() => setSheetType('B_TRANSIT')}>경로 정보 상세</Button>
         <Button variant="danger" onClick={() => setSheetType('C')}>간이 정보 (Type C)</Button>
       </section>
+
+      <p className="component-test-description">현재 선택: {currentNav}</p>
+
+      <BottomNav currentKey={currentNav} onChange={setCurrentNav} />
 
       <BottomSheetBase isOpen={!!sheetType} onClose={closeSheet}>
         {sheetType === 'A_AUTH' && (

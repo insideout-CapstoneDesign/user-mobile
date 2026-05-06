@@ -7,6 +7,7 @@
   --blue-100: #dbeafe;
   --blue-500: #2b7fff;
   --blue-600: #155dfc;
+  --blue-700: #2f58f3;
   --blue-900: #1c398e;
 
   /* Green */
@@ -41,6 +42,7 @@
   /* Overlay / Shadow */
   --overlay-dim: rgba(10, 10, 10, 0.36);
   --shadow-bottom-sheet: 0 -8px 24px rgba(16, 24, 40, 0.12);
+  --shadow-searchbar: 0 8px 20px rgba(16, 24, 40, 0.12);
 
   /* Typography */
   --font-sans: 'Pretendard', sans-serif;
@@ -82,9 +84,11 @@
   --size-1: 1px;
   --size-8: 8px;
   --size-18: 18px;
+  --size-20: 20px;
   --size-26: 26px;
   --size-36: 36px;
   --size-48: 48px;
+  --size-56: 56px;
   --size-192: 192px;
   --size-220: 220px;
   --layout-mobile-width: 375px;

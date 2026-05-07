@@ -1,0 +1,17 @@
+.map-page {
+  position: relative;
+  height: 100dvh;
+}
+
+.map-page__viewport {
+  position: absolute;
+  inset: 0;
+}
+
+.map-page__search {
+  position: absolute;
+  top: var(--space-16);
+  left: var(--space-16);
+  right: var(--space-16);
+  z-index: 10;
+}

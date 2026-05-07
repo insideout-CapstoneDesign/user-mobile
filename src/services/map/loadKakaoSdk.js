@@ -2,12 +2,16 @@ const KAKAO_SDK_URL = 'https://dapi.kakao.com/v2/maps/sdk.js'
 let kakaoSdkPromise
 
 export default function loadKakaoSdk(appKey) {
+  if (!appKey) {
+    return Promise.reject(new Error('Kakao Maps appKey가 없습니다.'))
+  }
+
   if (window.kakao?.maps) return Promise.resolve(window.kakao)
   if (kakaoSdkPromise) return kakaoSdkPromise
 
   kakaoSdkPromise = new Promise((resolve, reject) => {
     const script = document.createElement('script')
-    script.src = `${KAKAO_SDK_URL}?appkey=${appKey}&autoload=false`
+    script.src = `${KAKAO_SDK_URL}?appkey=${encodeURIComponent(appKey)}&autoload=false`
     script.async = true
 
     script.onload = () => {

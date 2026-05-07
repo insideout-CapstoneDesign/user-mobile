@@ -12,6 +12,7 @@ export default function loadKakaoSdk(appKey) {
 
     script.onload = () => {
       if (!window.kakao?.maps) {
+        kakaoSdkPromise = null
         reject(new Error('Kakao Maps SDK를 찾을 수 없습니다.'))
         return
       }
@@ -20,6 +21,7 @@ export default function loadKakaoSdk(appKey) {
     }
 
     script.onerror = () => {
+      kakaoSdkPromise = null
       reject(new Error('Kakao Maps SDK 로딩에 실패했습니다.'))
     }
 

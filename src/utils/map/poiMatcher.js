@@ -14,6 +14,13 @@ function getDistanceMeters(from, to) {
 }
 
 export function findNearestPoi(clickPoint, pois) {
+  if (!Array.isArray(pois) || pois.length === 0) {
+    return {
+      nearestPoi: null,
+      nearestDistance: Number.POSITIVE_INFINITY,
+    }
+  }
+
   let nearestPoi = null
   let nearestDistance = Number.POSITIVE_INFINITY
 

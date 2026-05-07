@@ -1,77 +1,35 @@
-import { useEffect, useRef, useState } from 'react'
-import useCurrentLocation from '../../hooks/useCurrentLocation'
+import { useRef } from 'react'
+import useCurrentLocationOnKakaoMap from '../../hooks/map/useCurrentLocationOnKakaoMap'
+import useKakaoMapInstance from '../../hooks/map/useKakaoMapInstance'
+import usePoiSelectionOnMap from '../../hooks/map/usePoiSelectionOnMap'
 import CurrentLocationControl from './CurrentLocationControl'
 import { MapRoot, MapState, MapViewport } from './KakaoMapView.styles'
-
-const KAKAO_SDK_URL = 'https://dapi.kakao.com/v2/maps/sdk.js'
-let kakaoSdkPromise
-
-function loadKakaoSdk(appKey) {
-  if (window.kakao?.maps) return Promise.resolve(window.kakao)
-  if (kakaoSdkPromise) return kakaoSdkPromise
-
-  kakaoSdkPromise = new Promise((resolve, reject) => {
-    const script = document.createElement('script')
-    script.src = `${KAKAO_SDK_URL}?appkey=${appKey}&autoload=false`
-    script.async = true
-
-    script.onload = () => {
-      if (!window.kakao?.maps) {
-        reject(new Error('Kakao Maps SDK를 찾을 수 없습니다.'))
-        return
-      }
-
-      window.kakao.maps.load(() => resolve(window.kakao))
-    }
-
-    script.onerror = () => {
-      reject(new Error('Kakao Maps SDK 로딩에 실패했습니다.'))
-    }
-
-    document.head.appendChild(script)
-  })
-
-  return kakaoSdkPromise
-}
 
 export default function KakaoMapView({
   center = { lat: 37.478095, lng: 126.951744 },
   level = 3,
+  pois = [],
+  selectionRadiusMeters = 40,
+  onPoiSelect,
 }) {
   const appKey = import.meta.env.VITE_KAKAO_MAP_APP_KEY
   const mapRef = useRef(null)
-  const mapInstanceRef = useRef(null)
-  const currentMarkerRef = useRef(null)
-  const [status, setStatus] = useState(appKey ? 'loading' : 'error-key')
-  const [errorMessage, setErrorMessage] = useState('')
-  const { isLocating, geoMessage, requestCurrentLocation } = useCurrentLocation()
+  const { map, status, errorMessage } = useKakaoMapInstance({
+    appKey,
+    mapRef,
+    center,
+    level,
+  })
 
-  useEffect(() => {
-    if (!appKey) return
+  usePoiSelectionOnMap({
+    map,
+    pois,
+    selectionRadiusMeters,
+    onPoiSelect,
+  })
 
-    let isMounted = true
-
-    loadKakaoSdk(appKey)
-      .then((kakao) => {
-        if (!isMounted || !mapRef.current) return
-
-        const mapCenter = new kakao.maps.LatLng(center.lat, center.lng)
-        // 지도 초기 렌더링 1회만 수행
-        const map = new kakao.maps.Map(mapRef.current, { center: mapCenter, level })
-        mapInstanceRef.current = map
-        setStatus('ready')
-      })
-      .catch((error) => {
-        if (!isMounted) return
-        console.error('[KakaoMapView] SDK load error:', error)
-        setErrorMessage(error?.message || 'SDK 초기화 중 오류가 발생했습니다.')
-        setStatus('error-sdk')
-      })
-
-    return () => {
-      isMounted = false
-    }
-  }, [appKey, center.lat, center.lng, level])
+  const { isLocating, geoMessage, moveToCurrentLocation } =
+    useCurrentLocationOnKakaoMap(map)
 
   if (status === 'error-key') {
     return <MapState>카카오맵 키가 설정되지 않았습니다.</MapState>
@@ -87,28 +45,6 @@ export default function KakaoMapView({
     )
   }
 
-  const handleCurrentLocation = () => {
-    if (status !== 'ready' || !mapInstanceRef.current || !window.kakao?.maps) return
-    requestCurrentLocation({
-      onSuccess: ({ latitude, longitude }) => {
-        const target = new window.kakao.maps.LatLng(latitude, longitude)
-        const map = mapInstanceRef.current
-
-        map.panTo(target)
-
-        if (currentMarkerRef.current) {
-          currentMarkerRef.current.setPosition(target)
-          return
-        }
-
-        currentMarkerRef.current = new window.kakao.maps.Marker({
-          map,
-          position: target,
-        })
-      },
-    })
-  }
-
   return (
     <MapRoot>
       <MapViewport ref={mapRef} />
@@ -117,7 +53,7 @@ export default function KakaoMapView({
         <CurrentLocationControl
           isLocating={isLocating}
           message={geoMessage}
-          onLocate={handleCurrentLocation}
+          onLocate={moveToCurrentLocation}
         />
       ) : null}
     </MapRoot>

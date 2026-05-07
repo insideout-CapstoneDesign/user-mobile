@@ -19,7 +19,11 @@ export default function CurrentLocationControl({
       >
         <img src={myLocateIcon} alt="" aria-hidden="true" width="22" height="22" />
       </CurrentLocationButton>
-      {message ? <GeoMessage>{message}</GeoMessage> : null}
+      {message ? (
+        <GeoMessage role="status" aria-live="polite" aria-atomic="true">
+          {message}
+        </GeoMessage>
+      ) : null}
     </>
   )
 }

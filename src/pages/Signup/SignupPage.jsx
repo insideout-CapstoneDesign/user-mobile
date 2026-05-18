@@ -22,8 +22,8 @@ export default function SignupPage() {
     },
   })
 
-  const onSubmit = (values) => {
-    console.log('SIGNUP FORM', values)
+  const onSubmit = () => {
+    // TODO: 회원가입 API 연동
   }
 
   return (

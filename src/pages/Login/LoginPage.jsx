@@ -21,8 +21,8 @@ export default function LoginPage() {
     },
   })
 
-  const onSubmit = (values) => {
-    console.log('LOGIN FORM', values)
+  const onSubmit = () => {
+    // TODO: 로그인 API 연동
   }
 
   return (

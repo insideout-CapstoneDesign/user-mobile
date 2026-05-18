@@ -24,7 +24,7 @@ export default function Input({
       )}
 
       <StyledInput id={id} type={type} aria-invalid={error || undefined} {...props} />
-      {errorMessage ? <ErrorText>{errorMessage}</ErrorText> : null}
+      <ErrorText aria-live="polite">{errorMessage || '\u00A0'}</ErrorText>
     </InputContainer>
   )
 }

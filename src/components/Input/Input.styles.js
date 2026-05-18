@@ -3,9 +3,9 @@ import styled, { css } from 'styled-components'
 export const InputContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-6);
   width: 100%;
-  margin-bottom: var(--space-16);
+  margin-bottom: var(--space-12);
 `
 
 export const Label = styled.label`
@@ -46,6 +46,7 @@ export const StyledInput = styled.input`
 
 export const ErrorText = styled.p`
   margin: 0;
+  min-height: var(--line-16);
   color: var(--red-500);
   font-family: var(--font-sans);
   font-size: var(--text-12);

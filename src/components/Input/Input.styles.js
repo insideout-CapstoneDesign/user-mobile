@@ -6,20 +6,20 @@ export const InputContainer = styled.div`
   gap: var(--space-8);
   width: 100%;
   margin-bottom: var(--space-16);
-`;
+`
 
 export const Label = styled.label`
   font-family: var(--font-sans);
   font-size: var(--text-14);
   font-weight: var(--fw-semibold);
   color: var(--black-1000);
-  
+
   span {
     color: var(--gray-500);
     font-weight: var(--fw-medium);
     margin-left: var(--space-4);
   }
-`;
+`
 
 export const StyledInput = styled.input`
   ${() => css`
@@ -42,4 +42,12 @@ export const StyledInput = styled.input`
       border-color: var(--blue-600);
     }
   `}
-`;
+`
+
+export const ErrorText = styled.p`
+  margin: 0;
+  color: var(--red-500);
+  font-family: var(--font-sans);
+  font-size: var(--text-12);
+  line-height: var(--line-16);
+`

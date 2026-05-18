@@ -1,0 +1,32 @@
+.splash-page {
+  width: 100%;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  transition: background-color 0.35s ease;
+}
+
+.splash-page--logo1 {
+  background: var(--blue-600);
+}
+
+.splash-page--logo2 {
+  background: var(--surface-0);
+}
+
+.splash-page__logo-frame {
+  position: relative;
+  width: min(72%, 240px);
+  height: min(72%, 240px);
+}
+
+.splash-page__logo {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}

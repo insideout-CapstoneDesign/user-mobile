@@ -60,7 +60,7 @@ export default function LoginPage() {
         </div>
       </form>
 
-      <Link className="auth-page__guest-link" to="/">
+      <Link className="auth-page__guest-link" to="/map">
         로그인 없이 이용하기
       </Link>
     </main>

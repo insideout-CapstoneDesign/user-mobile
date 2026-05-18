@@ -36,6 +36,7 @@ export default function LoginPage() {
         <Input
           id="login-email"
           type="email"
+          aria-label="이메일"
           placeholder="이메일을 입력해 주세요"
           error={!!errors.email}
           errorMessage={errors.email?.message}
@@ -44,6 +45,7 @@ export default function LoginPage() {
         <Input
           id="login-password"
           type="password"
+          aria-label="비밀번호"
           placeholder="비밀번호를 입력해 주세요"
           error={!!errors.password}
           errorMessage={errors.password?.message}

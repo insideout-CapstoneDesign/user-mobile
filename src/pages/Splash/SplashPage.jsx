@@ -27,7 +27,7 @@ export default function SplashPage() {
 
   return (
     <main className={`splash-page splash-page--${phase}`}>
-      <div className="splash-page__logo-frame" aria-hidden="true">
+      <div className="splash-page__logo-frame">
         <img className="splash-page__logo" src={logoSrc} alt="insideout" />
       </div>
     </main>

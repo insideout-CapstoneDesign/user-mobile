@@ -1,13 +1,18 @@
-// src/components/Input/Input.jsx
-import 'react'
-import { InputContainer, Label, StyledInput } from './Input.styles'
+import {
+  ErrorText,
+  InputContainer,
+  Label,
+  StyledInput,
+} from './Input.styles'
 
-export default function Input({ 
-  label, 
-  subLabel, 
+export default function Input({
+  label,
+  subLabel,
   id,
-  type = "text", // 기본값을 text로 설정
-  ...props 
+  type = 'text',
+  error = false,
+  errorMessage = '',
+  ...props
 }) {
   return (
     <InputContainer>
@@ -18,7 +23,8 @@ export default function Input({
         </Label>
       )}
 
-      <StyledInput id={id} type={type} {...props} />
+      <StyledInput id={id} type={type} aria-invalid={error || undefined} {...props} />
+      <ErrorText aria-live="polite">{errorMessage || '\u00A0'}</ErrorText>
     </InputContainer>
   )
 }

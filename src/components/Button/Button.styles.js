@@ -19,7 +19,7 @@ const variantStyles = {
   `,
 }
 
-export const StyledButton = styled.button.attrs({ type: 'button' })`
+export const StyledButton = styled.button`
   display: inline-flex;
   justify-content: center;
   align-items: center;

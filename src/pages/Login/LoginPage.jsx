@@ -1,17 +1,21 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
+import { loginUser } from '../../apis/authApi'
 import Button from '../../components/Button/Button'
 import Input from '../../components/Input/Input'
+import { AUTH_STORAGE_KEY } from '../../constants/auth'
 import { loginSchema } from '../../schemas/auth.schema'
 import './LoginPage.css'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const [serverError, setServerError] = useState('')
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     mode: 'onChange',
     resolver: zodResolver(loginSchema),
@@ -21,8 +25,23 @@ export default function LoginPage() {
     },
   })
 
-  const onSubmit = () => {
-    // TODO: 로그인 API 연동
+  const onSubmit = async (values) => {
+    setServerError('')
+
+    try {
+      const loginResult = await loginUser(values)
+      const accessToken =
+        loginResult?.accessToken ?? loginResult?.access_token ?? loginResult?.token
+
+      if (!accessToken) {
+        throw new Error('로그인 응답에 accessToken이 없습니다.')
+      }
+
+      localStorage.setItem(AUTH_STORAGE_KEY.ACCESS_TOKEN, accessToken)
+      navigate('/map', { replace: true })
+    } catch (error) {
+      setServerError(error.message)
+    }
   }
 
   return (
@@ -46,14 +65,17 @@ export default function LoginPage() {
           id="login-password"
           type="password"
           aria-label="비밀번호"
+          maxLength={15}
           placeholder="비밀번호를 입력해 주세요"
           error={!!errors.password}
           errorMessage={errors.password?.message}
           {...register('password')}
         />
 
+        {serverError ? <p className="auth-page__server-error">{serverError}</p> : null}
+
         <div className="auth-page__actions">
-          <Button type="submit">
+          <Button type="submit" disabled={isSubmitting}>
             로그인
           </Button>
           <Button type="button" variant="outline" onClick={() => navigate('/signup')}>

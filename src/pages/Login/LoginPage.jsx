@@ -65,7 +65,6 @@ export default function LoginPage() {
           id="login-password"
           type="password"
           aria-label="비밀번호"
-          maxLength={15}
           placeholder="비밀번호를 입력해 주세요"
           error={!!errors.password}
           errorMessage={errors.password?.message}

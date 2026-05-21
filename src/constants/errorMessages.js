@@ -1,5 +1,7 @@
 export const ERROR_MESSAGE = {
   DEFAULT: '요청 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+  NETWORK: '네트워크 연결을 확인해 주세요.',
+  TIMEOUT: '요청 시간이 초과되었습니다. 다시 시도해 주세요.',
 }
 
 export const AUTH_ERROR_MESSAGE = {

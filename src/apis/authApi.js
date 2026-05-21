@@ -4,6 +4,7 @@ import getErrorMessage from './utils/getErrorMessage'
 
 const LOGIN_PATH = '/api/v1/auth/login'
 const USER_SIGNUP_PATH = '/api/v1/auth/signup/user'
+const REQUEST_TIMEOUT_MS = 10000
 
 function getApiBaseUrl() {
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
@@ -18,13 +19,26 @@ function getApiBaseUrl() {
 async function postJson(path, payload, options = {}) {
   const { fallbackMessage = ERROR_MESSAGE.DEFAULT, statusMap = {}, codeMap = {} } = options
 
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  })
+  const abortController = new AbortController()
+  const timeoutId = window.setTimeout(() => abortController.abort(), REQUEST_TIMEOUT_MS)
+
+  let response
+
+  try {
+    response = await fetch(`${getApiBaseUrl()}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal: abortController.signal,
+    })
+  } catch (error) {
+    const networkMessage = error?.name === 'AbortError' ? ERROR_MESSAGE.TIMEOUT : ERROR_MESSAGE.NETWORK
+    throw new Error(networkMessage, { cause: error })
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
 
   let data = null
 
@@ -43,6 +57,7 @@ async function postJson(path, payload, options = {}) {
         fallbackMessage,
         statusMap,
         codeMap,
+        exposeRawMessage: false,
       }),
     )
     error.status = response.status

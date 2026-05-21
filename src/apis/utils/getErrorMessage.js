@@ -7,9 +7,10 @@ export default function getErrorMessage({
   fallbackMessage = ERROR_MESSAGE.DEFAULT,
   statusMap = {},
   codeMap = {},
+  exposeRawMessage = false,
 }) {
   if (code && codeMap[code]) return codeMap[code]
   if (typeof status === 'number' && statusMap[status]) return statusMap[status]
-  if (message) return message
+  if (exposeRawMessage && message) return message
   return fallbackMessage
 }

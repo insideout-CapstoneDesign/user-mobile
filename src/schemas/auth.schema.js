@@ -19,7 +19,10 @@ export const loginSchema = z.object({
 
 export const signupSchema = z
   .object({
-    name: z.string().min(1, '이름을 입력해 주세요.'),
+    name: z
+      .string()
+      .min(1, '이름을 입력해 주세요.')
+      .max(10, '이름은 10자 이내로 입력해 주세요.'),
     email: z
       .string()
       .min(1, '이메일을 입력해 주세요.')

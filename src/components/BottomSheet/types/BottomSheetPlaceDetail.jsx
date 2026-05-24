@@ -55,6 +55,10 @@ export default function BottomSheetPlaceDetail({
 }) {
   const [visibleReviewCount, setVisibleReviewCount] = useState(2)
   const hasMoreReviews = reviews.length > visibleReviewCount
+  const filteredPois =
+    selectedFloor === null
+      ? pois
+      : pois.filter((poi) => Number(poi.floor) === Number(selectedFloor))
 
   const handleMoreReviews = () => {
     setVisibleReviewCount((prev) => prev + 3)
@@ -123,17 +127,25 @@ export default function BottomSheetPlaceDetail({
       {building.hasIndoorMap && pois.length > 0 ? (
         <SectionBlock>
           <PoiToggleButton type="button" onClick={onTogglePOIs}>
-            <PoiTitle>POI 목록 ({pois.length}개)</PoiTitle>
+            <PoiTitle>
+              POI 목록 ({filteredPois.length}개)
+            </PoiTitle>
             <span>{showPOIs ? '▲' : '▼'}</span>
           </PoiToggleButton>
           {showPOIs ? (
             <PoiList>
-              {pois.map((poi, idx) => (
-                <PoiItem key={poi.id ?? `${poi.name}-${idx}`} type="button">
-                  <PoiName>{poi.name}</PoiName>
-                  <PoiFloor>{poi.floor}층</PoiFloor>
+              {filteredPois.length > 0 ? (
+                filteredPois.map((poi, idx) => (
+                  <PoiItem key={poi.id ?? `${poi.name}-${idx}`} type="button">
+                    <PoiName>{poi.name}</PoiName>
+                    <PoiFloor>{poi.floor}층</PoiFloor>
+                  </PoiItem>
+                ))
+              ) : (
+                <PoiItem type="button" disabled>
+                  <PoiName>선택한 층에 POI가 없습니다.</PoiName>
                 </PoiItem>
-              ))}
+              )}
             </PoiList>
           ) : null}
         </SectionBlock>

@@ -12,6 +12,7 @@ export default function SearchInput({
   onSearch,
   variant = 'floating',
   ariaLabel = '건물 및 장소 검색',
+  ...props
 }) {
   const handleKeyDown = (event) => {
     if (event.key !== 'Enter') return
@@ -30,6 +31,7 @@ export default function SearchInput({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         aria-label={ariaLabel}
+        {...props}
       />
     </SearchInputWrapper>
   )

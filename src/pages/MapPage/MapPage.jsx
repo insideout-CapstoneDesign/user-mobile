@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
 import BottomSheetCompactInfo from '../../components/BottomSheet/types/BottomSheetCompactInfo'
@@ -8,12 +9,16 @@ import { mockMapPois } from '../../mocks/map/poi.mock'
 import './MapPage.css'
 
 export default function MapPage() {
-  const [searchKeyword, setSearchKeyword] = useState('')
+  const navigate = useNavigate()
   const [currentNav, setCurrentNav] = useState('map')
   const [selectedPoi, setSelectedPoi] = useState(null)
 
   const closePoiSheet = () => {
     setSelectedPoi(null)
+  }
+
+  const openSearchPage = () => {
+    navigate('/search')
   }
 
   return (
@@ -24,10 +29,10 @@ export default function MapPage() {
 
       <div className="map-page__search">
         <SearchInput
-          value={searchKeyword}
-          onChange={setSearchKeyword}
-          onSearch={() => {}}
+          value=""
           placeholder="건물, 장소 검색"
+          readOnly
+          onClick={openSearchPage}
         />
       </div>
 

@@ -1,4 +1,3 @@
-import 'react'
 import {
   Container,
   InfoWrapper,
@@ -12,7 +11,7 @@ import RightArrow from '../../assets/icons/right-arrow.svg'
 
 export default function SearchResultItem({ title, address, isRegistered, onClick }) {
   return (
-    <Container as="button" type="button" onClick={onClick}>
+    <Container type="button" onClick={onClick}>
       <InfoWrapper>
         <TitleRow>
           <Title>{title}</Title>

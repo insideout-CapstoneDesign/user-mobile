@@ -10,6 +10,7 @@ import {
 import './SearchPage.css'
 
 const SEARCH_DELAY_MS = 250
+const normalizeText = (value = '') => value.trim().toLowerCase()
 
 export default function SearchPage() {
   const navigate = useNavigate()
@@ -28,16 +29,16 @@ export default function SearchPage() {
   }, [])
 
   const autocompleteItems = useMemo(() => {
-    const normalized = keyword.trim().toLowerCase()
+    const normalized = normalizeText(keyword)
     if (!normalized) return mockAutocompleteKeywords
 
     return mockAutocompleteKeywords.filter((item) =>
-      item.toLowerCase().includes(normalized),
+      normalizeText(item).includes(normalized),
     )
   }, [keyword])
 
   const runSearch = (rawKeyword) => {
-    const normalized = rawKeyword.trim().toLowerCase()
+    const normalized = normalizeText(rawKeyword)
 
     if (!normalized) {
       setIsResultMode(false)
@@ -56,8 +57,8 @@ export default function SearchPage() {
     searchTimerRef.current = window.setTimeout(() => {
       const filtered = mockSearchPlaces.filter(
         (item) =>
-          item.title.toLowerCase().includes(normalized) ||
-          item.address.toLowerCase().includes(normalized),
+          normalizeText(item.title).includes(normalized) ||
+          normalizeText(item.address).includes(normalized),
       )
       setResultItems(filtered)
       setIsLoading(false)
@@ -76,6 +77,16 @@ export default function SearchPage() {
 
   const handleSelectAutocomplete = (selectedKeyword) => {
     setKeyword(selectedKeyword)
+
+    const exactMatch = mockSearchPlaces.find(
+      (item) => normalizeText(item.title) === normalizeText(selectedKeyword),
+    )
+
+    if (exactMatch) {
+      handleSelectResult(exactMatch)
+      return
+    }
+
     runSearch(selectedKeyword)
   }
 

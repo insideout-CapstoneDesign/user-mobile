@@ -1,17 +1,31 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav/BottomNav'
-import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
-import BottomSheetCompactInfo from '../../components/BottomSheet/types/BottomSheetCompactInfo'
 import KakaoMapView from '../../components/Map/KakaoMapView'
+import MapPoiSheet from '../../components/Map/MapPoiSheet'
 import SearchInput from '../../components/SearchInput/SearchInput'
 import { mockMapPois } from '../../mocks/map/poi.mock'
+import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
+import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
+import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
 import './MapPage.css'
 
 export default function MapPage() {
+  const location = useLocation()
   const navigate = useNavigate()
+  const selectedSearchPlace = location.state?.selectedSearchPlace
   const [currentNav, setCurrentNav] = useState('map')
-  const [selectedPoi, setSelectedPoi] = useState(null)
+  const [selectedPoi, setSelectedPoi] = useState(() =>
+    resolvePoiFromSearch(selectedSearchPlace, mockMapPois),
+  )
+  const registeredPlaces = useMemo(
+    () => mockSearchPlaces.filter((place) => place.isRegistered),
+    [],
+  )
+  const isSelectedPoiRegistered = useMemo(
+    () => isRegisteredPlace(selectedPoi, registeredPlaces),
+    [registeredPlaces, selectedPoi],
+  )
 
   const closePoiSheet = () => {
     setSelectedPoi(null)
@@ -38,13 +52,13 @@ export default function MapPage() {
 
       <BottomNav currentKey={currentNav} onChange={setCurrentNav} />
 
-      <BottomSheetBase isOpen={!!selectedPoi} onClose={closePoiSheet}>
-        <BottomSheetCompactInfo
-          place={selectedPoi}
-          onDeparture={closePoiSheet}
-          onArrival={closePoiSheet}
-        />
-      </BottomSheetBase>
+      <MapPoiSheet
+        key={selectedPoi?.id ?? 'map-poi-sheet'}
+        isOpen={!!selectedPoi}
+        place={selectedPoi}
+        isRegistered={isSelectedPoiRegistered}
+        onClose={closePoiSheet}
+      />
     </main>
   )
 }

@@ -25,13 +25,13 @@ export default function SearchInput({
         <IoSearchOutline size={20} />
       </SearchIconWrap>
       <SearchField
+        {...props}
         type="text"
         value={value}
         onChange={(event) => onChange?.(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         aria-label={ariaLabel}
-        {...props}
       />
     </SearchInputWrapper>
   )

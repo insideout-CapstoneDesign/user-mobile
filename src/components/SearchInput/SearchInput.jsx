@@ -12,6 +12,7 @@ export default function SearchInput({
   onSearch,
   variant = 'floating',
   ariaLabel = '건물 및 장소 검색',
+  ...props
 }) {
   const handleKeyDown = (event) => {
     if (event.key !== 'Enter') return
@@ -24,6 +25,7 @@ export default function SearchInput({
         <IoSearchOutline size={20} />
       </SearchIconWrap>
       <SearchField
+        {...props}
         type="text"
         value={value}
         onChange={(event) => onChange?.(event.target.value)}

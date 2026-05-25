@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import BottomSheetActionBar from '../BottomSheetActionBar'
 import { IoStar, IoStarOutline } from 'react-icons/io5'
 import {
@@ -14,6 +14,7 @@ import {
   PoiItem,
   PoiList,
   PoiName,
+  PoiSearchInput,
   PoiTitle,
   PoiToggleButton,
   ReviewCard,
@@ -21,6 +22,7 @@ import {
   ReviewHeader,
   ReviewMeta,
   ReviewMoreButton,
+  ReviewStars,
   ReviewSummary,
   ReviewText,
   ReviewWriteButton,
@@ -30,6 +32,21 @@ import {
   TypeContainer,
   TypeTitle,
 } from './BottomSheetTypes.styles'
+
+const POI_SEARCH_THRESHOLD = 9
+const STAR_COUNT = 5
+
+function renderStarIcons(rating = 0) {
+  const filledCount = Math.max(0, Math.min(STAR_COUNT, Math.floor(rating)))
+
+  return Array.from({ length: STAR_COUNT }).map((_, idx) =>
+    idx < filledCount ? (
+      <IoStar key={idx} size={13} color="var(--yellow-500)" />
+    ) : (
+      <IoStarOutline key={idx} size={13} color="var(--gray-400)" />
+    ),
+  )
+}
 
 export default function BottomSheetPlaceDetail({
   isLoggedIn = false,
@@ -54,23 +71,28 @@ export default function BottomSheetPlaceDetail({
   onMoreReviews,
 }) {
   const [visibleReviewCount, setVisibleReviewCount] = useState(2)
+  const [poiKeyword, setPoiKeyword] = useState('')
   const hasMoreReviews = reviews.length > visibleReviewCount
+  const filteredByFloorPois =
+    selectedFloor === null
+      ? pois
+      : pois.filter((poi) => Number(poi.floor) === Number(selectedFloor))
+  const normalizedPoiKeyword = poiKeyword.trim().toLowerCase()
+  const filteredPois = useMemo(() => {
+    if (!normalizedPoiKeyword) return filteredByFloorPois
+
+    return filteredByFloorPois.filter((poi) =>
+      poi.name.toLowerCase().includes(normalizedPoiKeyword),
+    )
+  }, [filteredByFloorPois, normalizedPoiKeyword])
+  const shouldShowPoiSearch = filteredByFloorPois.length >= POI_SEARCH_THRESHOLD
+  const poiEmptyMessage = normalizedPoiKeyword
+    ? '검색 결과가 없습니다.'
+    : '선택한 층에 POI가 없습니다.'
 
   const handleMoreReviews = () => {
     setVisibleReviewCount((prev) => prev + 3)
     onMoreReviews?.()
-  }
-
-  const renderStars = (rating = 0) => {
-    const filledCount = Math.max(0, Math.min(5, Math.floor(rating)))
-
-    return Array.from({ length: 5 }).map((_, idx) =>
-      idx < filledCount ? (
-        <IoStar key={idx} size={13} color="var(--yellow-500)" />
-      ) : (
-        <IoStarOutline key={idx} size={13} color="var(--gray-400)" />
-      ),
-    )
   }
 
   return (
@@ -102,16 +124,9 @@ export default function BottomSheetPlaceDetail({
             {building.floors.map((floor) => (
               <FloorChip
                 key={floor}
+                $active={selectedFloor === floor}
                 type="button"
                 onClick={() => onSelectFloor?.(floor)}
-                style={{
-                  background:
-                    selectedFloor === floor ? 'var(--blue-600)' : 'var(--blue-50)',
-                  color:
-                    selectedFloor === floor
-                      ? 'var(--text-inverse)'
-                      : 'var(--blue-600)',
-                }}
               >
                 {floor < 0 ? `B${Math.abs(floor)}` : `${floor}`}층
               </FloorChip>
@@ -123,17 +138,34 @@ export default function BottomSheetPlaceDetail({
       {building.hasIndoorMap && pois.length > 0 ? (
         <SectionBlock>
           <PoiToggleButton type="button" onClick={onTogglePOIs}>
-            <PoiTitle>POI 목록 ({pois.length}개)</PoiTitle>
+            <PoiTitle>
+              POI 목록 ({filteredByFloorPois.length}개)
+            </PoiTitle>
             <span>{showPOIs ? '▲' : '▼'}</span>
           </PoiToggleButton>
           {showPOIs ? (
             <PoiList>
-              {pois.map((poi, idx) => (
-                <PoiItem key={poi.id ?? `${poi.name}-${idx}`} type="button">
-                  <PoiName>{poi.name}</PoiName>
-                  <PoiFloor>{poi.floor}층</PoiFloor>
+              {shouldShowPoiSearch ? (
+                <PoiSearchInput
+                  type="text"
+                  value={poiKeyword}
+                  onChange={(event) => setPoiKeyword(event.target.value)}
+                  placeholder="POI 검색"
+                  aria-label="POI 검색"
+                />
+              ) : null}
+              {filteredPois.length > 0 ? (
+                filteredPois.map((poi, idx) => (
+                  <PoiItem key={poi.id ?? `${poi.name}-${idx}`} type="button">
+                    <PoiName>{poi.name}</PoiName>
+                    <PoiFloor>{poi.floor}층</PoiFloor>
+                  </PoiItem>
+                ))
+              ) : (
+                <PoiItem type="button" disabled>
+                  <PoiName>{poiEmptyMessage}</PoiName>
                 </PoiItem>
-              ))}
+              )}
             </PoiList>
           ) : null}
         </SectionBlock>
@@ -156,9 +188,7 @@ export default function BottomSheetPlaceDetail({
             {reviews.slice(0, visibleReviewCount).map((review, index) => (
               <ReviewCard key={review.id ?? `${review.user}-${index}`}>
                 <ReviewMeta>
-                  <span style={{ display: 'inline-flex', gap: 2 }}>
-                    {renderStars(review.rating)}
-                  </span>
+                  <ReviewStars>{renderStarIcons(review.rating)}</ReviewStars>
                   <span>{review.user}</span>
                 </ReviewMeta>
                 <ReviewText>{review.content ?? review.text}</ReviewText>

@@ -48,8 +48,10 @@ export const FloorChip = styled.button`
   flex: 0 0 auto;
   white-space: nowrap;
   border: var(--size-1) solid var(--gray-200);
-  background: var(--blue-50);
-  color: var(--blue-600);
+  background: ${({ $active }) =>
+    $active ? 'var(--blue-600)' : 'var(--blue-50)'};
+  color: ${({ $active }) =>
+    $active ? 'var(--text-inverse)' : 'var(--blue-600)'};
   border-radius: var(--radius-pill);
   padding: var(--space-4) var(--space-10);
   font-family: var(--font-sans);
@@ -102,6 +104,24 @@ export const PoiTitle = styled.span`
   color: var(--black-900);
   font-size: var(--text-14);
   font-weight: 600;
+`
+
+export const PoiSearchInput = styled.input`
+  width: 100%;
+  height: var(--size-36);
+  border: var(--size-1) solid var(--gray-200);
+  border-radius: var(--radius-8);
+  padding: 0 var(--space-12);
+  margin-top: var(--space-8);
+  color: var(--black-900);
+  background: var(--surface-0);
+  font-family: var(--font-sans);
+  font-size: var(--text-14);
+  line-height: var(--line-20);
+
+  &::placeholder {
+    color: var(--gray-400);
+  }
 `
 
 export const PoiList = styled.div`
@@ -183,6 +203,11 @@ export const ReviewMeta = styled.div`
   margin-bottom: var(--space-6);
   color: var(--gray-500);
   font-size: var(--text-12);
+`
+
+export const ReviewStars = styled.span`
+  display: inline-flex;
+  gap: var(--space-2);
 `
 
 export const ReviewText = styled.p`

@@ -35,6 +35,13 @@ export default function MapPage() {
     navigate('/search')
   }
 
+  const handleSearchInputKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      openSearchPage()
+    }
+  }
+
   return (
     <main className="map-page">
       <div className="map-page__viewport">
@@ -47,6 +54,7 @@ export default function MapPage() {
           placeholder="건물, 장소 검색"
           readOnly
           onClick={openSearchPage}
+          onKeyDown={handleSearchInputKeyDown}
         />
       </div>
 

@@ -13,7 +13,7 @@ export function resolvePoiFromSearch(selectedSearchPlace, mapPois = []) {
   if (exactMatch) {
     return {
       ...exactMatch,
-      isRegistered: selectedSearchPlace.isRegistered,
+      isRegistered: selectedSearchPlace.isRegistered ?? exactMatch.isRegistered,
     }
   }
 

@@ -86,6 +86,9 @@ export default function BottomSheetPlaceDetail({
     )
   }, [filteredByFloorPois, normalizedPoiKeyword])
   const shouldShowPoiSearch = filteredByFloorPois.length >= POI_SEARCH_THRESHOLD
+  const poiEmptyMessage = normalizedPoiKeyword
+    ? '검색 결과가 없습니다.'
+    : '선택한 층에 POI가 없습니다.'
 
   const handleMoreReviews = () => {
     setVisibleReviewCount((prev) => prev + 3)
@@ -160,7 +163,7 @@ export default function BottomSheetPlaceDetail({
                 ))
               ) : (
                 <PoiItem type="button" disabled>
-                  <PoiName>선택한 층에 POI가 없습니다.</PoiName>
+                  <PoiName>{poiEmptyMessage}</PoiName>
                 </PoiItem>
               )}
             </PoiList>

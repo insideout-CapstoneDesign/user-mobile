@@ -92,7 +92,6 @@ export default function SearchPage() {
 
   const handleSelectResult = (selectedPlace) => {
     navigate('/map', {
-      replace: true,
       state: { selectedSearchPlace: selectedPlace },
     })
   }

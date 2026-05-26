@@ -2,6 +2,7 @@ import { ERROR_MESSAGE } from '../constants/errorMessages'
 import getErrorMessage from './utils/getErrorMessage'
 
 const NEAREST_PLACE_PATH = '/api/v1/places/nearest'
+const SEARCH_PLACES_PATH = '/api/v1/places/search'
 const REQUEST_TIMEOUT_MS = 10000
 const NO_PLACE_CODES = new Set(['PLACE_INFO_NOT_AVAILABLE', 'PLACE200_1'])
 
@@ -108,4 +109,18 @@ export async function getNearestPlace({ lat, lng, radius = 30 }) {
   }
 
   return { place: data.result, code: data?.code }
+}
+
+export async function searchPlaces(keyword) {
+  const query = new URLSearchParams({ q: keyword }).toString()
+  const data = await getJson(`${SEARCH_PLACES_PATH}?${query}`, {
+    fallbackMessage: '검색 결과를 불러오지 못했습니다.',
+  })
+
+  const rawResult = data?.result
+
+  if (Array.isArray(rawResult)) return rawResult
+  if (Array.isArray(rawResult?.content)) return rawResult.content
+
+  return []
 }

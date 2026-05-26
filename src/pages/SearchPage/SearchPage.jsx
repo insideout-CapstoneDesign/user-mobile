@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { searchPlaces } from '../../apis/placeApi'
 import CommonHeader from '../../components/CommonHeader/CommonHeader'
 import SearchAutocompleteList from '../../components/Search/SearchAutocompleteList'
 import SearchResultList from '../../components/Search/SearchResultList'
-import {
-  mockAutocompleteKeywords,
-  mockSearchPlaces,
-} from '../../mocks/search/searchPage.mock'
+import { mockAutocompleteKeywords } from '../../mocks/search/searchPage.mock'
 import './SearchPage.css'
 
 const SEARCH_DELAY_MS = 250
@@ -17,8 +15,10 @@ export default function SearchPage() {
   const [keyword, setKeyword] = useState('')
   const [isResultMode, setIsResultMode] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [hasSearchError, setHasSearchError] = useState(false)
   const [resultItems, setResultItems] = useState([])
   const searchTimerRef = useRef(null)
+  const requestSeqRef = useRef(0)
 
   useEffect(() => {
     return () => {
@@ -43,25 +43,46 @@ export default function SearchPage() {
     if (!normalized) {
       setIsResultMode(false)
       setIsLoading(false)
+      setHasSearchError(false)
       setResultItems([])
       return
     }
 
     setIsResultMode(true)
     setIsLoading(true)
+    setHasSearchError(false)
 
     if (searchTimerRef.current) {
       window.clearTimeout(searchTimerRef.current)
     }
 
-    searchTimerRef.current = window.setTimeout(() => {
-      const filtered = mockSearchPlaces.filter(
-        (item) =>
-          normalizeText(item.title).includes(normalized) ||
-          normalizeText(item.address).includes(normalized),
-      )
-      setResultItems(filtered)
-      setIsLoading(false)
+    const requestId = ++requestSeqRef.current
+
+    searchTimerRef.current = window.setTimeout(async () => {
+      try {
+        const places = await searchPlaces(normalized)
+        if (requestId !== requestSeqRef.current) return
+
+        const mappedPlaces = places.map((place, idx) => ({
+          id: place.externalApiId ?? `${place.name}-${idx}`,
+          title: place.name,
+          address: place.roadAddress || place.address || '주소 정보 없음',
+          isRegistered: Boolean(place.isRegistered),
+          lat: place.lat,
+          lng: place.lng,
+          externalApiId: place.externalApiId,
+        }))
+
+        setResultItems(mappedPlaces)
+      } catch {
+        if (requestId !== requestSeqRef.current) return
+        setHasSearchError(true)
+        setResultItems([])
+      } finally {
+        if (requestId === requestSeqRef.current) {
+          setIsLoading(false)
+        }
+      }
     }, SEARCH_DELAY_MS)
   }
 
@@ -77,16 +98,6 @@ export default function SearchPage() {
 
   const handleSelectAutocomplete = (selectedKeyword) => {
     setKeyword(selectedKeyword)
-
-    const exactMatch = mockSearchPlaces.find(
-      (item) => normalizeText(item.title) === normalizeText(selectedKeyword),
-    )
-
-    if (exactMatch) {
-      handleSelectResult(exactMatch)
-      return
-    }
-
     runSearch(selectedKeyword)
   }
 
@@ -128,7 +139,11 @@ export default function SearchPage() {
         ) : null}
 
         {isResultMode && !isLoading && resultItems.length === 0 ? (
-          <p className="search-page__state">검색 결과가 없습니다.</p>
+          <p className="search-page__state">
+            {hasSearchError
+              ? '검색 결과를 불러오지 못했습니다.'
+              : '검색 결과가 없습니다.'}
+          </p>
         ) : null}
       </section>
     </main>

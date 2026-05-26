@@ -14,6 +14,7 @@ import './MapPage.css'
 const NEAREST_RADIUS_METERS = 30
 const NOTICE_TIMEOUT_MS = 2400
 const NO_PLACE_CODE = 'PLACE_INFO_NOT_AVAILABLE'
+const DEFAULT_MAP_CENTER = { lat: 37.558107, lng: 126.998945 }
 
 function mapNearestPlaceToPoi(place) {
   return {
@@ -35,6 +36,7 @@ export default function MapPage() {
   const navigate = useNavigate()
   const selectedSearchPlace = location.state?.selectedSearchPlace
   const [currentNav, setCurrentNav] = useState('map')
+  const [mapCenter, setMapCenter] = useState(DEFAULT_MAP_CENTER)
   const [mapNotice, setMapNotice] = useState('')
   const [selectedPoi, setSelectedPoi] = useState(() =>
     resolvePoiFromSearch(selectedSearchPlace, mockMapPois),
@@ -59,6 +61,27 @@ export default function MapPage() {
         window.clearTimeout(noticeTimerRef.current)
       }
     }
+  }, [])
+
+  useEffect(() => {
+    if (!navigator.geolocation) return
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setMapCenter({
+          lat: coords.latitude,
+          lng: coords.longitude,
+        })
+      },
+      () => {
+        // 권한 거부/실패 시 기본 중심 좌표(동국대)를 유지합니다.
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      },
+    )
   }, [])
 
   const showMapNotice = (message) => {
@@ -120,7 +143,7 @@ export default function MapPage() {
   return (
     <main className="map-page">
       <div className="map-page__viewport">
-        <KakaoMapView pois={[]} onMapClick={handleMapClick} />
+        <KakaoMapView center={mapCenter} pois={[]} onMapClick={handleMapClick} />
       </div>
 
       <div className="map-page__search">

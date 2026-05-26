@@ -150,7 +150,10 @@ export default function SearchPage() {
 
   const handleSelectResult = (selectedPlace) => {
     navigate('/map', {
-      state: { selectedSearchPlace: selectedPlace },
+      state: {
+        selectedSearchPlace: selectedPlace,
+        openSheetFrom: 'search-result',
+      },
     })
   }
 

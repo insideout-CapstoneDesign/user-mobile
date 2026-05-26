@@ -1,8 +1,7 @@
-import { useCallback, useRef } from 'react'
+import { useCallback } from 'react'
 import useCurrentLocation from '../useCurrentLocation'
 
-export default function useCurrentLocationOnKakaoMap(map) {
-  const currentMarkerRef = useRef(null)
+export default function useCurrentLocationOnKakaoMap(map, onLocated) {
   const { isLocating, geoMessage, requestCurrentLocation } = useCurrentLocation()
 
   const moveToCurrentLocation = useCallback(() => {
@@ -13,19 +12,10 @@ export default function useCurrentLocationOnKakaoMap(map) {
         const target = new window.kakao.maps.LatLng(latitude, longitude)
 
         map.panTo(target)
-
-        if (currentMarkerRef.current) {
-          currentMarkerRef.current.setPosition(target)
-          return
-        }
-
-        currentMarkerRef.current = new window.kakao.maps.Marker({
-          map,
-          position: target,
-        })
+        onLocated?.({ lat: latitude, lng: longitude })
       },
     })
-  }, [map, requestCurrentLocation])
+  }, [map, onLocated, requestCurrentLocation])
 
   return {
     isLocating,

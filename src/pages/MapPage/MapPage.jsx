@@ -5,8 +5,10 @@ import BottomNav from '../../components/BottomNav/BottomNav'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
 import SearchInput from '../../components/SearchInput/SearchInput'
+import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
 import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
+import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
 import './MapPage.css'
 
 const NEAREST_RADIUS_METERS = 30
@@ -33,11 +35,28 @@ export default function MapPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const selectedSearchPlace = location.state?.selectedSearchPlace
+  const shouldOpenFromSearch = location.state?.openSheetFrom === 'search-result'
+  const initialSelectedPoi =
+    shouldOpenFromSearch && selectedSearchPlace
+      ? resolvePoiFromSearch(selectedSearchPlace, mockMapPois)
+      : null
   const [currentNav, setCurrentNav] = useState('map')
-  const [mapCenter, setMapCenter] = useState(DEFAULT_MAP_CENTER)
+  const [mapCenter, setMapCenter] = useState(() =>
+    initialSelectedPoi &&
+    typeof initialSelectedPoi.lat === 'number' &&
+    typeof initialSelectedPoi.lng === 'number'
+      ? { lat: initialSelectedPoi.lat, lng: initialSelectedPoi.lng }
+      : DEFAULT_MAP_CENTER,
+  )
   const [mapNotice, setMapNotice] = useState('')
-  const [selectedMarkerPosition, setSelectedMarkerPosition] = useState(null)
-  const [selectedPoi, setSelectedPoi] = useState(null)
+  const [selectedMarkerPosition, setSelectedMarkerPosition] = useState(() =>
+    initialSelectedPoi &&
+    typeof initialSelectedPoi.lat === 'number' &&
+    typeof initialSelectedPoi.lng === 'number'
+      ? { lat: initialSelectedPoi.lat, lng: initialSelectedPoi.lng }
+      : null,
+  )
+  const [selectedPoi, setSelectedPoi] = useState(initialSelectedPoi)
   const requestSeqRef = useRef(0)
   const noticeTimerRef = useRef(null)
   const registeredPlaces = useMemo(
@@ -61,6 +80,7 @@ export default function MapPage() {
   }, [])
 
   useEffect(() => {
+    if (shouldOpenFromSearch) return
     if (!navigator.geolocation) return
 
     navigator.geolocation.getCurrentPosition(
@@ -79,7 +99,7 @@ export default function MapPage() {
         maximumAge: 60000,
       },
     )
-  }, [])
+  }, [shouldOpenFromSearch])
 
   useEffect(() => {
     if (!selectedSearchPlace) return
@@ -114,6 +134,13 @@ export default function MapPage() {
     }
   }
 
+  const handleCurrentLocationSelect = ({ lat, lng }) => {
+    setMapCenter({ lat, lng })
+    setSelectedPoi(null)
+    setSelectedMarkerPosition({ lat, lng })
+    setMapNotice('')
+  }
+
   const handleMapClick = async ({ lat, lng }) => {
     const requestId = ++requestSeqRef.current
 
@@ -138,6 +165,10 @@ export default function MapPage() {
       const mappedPoi = mapNearestPlaceToPoi(place)
       setMapNotice('')
       setSelectedPoi(mappedPoi)
+      setMapCenter({
+        lat: mappedPoi.lat,
+        lng: mappedPoi.lng,
+      })
       setSelectedMarkerPosition({
         lat: mappedPoi.lat,
         lng: mappedPoi.lng,
@@ -157,6 +188,8 @@ export default function MapPage() {
           center={mapCenter}
           pois={[]}
           markerPosition={selectedMarkerPosition}
+          markerOffsetY={selectedPoi ? -200 : 0}
+          onCurrentLocationSelect={handleCurrentLocationSelect}
           onMapClick={handleMapClick}
         />
       </div>

@@ -14,6 +14,8 @@ export default function KakaoMapView({
   onPoiSelect,
   onMapClick,
   markerPosition = null,
+  markerOffsetY = 0,
+  onCurrentLocationSelect,
 }) {
   const appKey = import.meta.env.VITE_KAKAO_MAP_APP_KEY
   const mapRef = useRef(null)
@@ -31,10 +33,10 @@ export default function KakaoMapView({
     onPoiSelect,
     onMapClick,
   })
-  useSingleMarkerOnMap({ map, markerPosition })
+  useSingleMarkerOnMap({ map, markerPosition, markerOffsetY })
 
   const { isLocating, geoMessage, moveToCurrentLocation } =
-    useCurrentLocationOnKakaoMap(map)
+    useCurrentLocationOnKakaoMap(map, onCurrentLocationSelect)
 
   if (status === 'error-key') {
     return <MapState>카카오맵 키가 설정되지 않았습니다.</MapState>

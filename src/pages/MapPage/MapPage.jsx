@@ -5,10 +5,8 @@ import BottomNav from '../../components/BottomNav/BottomNav'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
 import SearchInput from '../../components/SearchInput/SearchInput'
-import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
 import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
-import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
 import './MapPage.css'
 
 const NEAREST_RADIUS_METERS = 30
@@ -38,9 +36,8 @@ export default function MapPage() {
   const [currentNav, setCurrentNav] = useState('map')
   const [mapCenter, setMapCenter] = useState(DEFAULT_MAP_CENTER)
   const [mapNotice, setMapNotice] = useState('')
-  const [selectedPoi, setSelectedPoi] = useState(() =>
-    resolvePoiFromSearch(selectedSearchPlace, mockMapPois),
-  )
+  const [selectedMarkerPosition, setSelectedMarkerPosition] = useState(null)
+  const [selectedPoi, setSelectedPoi] = useState(null)
   const requestSeqRef = useRef(0)
   const noticeTimerRef = useRef(null)
   const registeredPlaces = useMemo(
@@ -84,6 +81,11 @@ export default function MapPage() {
     )
   }, [])
 
+  useEffect(() => {
+    if (!selectedSearchPlace) return
+    navigate('/map', { replace: true, state: null })
+  }, [navigate, selectedSearchPlace])
+
   const showMapNotice = (message) => {
     setMapNotice(message)
 
@@ -98,6 +100,7 @@ export default function MapPage() {
 
   const closePoiSheet = () => {
     setSelectedPoi(null)
+    setSelectedMarkerPosition(null)
   }
 
   const openSearchPage = () => {
@@ -125,17 +128,24 @@ export default function MapPage() {
 
       if (!place) {
         setSelectedPoi(null)
+        setSelectedMarkerPosition(null)
         if (code === NO_PLACE_CODE || code === 'PLACE200_1') {
           showMapNotice('해당 위치의 장소 정보를 찾을 수 없어요.')
         }
         return
       }
 
+      const mappedPoi = mapNearestPlaceToPoi(place)
       setMapNotice('')
-      setSelectedPoi(mapNearestPlaceToPoi(place))
+      setSelectedPoi(mappedPoi)
+      setSelectedMarkerPosition({
+        lat: mappedPoi.lat,
+        lng: mappedPoi.lng,
+      })
     } catch (error) {
       if (requestId !== requestSeqRef.current) return
       setSelectedPoi(null)
+      setSelectedMarkerPosition(null)
       showMapNotice(error?.message ?? '장소 정보를 불러오지 못했습니다.')
     }
   }
@@ -143,7 +153,12 @@ export default function MapPage() {
   return (
     <main className="map-page">
       <div className="map-page__viewport">
-        <KakaoMapView center={mapCenter} pois={[]} onMapClick={handleMapClick} />
+        <KakaoMapView
+          center={mapCenter}
+          pois={[]}
+          markerPosition={selectedMarkerPosition}
+          onMapClick={handleMapClick}
+        />
       </div>
 
       <div className="map-page__search">

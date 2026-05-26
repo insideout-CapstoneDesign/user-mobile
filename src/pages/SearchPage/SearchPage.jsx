@@ -8,14 +8,23 @@ import { mockAutocompleteKeywords } from '../../mocks/search/searchPage.mock'
 import './SearchPage.css'
 
 const SEARCH_DELAY_MS = 250
+const SEARCH_RADIUS_METERS = 3000
 const normalizeText = (value = '') => value.trim().toLowerCase()
+const GEOLOCATION_UNAVAILABLE_MESSAGE = '현재 위치 정보를 사용할 수 없습니다.'
+const GEOLOCATION_REQUIRED_MESSAGE = '현재 위치를 확인한 뒤 다시 검색해 주세요.'
 
 export default function SearchPage() {
   const navigate = useNavigate()
+  const supportsGeolocation =
+    typeof navigator !== 'undefined' && 'geolocation' in navigator
   const [keyword, setKeyword] = useState('')
   const [isResultMode, setIsResultMode] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [hasSearchError, setHasSearchError] = useState(false)
+  const [searchStateMessage, setSearchStateMessage] = useState(
+    supportsGeolocation ? '' : GEOLOCATION_UNAVAILABLE_MESSAGE,
+  )
+  const [searchCenter, setSearchCenter] = useState(null)
   const [resultItems, setResultItems] = useState([])
   const searchTimerRef = useRef(null)
   const requestSeqRef = useRef(0)
@@ -27,6 +36,27 @@ export default function SearchPage() {
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (!supportsGeolocation) return
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setSearchCenter({
+          lat: coords.latitude,
+          lng: coords.longitude,
+        })
+      },
+      () => {
+        setSearchStateMessage(GEOLOCATION_REQUIRED_MESSAGE)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      },
+    )
+  }, [supportsGeolocation])
 
   const autocompleteItems = useMemo(() => {
     const normalized = normalizeText(keyword)
@@ -44,6 +74,16 @@ export default function SearchPage() {
       setIsResultMode(false)
       setIsLoading(false)
       setHasSearchError(false)
+      setSearchStateMessage('')
+      setResultItems([])
+      return
+    }
+
+    if (!searchCenter) {
+      setIsResultMode(true)
+      setIsLoading(false)
+      setHasSearchError(true)
+      setSearchStateMessage(GEOLOCATION_REQUIRED_MESSAGE)
       setResultItems([])
       return
     }
@@ -51,6 +91,7 @@ export default function SearchPage() {
     setIsResultMode(true)
     setIsLoading(true)
     setHasSearchError(false)
+    setSearchStateMessage('')
 
     if (searchTimerRef.current) {
       window.clearTimeout(searchTimerRef.current)
@@ -60,7 +101,12 @@ export default function SearchPage() {
 
     searchTimerRef.current = window.setTimeout(async () => {
       try {
-        const places = await searchPlaces(normalized)
+        const places = await searchPlaces({
+          keyword: normalized,
+          lat: searchCenter.lat,
+          lng: searchCenter.lng,
+          radius: SEARCH_RADIUS_METERS,
+        })
         if (requestId !== requestSeqRef.current) return
 
         const mappedPlaces = places.map((place, idx) => ({
@@ -77,6 +123,7 @@ export default function SearchPage() {
       } catch {
         if (requestId !== requestSeqRef.current) return
         setHasSearchError(true)
+        setSearchStateMessage('검색 결과를 불러오지 못했습니다.')
         setResultItems([])
       } finally {
         if (requestId === requestSeqRef.current) {
@@ -141,7 +188,7 @@ export default function SearchPage() {
         {isResultMode && !isLoading && resultItems.length === 0 ? (
           <p className="search-page__state">
             {hasSearchError
-              ? '검색 결과를 불러오지 못했습니다.'
+              ? searchStateMessage || '검색 결과를 불러오지 못했습니다.'
               : '검색 결과가 없습니다.'}
           </p>
         ) : null}

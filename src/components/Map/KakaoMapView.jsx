@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import useCurrentLocationOnKakaoMap from '../../hooks/map/useCurrentLocationOnKakaoMap'
 import useKakaoMapInstance from '../../hooks/map/useKakaoMapInstance'
 import usePoiSelectionOnMap from '../../hooks/map/usePoiSelectionOnMap'
+import useSingleMarkerOnMap from '../../hooks/map/useSingleMarkerOnMap'
 import CurrentLocationControl from './CurrentLocationControl'
 import { MapRoot, MapState, MapViewport } from './KakaoMapView.styles'
 
@@ -12,6 +13,7 @@ export default function KakaoMapView({
   selectionRadiusMeters = 40,
   onPoiSelect,
   onMapClick,
+  markerPosition = null,
 }) {
   const appKey = import.meta.env.VITE_KAKAO_MAP_APP_KEY
   const mapRef = useRef(null)
@@ -29,6 +31,7 @@ export default function KakaoMapView({
     onPoiSelect,
     onMapClick,
   })
+  useSingleMarkerOnMap({ map, markerPosition })
 
   const { isLocating, geoMessage, moveToCurrentLocation } =
     useCurrentLocationOnKakaoMap(map)

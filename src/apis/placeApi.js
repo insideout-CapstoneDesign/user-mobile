@@ -111,8 +111,27 @@ export async function getNearestPlace({ lat, lng, radius = 30 }) {
   return { place: data.result, code: data?.code }
 }
 
-export async function searchPlaces(keyword) {
-  const query = new URLSearchParams({ q: keyword }).toString()
+export async function searchPlaces({ keyword, lat, lng, radius = 3000 }) {
+  if (!keyword?.trim()) return []
+
+  if (!isFiniteNumber(lat) || !isFiniteNumber(lng)) {
+    const error = new Error('현재 위치 정보를 확인할 수 없습니다.')
+    error.code = 'PLACE400_1'
+    throw error
+  }
+
+  if (!isFiniteNumber(radius) || radius <= 0) {
+    const error = new Error('반경 정보가 올바르지 않습니다.')
+    error.code = 'PLACE400_2'
+    throw error
+  }
+
+  const query = new URLSearchParams({
+    q: keyword.trim(),
+    lat: String(lat),
+    lng: String(lng),
+    radius: String(radius),
+  }).toString()
   const data = await getJson(`${SEARCH_PLACES_PATH}?${query}`, {
     fallbackMessage: '검색 결과를 불러오지 못했습니다.',
   })

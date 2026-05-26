@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { getNearestPlace } from '../../apis/placeApi'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
@@ -10,22 +11,67 @@ import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
 import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
 import './MapPage.css'
 
+const NEAREST_RADIUS_METERS = 30
+const NOTICE_TIMEOUT_MS = 2400
+const NO_PLACE_CODE = 'PLACE_INFO_NOT_AVAILABLE'
+
+function mapNearestPlaceToPoi(place) {
+  return {
+    id:
+      place.externalApiId ??
+      place.id ??
+      `${place.name ?? place.placeName ?? 'place'}-${place.lat}-${place.lng}`,
+    name: place.name ?? place.placeName ?? place.title ?? '장소명',
+    address: place.roadAddress || place.address || '주소 정보 없음',
+    lat: place.lat,
+    lng: place.lng,
+    isRegistered: Boolean(place.isRegistered),
+    externalApiId: place.externalApiId,
+  }
+}
+
 export default function MapPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const selectedSearchPlace = location.state?.selectedSearchPlace
   const [currentNav, setCurrentNav] = useState('map')
+  const [mapNotice, setMapNotice] = useState('')
   const [selectedPoi, setSelectedPoi] = useState(() =>
     resolvePoiFromSearch(selectedSearchPlace, mockMapPois),
   )
+  const requestSeqRef = useRef(0)
+  const noticeTimerRef = useRef(null)
   const registeredPlaces = useMemo(
     () => mockSearchPlaces.filter((place) => place.isRegistered),
     [],
   )
   const isSelectedPoiRegistered = useMemo(
-    () => isRegisteredPlace(selectedPoi, registeredPlaces),
+    () =>
+      typeof selectedPoi?.isRegistered === 'boolean'
+        ? selectedPoi.isRegistered
+        : isRegisteredPlace(selectedPoi, registeredPlaces),
     [registeredPlaces, selectedPoi],
   )
+
+  useEffect(() => {
+    return () => {
+      if (noticeTimerRef.current) {
+        window.clearTimeout(noticeTimerRef.current)
+      }
+    }
+  }, [])
+
+  const showMapNotice = (message) => {
+    setMapNotice(message)
+
+    if (noticeTimerRef.current) {
+      window.clearTimeout(noticeTimerRef.current)
+    }
+
+    noticeTimerRef.current = window.setTimeout(() => {
+      setMapNotice('')
+    }, NOTICE_TIMEOUT_MS)
+  }
 
   const closePoiSheet = () => {
     setSelectedPoi(null)
@@ -42,10 +88,39 @@ export default function MapPage() {
     }
   }
 
+  const handleMapClick = async ({ lat, lng }) => {
+    const requestId = ++requestSeqRef.current
+
+    try {
+      const { place, code } = await getNearestPlace({
+        lat,
+        lng,
+        radius: NEAREST_RADIUS_METERS,
+      })
+
+      if (requestId !== requestSeqRef.current) return
+
+      if (!place) {
+        setSelectedPoi(null)
+        if (code === NO_PLACE_CODE || code === 'PLACE200_1') {
+          showMapNotice('해당 위치의 장소 정보를 찾을 수 없어요.')
+        }
+        return
+      }
+
+      setMapNotice('')
+      setSelectedPoi(mapNearestPlaceToPoi(place))
+    } catch (error) {
+      if (requestId !== requestSeqRef.current) return
+      setSelectedPoi(null)
+      showMapNotice(error?.message ?? '장소 정보를 불러오지 못했습니다.')
+    }
+  }
+
   return (
     <main className="map-page">
       <div className="map-page__viewport">
-        <KakaoMapView pois={mockMapPois} onPoiSelect={setSelectedPoi} />
+        <KakaoMapView pois={[]} onMapClick={handleMapClick} />
       </div>
 
       <div className="map-page__search">
@@ -57,6 +132,7 @@ export default function MapPage() {
           onKeyDown={handleSearchInputKeyDown}
         />
       </div>
+      {mapNotice ? <p className="map-page__notice">{mapNotice}</p> : null}
 
       <BottomNav currentKey={currentNav} onChange={setCurrentNav} />
 

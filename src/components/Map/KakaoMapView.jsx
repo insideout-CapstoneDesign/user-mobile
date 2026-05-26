@@ -11,6 +11,7 @@ export default function KakaoMapView({
   pois = [],
   selectionRadiusMeters = 40,
   onPoiSelect,
+  onMapClick,
 }) {
   const appKey = import.meta.env.VITE_KAKAO_MAP_APP_KEY
   const mapRef = useRef(null)
@@ -26,6 +27,7 @@ export default function KakaoMapView({
     pois,
     selectionRadiusMeters,
     onPoiSelect,
+    onMapClick,
   })
 
   const { isLocating, geoMessage, moveToCurrentLocation } =

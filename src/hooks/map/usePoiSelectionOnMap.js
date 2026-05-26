@@ -6,6 +6,7 @@ export default function usePoiSelectionOnMap({
   pois,
   selectionRadiusMeters,
   onPoiSelect,
+  onMapClick,
 }) {
   const selectedPoiMarkerRef = useRef(null)
 
@@ -13,13 +14,15 @@ export default function usePoiSelectionOnMap({
     if (!map || !window.kakao?.maps?.event) return
 
     const handleMapClick = (mouseEvent) => {
-      if (!pois.length) return
-
       const clickLatLng = mouseEvent.latLng
       const clickPoint = {
         lat: clickLatLng.getLat(),
         lng: clickLatLng.getLng(),
       }
+      onMapClick?.(clickPoint)
+
+      if (!pois.length) return
+
       const selectedPoi = findNearestPoiWithinRadius(
         clickPoint,
         pois,
@@ -55,5 +58,5 @@ export default function usePoiSelectionOnMap({
         window.kakao.maps.event.removeListener(map, 'click', handleMapClick)
       }
     }
-  }, [map, onPoiSelect, pois, selectionRadiusMeters])
+  }, [map, onMapClick, onPoiSelect, pois, selectionRadiusMeters])
 }

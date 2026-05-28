@@ -39,6 +39,14 @@
   z-index: 12;
 }
 
+.map-page__guidance-floor {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--space-24) + env(safe-area-inset-bottom));
+  z-index: 24;
+  transform: translateX(-50%);
+}
+
 .map-page__floor-steps {
   position: absolute;
   left: var(--space-16);

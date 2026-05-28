@@ -282,6 +282,10 @@ export const RouteBar = styled.div`
   gap: var(--space-3);
 `
 
+export const RouteBarSlot = styled.div`
+  margin-top: var(--space-10);
+`
+
 export const RouteBarSegment = styled.div`
   flex: ${({ $weight }) => Math.max($weight, 1)};
   min-width: var(--size-36);

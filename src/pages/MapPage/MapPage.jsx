@@ -8,8 +8,12 @@ import FloorSelector from '../../components/Floor/FloorSelector'
 import FloorplanRouteView from '../../components/Map/FloorplanRouteView'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
+import NavigationMapOverlay from '../../components/NavigationGuidance/NavigationMapOverlay'
 import SearchInput from '../../components/SearchInput/SearchInput'
 import TransportSelector from '../../components/Transport/TransportSelector'
+import TransitTurnByTurnList from '../../components/NavigationGuidance/TransitTurnByTurnList'
+import TurnByTurnList from '../../components/NavigationGuidance/TurnByTurnList'
+import { buildTransitDetailLegs } from '../../components/NavigationGuidance/transitDetailMapper'
 import useNavigationRoute from '../../hooks/useNavigationRoute'
 import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
@@ -30,6 +34,8 @@ export default function MapPage() {
   const [transportMode, setTransportMode] = useState('walk')
   const [routeSheetOpen, setRouteSheetOpen] = useState(false)
   const [guidanceStarted, setGuidanceStarted] = useState(false)
+  const [guidanceView, setGuidanceView] = useState('map')
+  const [activeGuidanceStepIndex, setActiveGuidanceStepIndex] = useState(0)
   const [routeOrigin, setRouteOrigin] = useState(DEFAULT_ROUTE_ORIGIN)
   const [routeDestination, setRouteDestination] = useState(null)
   const [selectedPoi, setSelectedPoi] = useState(() =>
@@ -45,6 +51,30 @@ export default function MapPage() {
     [registeredPlaces, selectedPoi],
   )
   const isRouteMode = currentNav === 'navigation' || guidanceStarted
+  const guidanceSteps = useMemo(
+    () =>
+      navigationRoute.turnByTurnSteps.length > 0
+        ? navigationRoute.turnByTurnSteps
+        : navigationRoute.activeFloorSteps,
+    [navigationRoute.activeFloorSteps, navigationRoute.turnByTurnSteps],
+  )
+  const boundedGuidanceStepIndex = Math.min(
+    activeGuidanceStepIndex,
+    Math.max(guidanceSteps.length - 1, 0),
+  )
+  const activeGuidanceStep =
+    guidanceSteps[boundedGuidanceStepIndex] ?? guidanceSteps[0] ?? null
+  const isIndoorGuidanceStep =
+    !!activeGuidanceStep?.floorId ||
+    activeGuidanceStep?.type === 'indoor' ||
+    activeGuidanceStep?.mode === 'INDOOR'
+  const isTransitGuidance =
+    navigationRoute.selectedRouteOption?.mode === 'transit' ||
+    navigationRoute.selectedRouteOption?.routeType === 'TRANSIT'
+  const transitDetailLegs = useMemo(
+    () => buildTransitDetailLegs(navigationRoute.selectedRouteOption),
+    [navigationRoute.selectedRouteOption],
+  )
 
   const closePoiSheet = () => {
     setSelectedPoi(null)
@@ -127,8 +157,34 @@ export default function MapPage() {
 
   const resetRouteView = () => {
     setGuidanceStarted(false)
+    setGuidanceView('map')
+    setActiveGuidanceStepIndex(0)
     navigationRoute.resetRoute()
     setCurrentNav('map')
+  }
+
+  const selectGuidanceStep = (step, index) => {
+    setActiveGuidanceStepIndex(index)
+    setGuidanceView('map')
+
+    if (step?.floorId) {
+      navigationRoute.selectFloorplan(step.floorId)
+    }
+  }
+
+  const moveGuidanceStep = (direction) => {
+    const nextIndex = boundedGuidanceStepIndex + direction
+
+    if (nextIndex < 0 || nextIndex >= guidanceSteps.length) {
+      return
+    }
+
+    const nextStep = guidanceSteps[nextIndex]
+    setActiveGuidanceStepIndex(nextIndex)
+
+    if (nextStep?.floorId) {
+      navigationRoute.selectFloorplan(nextStep.floorId)
+    }
   }
 
   const handleSearchInputKeyDown = (event) => {
@@ -141,14 +197,67 @@ export default function MapPage() {
   return (
     <main className="map-page">
       <div className="map-page__viewport">
-        {guidanceStarted && navigationRoute.selectedFloorplan ? (
-          <FloorplanRouteView floorplan={navigationRoute.selectedFloorplan} />
+        {guidanceStarted && isIndoorGuidanceStep && navigationRoute.selectedFloorplan ? (
+          <FloorplanRouteView
+            floorplan={navigationRoute.selectedFloorplan}
+            showInstructionBadge={false}
+          />
         ) : (
           <KakaoMapView pois={mockMapPois} onPoiSelect={setSelectedPoi} />
         )}
       </div>
 
-      {isRouteMode ? (
+      {guidanceStarted ? (
+        <>
+          <NavigationMapOverlay
+            origin={routeOrigin.name}
+            destination={routeDestination?.name ?? '도착지'}
+            step={activeGuidanceStep}
+            activeIndex={boundedGuidanceStepIndex}
+            total={guidanceSteps.length}
+            onBack={() => setGuidanceView('list')}
+            onClose={resetRouteView}
+            onRouteClick={() => setGuidanceView('list')}
+            onPrevious={() => moveGuidanceStep(-1)}
+            onNext={() => moveGuidanceStep(1)}
+          />
+
+          {isIndoorGuidanceStep && navigationRoute.mapFloors.length > 0 ? (
+            <div className="map-page__guidance-floor">
+              <FloorSelector
+                buildingName={navigationRoute.selectedFloorplan?.mapType ?? '도면'}
+                floors={navigationRoute.mapFloors}
+                activeFloor={navigationRoute.selectedFloorplan}
+                onSelect={navigationRoute.selectFloorplan}
+              />
+            </div>
+          ) : null}
+
+          {guidanceView === 'list' ? (
+            isTransitGuidance ? (
+              <TransitTurnByTurnList
+                origin={routeOrigin.name}
+                destination={routeDestination?.name ?? '도착지'}
+                route={navigationRoute.selectedRouteOption}
+                legs={transitDetailLegs}
+                onBack={() => setGuidanceView('map')}
+                onClose={resetRouteView}
+              />
+            ) : (
+              <TurnByTurnList
+                origin={routeOrigin.name}
+                destination={routeDestination?.name ?? '도착지'}
+                route={navigationRoute.selectedRouteOption}
+                steps={guidanceSteps}
+                activeStepId={activeGuidanceStep?.id}
+                onBack={() => setGuidanceView('map')}
+                onClose={resetRouteView}
+                onSelectStep={selectGuidanceStep}
+              />
+            )
+          ) : null}
+        </>
+      ) : isRouteMode ? (
         <>
           <div className="map-page__direction">
             <DirectionSearch
@@ -177,20 +286,6 @@ export default function MapPage() {
             </div>
           ) : null}
 
-          {guidanceStarted && navigationRoute.activeFloorSteps.length > 0 ? (
-            <div className="map-page__floor-steps">
-              {navigationRoute.activeFloorSteps.slice(0, 3).map((step) => (
-                <button
-                  key={step.id}
-                  type="button"
-                  className="map-page__floor-step"
-                  onClick={() => navigationRoute.selectFloorplan(step.floorId)}
-                >
-                  {step.instruction}
-                </button>
-              ))}
-            </div>
-          ) : null}
         </>
       ) : (
         <div className="map-page__search">
@@ -216,7 +311,9 @@ export default function MapPage() {
         </div>
       ) : null}
 
-      <BottomNav currentKey={currentNav} onChange={setCurrentNav} />
+      {!guidanceStarted ? (
+        <BottomNav currentKey={currentNav} onChange={setCurrentNav} />
+      ) : null}
 
       <MapPoiSheet
         key={selectedPoi?.id ?? 'map-poi-sheet'}
@@ -236,6 +333,8 @@ export default function MapPage() {
           onStartNavigation={(option) => {
             navigationRoute.selectRouteOption(option)
             setGuidanceStarted(true)
+            setGuidanceView('list')
+            setActiveGuidanceStepIndex(0)
             setCurrentNav('navigation')
             setRouteSheetOpen(false)
           }}

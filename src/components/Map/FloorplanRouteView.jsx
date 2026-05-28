@@ -9,7 +9,11 @@ import {
   FloorplanSvg,
 } from './FloorplanRouteView.styles'
 
-export default function FloorplanRouteView({ floorplan, mapLeg }) {
+export default function FloorplanRouteView({
+  floorplan,
+  mapLeg,
+  showInstructionBadge = true,
+}) {
   const [imageState, setImageState] = useState({
     src: null,
     size: null,
@@ -104,7 +108,7 @@ export default function FloorplanRouteView({ floorplan, mapLeg }) {
         </FloorplanCanvas>
       </FloorplanStage>
 
-      {viewModel.activeInstruction ? (
+      {showInstructionBadge && viewModel.activeInstruction ? (
         <FloorplanBadge>{viewModel.activeInstruction}</FloorplanBadge>
       ) : null}
 

@@ -84,13 +84,7 @@ async function postJson(path, payload, options = {}) {
     window.clearTimeout(timeoutId)
   }
 
-  let data = null
-
-  try {
-    data = await response.json()
-  } catch {
-    // 응답 본문이 없는 경우를 고려해 파싱 오류를 무시합니다.
-  }
+  const data = await response.json().catch(() => null)
 
   if (!response.ok || data?.isSuccess === false) {
     const error = new Error(
@@ -224,6 +218,10 @@ function normalizeRouteSegments(legs) {
         type: modeToUiType(leg.mode),
         minutes,
         line: leg.routeName,
+        routeColor: leg.routeColor,
+        routeId: leg.routeId,
+        routeNm: leg.routeNm,
+        typeCode: leg.type,
       }
     })
     .filter(Boolean)

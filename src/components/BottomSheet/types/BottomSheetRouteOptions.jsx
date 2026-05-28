@@ -38,8 +38,9 @@ export default function BottomSheetRouteOptions({
   const [selectedOptionId, setSelectedOptionId] = useState(
     () => options.find((option) => option.active)?.id ?? options[0]?.id ?? null,
   )
+  const defaultOption = options.find((option) => option.active) ?? options[0] ?? null
   const selectedOption =
-    options.find((option) => option.id === selectedOptionId) ?? null
+    options.find((option) => option.id === selectedOptionId) ?? defaultOption
 
   const renderSegment = (segment, key) => {
     const backgroundByType = {
@@ -96,7 +97,7 @@ export default function BottomSheetRouteOptions({
           <RouteCard
             key={option.id}
             type="button"
-            $active={selectedOptionId === option.id}
+            $active={selectedOption?.id === option.id}
             onClick={() => {
               setSelectedOptionId(option.id)
               onSelectOption?.(option)
@@ -136,8 +137,10 @@ export default function BottomSheetRouteOptions({
                   <div>
                     <RouteOptionName>{option.name}</RouteOptionName>
                     <RouteOptionMetaRow>
-                      <RouteOptionTime>{option.time}</RouteOptionTime>
-                      <RouteOptionDistance>{option.distance}</RouteOptionDistance>
+                      {option.time ? <RouteOptionTime>{option.time}</RouteOptionTime> : null}
+                      {option.distance ? (
+                        <RouteOptionDistance>{option.distance}</RouteOptionDistance>
+                      ) : null}
                     </RouteOptionMetaRow>
                     {option.extraInfo ? (
                       <RouteOptionExtra>{option.extraInfo}</RouteOptionExtra>

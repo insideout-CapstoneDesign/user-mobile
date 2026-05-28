@@ -13,7 +13,12 @@ export function resolvePoiFromSearch(selectedSearchPlace, mapPois = []) {
   if (exactMatch) {
     return {
       ...exactMatch,
+      lat: selectedSearchPlace.lat ?? exactMatch.lat,
+      lng: selectedSearchPlace.lng ?? exactMatch.lng,
       isRegistered: selectedSearchPlace.isRegistered ?? exactMatch.isRegistered,
+      destinationBuildingId:
+        selectedSearchPlace.destinationBuildingId ?? exactMatch.destinationBuildingId,
+      destinationPoiId: selectedSearchPlace.destinationPoiId ?? exactMatch.destinationPoiId,
     }
   }
 
@@ -21,6 +26,10 @@ export function resolvePoiFromSearch(selectedSearchPlace, mapPois = []) {
     id: `search-${selectedSearchPlace.id ?? keyword}`,
     name: selectedSearchPlace.title,
     address: selectedSearchPlace.address,
+    lat: selectedSearchPlace.lat,
+    lng: selectedSearchPlace.lng,
     isRegistered: selectedSearchPlace.isRegistered,
+    destinationBuildingId: selectedSearchPlace.destinationBuildingId,
+    destinationPoiId: selectedSearchPlace.destinationPoiId,
   }
 }

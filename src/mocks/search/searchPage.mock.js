@@ -3,8 +3,8 @@ export const mockAutocompleteKeywords = ['공학관', '중앙도서관', '학생
 export const mockSearchPlaces = [
   {
     id: 'place-1',
-    title: '공학관',
-    address: '서울시 관악구 관악로 1',
+    title: '동국대학교 신공학관',
+    address: '서울시 중구 필동로 1길 30',
     isRegistered: true,
     lat: 37.55798,
     lng: 126.99834,

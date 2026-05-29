@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import useCurrentLocationOnKakaoMap from '../../hooks/map/useCurrentLocationOnKakaoMap'
 import useKakaoMapInstance from '../../hooks/map/useKakaoMapInstance'
 import usePoiSelectionOnMap from '../../hooks/map/usePoiSelectionOnMap'
+import useSingleMarkerOnMap from '../../hooks/map/useSingleMarkerOnMap'
 import CurrentLocationControl from './CurrentLocationControl'
 import { MapRoot, MapState, MapViewport } from './KakaoMapView.styles'
 
@@ -11,6 +12,10 @@ export default function KakaoMapView({
   pois = [],
   selectionRadiusMeters = 40,
   onPoiSelect,
+  onMapClick,
+  markerPosition = null,
+  markerOffsetY = 0,
+  onCurrentLocationSelect,
 }) {
   const appKey = import.meta.env.VITE_KAKAO_MAP_APP_KEY
   const mapRef = useRef(null)
@@ -26,10 +31,12 @@ export default function KakaoMapView({
     pois,
     selectionRadiusMeters,
     onPoiSelect,
+    onMapClick,
   })
+  useSingleMarkerOnMap({ map, markerPosition, markerOffsetY })
 
   const { isLocating, geoMessage, moveToCurrentLocation } =
-    useCurrentLocationOnKakaoMap(map)
+    useCurrentLocationOnKakaoMap(map, onCurrentLocationSelect)
 
   if (status === 'error-key') {
     return <MapState>카카오맵 키가 설정되지 않았습니다.</MapState>

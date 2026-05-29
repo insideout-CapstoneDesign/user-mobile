@@ -23,31 +23,34 @@ export default function TransitLegItem({
   expanded = false,
   onToggle,
 }) {
-  const isTransit = leg.type === 'bus' || leg.type === 'subway'
-  const hiddenStops = leg.stops ?? []
-  const color = normalizeRouteColor(leg.routeColor ?? leg.color)
+  const safeLeg = leg && typeof leg === 'object' ? leg : {}
+  const type = safeLeg.type ?? 'walk'
+  const displayLeg = { ...safeLeg, type }
+  const isTransit = type === 'bus' || type === 'subway'
+  const hiddenStops = Array.isArray(safeLeg.stops) ? safeLeg.stops : []
+  const color = normalizeRouteColor(safeLeg.routeColor ?? safeLeg.color)
 
   return (
-    <LegCard $type={leg.type}>
+    <LegCard $type={type}>
       <TransitTimelineIcon
-        leg={leg}
+        leg={displayLeg}
         color={color}
         isFirst={isFirst}
         isLast={isLast}
       />
 
       <LegBody>
-        {leg.type === 'point' ? (
-          <PointLegContent leg={leg} />
+        {type === 'point' ? (
+          <PointLegContent leg={displayLeg} />
         ) : isTransit ? (
           <TransitLegContent
-            leg={leg}
+            leg={displayLeg}
             hiddenStops={hiddenStops}
             expanded={expanded}
             onToggle={onToggle}
           />
         ) : (
-          <WalkLegContent leg={leg} />
+          <WalkLegContent leg={displayLeg} />
         )}
       </LegBody>
     </LegCard>
@@ -57,7 +60,7 @@ export default function TransitLegItem({
 function PointLegContent({ leg }) {
   return (
     <>
-      <LegName>{leg.title}</LegName>
+      <LegName>{leg.title ?? '위치 안내'}</LegName>
       {leg.detail ? <LegSubText>{leg.detail}</LegSubText> : null}
     </>
   )
@@ -80,7 +83,7 @@ function TransitLegContent({ leg, hiddenStops, expanded, onToggle }) {
       {expanded && hiddenStops.length > 0 ? (
         <HiddenStopList>
           {hiddenStops.map((stop, index) => (
-            <HiddenStop key={`${leg.id}-${getStopLabel(stop)}-${index}`}>
+            <HiddenStop key={`${leg.id ?? 'transit-leg'}-${getStopLabel(stop)}-${index}`}>
               {getStopLabel(stop)}
             </HiddenStop>
           ))}
@@ -96,7 +99,7 @@ function TransitLegContent({ leg, hiddenStops, expanded, onToggle }) {
 function WalkLegContent({ leg }) {
   return (
     <>
-      <WalkTitle>{leg.title}</WalkTitle>
+      <WalkTitle>{leg.title ?? '도보 이동'}</WalkTitle>
       {leg.detail ? <WalkDetailText>{leg.detail}</WalkDetailText> : null}
     </>
   )

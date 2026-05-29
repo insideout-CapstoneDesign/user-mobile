@@ -41,7 +41,7 @@ function toRawTransitDetailLeg(leg, routeId, index) {
 }
 
 function toSummaryTransitDetailLeg(step, routeId, index) {
-  const type = step.type ?? 'walk'
+  const type = normalizeTransitType(step.type ?? 'walk')
   const isTransit = type === 'bus' || type === 'subway'
 
   if (!isTransit) {
@@ -66,10 +66,16 @@ function toSummaryTransitDetailLeg(step, routeId, index) {
 }
 
 function getRawLegType(mode) {
-  if (mode === 'SUBWAY') return 'subway'
-  if (mode === 'BUS') return 'bus'
+  const normalizedMode = normalizeTransitType(mode)
+
+  if (normalizedMode === 'subway') return 'subway'
+  if (normalizedMode === 'bus') return 'bus'
 
   return 'walk'
+}
+
+function normalizeTransitType(type) {
+  return String(type ?? '').trim().toLowerCase()
 }
 
 function buildRawWalkTitle(leg) {

@@ -154,18 +154,19 @@ export async function findTransitNavigationRoutes(request) {
 }
 
 export function normalizeNavigationResponse(response = {}) {
-  const routes = Array.isArray(response.routes) ? response.routes : []
-  const failures = normalizeFailures(response)
+  const normalizedResponse = response && typeof response === 'object' ? response : {}
+  const routes = Array.isArray(normalizedResponse.routes) ? normalizedResponse.routes : []
+  const failures = normalizeFailures(normalizedResponse)
   const routeOptions = routes.map((route, index) => normalizeRouteOption(route, index))
   const mapLegs = routeOptions.flatMap((option) => option.mapLegs)
   const turnByTurnSteps = routeOptions.flatMap((option) => option.turnByTurnSteps)
 
   return {
-    raw: response,
-    requestedDestination: response.requestedDestination ?? null,
-    routedDestination: response.routedDestination ?? null,
-    indoor: response.indoor ?? null,
-    message: response.message ?? null,
+    raw: normalizedResponse,
+    requestedDestination: normalizedResponse.requestedDestination ?? null,
+    routedDestination: normalizedResponse.routedDestination ?? null,
+    indoor: normalizedResponse.indoor ?? null,
+    message: normalizedResponse.message ?? null,
     routes,
     routeOptions,
     mapLegs,

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import {
   buildNavigationRequest,
   findNavigationRoutes,
@@ -7,6 +7,7 @@ import {
 const EMPTY_ARRAY = []
 
 export default function useNavigationRoute() {
+  const requestSequenceRef = useRef(0)
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState(null)
   const [data, setData] = useState(null)
@@ -42,12 +43,19 @@ export default function useNavigationRoute() {
     data?.hasNavigationNotFoundFailure || error?.isNavigationNotFound || false
 
   const requestRoute = useCallback(async (requestInput) => {
+    const requestSequence = startRequest(requestSequenceRef)
+
     setStatus('loading')
     setError(null)
 
     try {
       const request = buildNavigationRequest(requestInput)
       const nextData = await findNavigationRoutes(request)
+
+      if (!isLatestRequest(requestSequenceRef, requestSequence)) {
+        return null
+      }
+
       const firstOption = nextData.routeOptions[0] ?? null
       const firstFloorplan = collectFloorplans(firstOption?.mapLegs ?? EMPTY_ARRAY)[0] ?? null
 
@@ -58,6 +66,10 @@ export default function useNavigationRoute() {
 
       return nextData
     } catch (nextError) {
+      if (!isLatestRequest(requestSequenceRef, requestSequence)) {
+        return null
+      }
+
       setData(null)
       setSelectedRouteOptionId(null)
       setSelectedFloorplanKey(null)
@@ -94,6 +106,7 @@ export default function useNavigationRoute() {
   }, [floorplans])
 
   const resetRoute = useCallback(() => {
+    requestSequenceRef.current += 1
     setStatus('idle')
     setError(null)
     setData(null)
@@ -135,6 +148,10 @@ function collectFloorplans(mapLegs) {
   const floorplanMap = new Map()
 
   mapLegs.forEach((leg) => {
+    if (!leg || typeof leg !== 'object') {
+      return
+    }
+
     const key = getMapFloorKey(leg)
     const current = floorplanMap.get(key)
     const nextLegs = [...(current?.mapLegs ?? []), leg]
@@ -142,12 +159,12 @@ function collectFloorplans(mapLegs) {
 
     floorplanMap.set(key, {
       key,
-      id: leg.floorId,
-      name: leg.floorName ?? leg.mapType ?? '지도',
-      label: leg.floorName ?? leg.mapType ?? '지도',
-      mapType: leg.mapType,
-      mapImageUrl: leg.mapImageUrl,
-      coordinateType: leg.coordinateType,
+      id: current?.id ?? leg.floorId,
+      name: current?.name ?? leg.floorName ?? leg.mapType ?? '지도',
+      label: current?.label ?? leg.floorName ?? leg.mapType ?? '지도',
+      mapType: current?.mapType ?? leg.mapType,
+      mapImageUrl: current?.mapImageUrl ?? leg.mapImageUrl,
+      coordinateType: current?.coordinateType ?? leg.coordinateType,
       mapLegs: nextLegs,
       paths: nextLegs.map((item) => item.path).filter((path) => path?.length),
       steps,
@@ -155,6 +172,16 @@ function collectFloorplans(mapLegs) {
   })
 
   return [...floorplanMap.values()]
+}
+
+function startRequest(requestSequenceRef) {
+  const requestSequence = requestSequenceRef.current + 1
+  requestSequenceRef.current = requestSequence
+  return requestSequence
+}
+
+function isLatestRequest(requestSequenceRef, requestSequence) {
+  return requestSequence === requestSequenceRef.current
 }
 
 function getMapFloorKey(mapLeg) {

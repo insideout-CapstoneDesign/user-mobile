@@ -71,18 +71,26 @@ export default function TransitTurnByTurnList({
         <Divider />
 
         <TransitDetailList>
-          {legs.map((leg, index) => (
-            <TransitLegItem
-              key={leg.id ?? `transit-leg-${index}`}
-              leg={leg}
-              isFirst={index === 0}
-              isLast={index === legs.length - 1}
-              expanded={expandedLegIds.has(leg.id)}
-              onToggle={() => toggleLeg(leg.id)}
-            />
-          ))}
+          {legs.map((leg, index) => {
+            const legKey = getLegKey(leg, index)
+
+            return (
+              <TransitLegItem
+                key={legKey}
+                leg={leg}
+                isFirst={index === 0}
+                isLast={index === legs.length - 1}
+                expanded={expandedLegIds.has(legKey)}
+                onToggle={() => toggleLeg(legKey)}
+              />
+            )
+          })}
         </TransitDetailList>
       </ListBody>
     </ListRoot>
   )
+}
+
+function getLegKey(leg, index) {
+  return leg?.id ?? `transit-leg-${index}`
 }

@@ -12,7 +12,8 @@ export default function TurnByTurnStepItem({
   active,
   onSelect,
 }) {
-  const meta = [step.distanceText, step.durationText, step.floorName]
+  const safeStep = step && typeof step === 'object' ? step : {}
+  const meta = [safeStep.distanceText, safeStep.durationText, safeStep.floorName]
     .filter(Boolean)
     .join(' · ')
 
@@ -20,14 +21,14 @@ export default function TurnByTurnStepItem({
     <ListItem
       type="button"
       $active={active}
-      onClick={() => onSelect?.(step, index)}
+      onClick={() => onSelect?.(safeStep, index)}
     >
       <NavigationStepIcon
-        step={step}
-        variant={isEndpointStep(step) ? 'bubble' : 'plain'}
+        step={safeStep}
+        variant={isEndpointStep(safeStep) ? 'bubble' : 'plain'}
       />
       <ListItemContent>
-        <ListItemTitle>{step.instruction || '안내 메시지'}</ListItemTitle>
+        <ListItemTitle>{safeStep.instruction || '안내 메시지'}</ListItemTitle>
         {meta ? <ListItemMeta>{meta}</ListItemMeta> : null}
       </ListItemContent>
     </ListItem>

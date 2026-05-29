@@ -93,7 +93,7 @@ export default function MapPage() {
     setGuidanceStarted(false)
 
     try {
-      await navigationRoute.requestRoute(
+      const routeData = await navigationRoute.requestRoute(
         toNavigationRequestInput({
           origin,
           destination,
@@ -101,7 +101,10 @@ export default function MapPage() {
           includeIndoor: true,
         }),
       )
-      setRouteSheetOpen(true)
+
+      if (routeData) {
+        setRouteSheetOpen(true)
+      }
     } catch {
       setRouteSheetOpen(false)
     }
@@ -159,6 +162,7 @@ export default function MapPage() {
     setGuidanceStarted(false)
     setGuidanceView('map')
     setActiveGuidanceStepIndex(0)
+    setRouteSheetOpen(false)
     navigationRoute.resetRoute()
     setCurrentNav('map')
   }

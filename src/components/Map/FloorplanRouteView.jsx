@@ -121,16 +121,18 @@ export default function FloorplanRouteView({
 
 function normalizeFloorplanViewModel(floorplan, mapLeg) {
   if (floorplan) {
+    const mapLegs = Array.isArray(floorplan.mapLegs) ? floorplan.mapLegs : []
+
     return {
       mapImageUrl: floorplan.mapImageUrl,
       floorName: floorplan.name,
-      polylines: floorplan.mapLegs
+      polylines: mapLegs
         .map((leg, index) => ({
           id: leg.id ?? `${floorplan.key}-path-${index}`,
           points: toPolylinePoints(leg.path),
         }))
         .filter((polyline) => polyline.points),
-      markers: floorplan.mapLegs.flatMap((leg, legIndex) =>
+      markers: mapLegs.flatMap((leg, legIndex) =>
         toMarkers(leg.path, `${floorplan.key}-${legIndex}`),
       ),
       activeInstruction: floorplan.steps?.[0]?.instruction ?? null,
@@ -156,10 +158,13 @@ function toPolylinePoints(path) {
     return null
   }
 
-  return path
-    .filter((point) => typeof point.x === 'number' && typeof point.y === 'number')
-    .map((point) => `${point.x},${point.y}`)
-    .join(' ')
+  const points = path.filter(isValidMapPoint)
+
+  if (points.length < 2) {
+    return null
+  }
+
+  return points.map((point) => `${point.x},${point.y}`).join(' ')
 }
 
 function toMarkers(path, keyPrefix) {
@@ -168,7 +173,7 @@ function toMarkers(path, keyPrefix) {
   }
 
   return path
-    .filter((point) => typeof point.x === 'number' && typeof point.y === 'number')
+    .filter(isValidMapPoint)
     .map((point, index, points) => ({
       id: `${keyPrefix}-marker-${index}`,
       x: point.x,
@@ -176,4 +181,8 @@ function toMarkers(path, keyPrefix) {
       variant:
         index === 0 ? 'start' : index === points.length - 1 ? 'endpoint' : 'waypoint',
     }))
+}
+
+function isValidMapPoint(point) {
+  return typeof point?.x === 'number' && typeof point?.y === 'number'
 }

@@ -31,7 +31,7 @@ export default function FloorSelector({ buildingName, floors, activeFloor, onSel
 
 function getFloorKey(floor) {
   if (floor && typeof floor === 'object') {
-    return floor.key ?? floor.id ?? floor.name
+    return floor.key ?? floor.id ?? floor.floorId ?? floor.name ?? floor.floorName
   }
 
   return floor

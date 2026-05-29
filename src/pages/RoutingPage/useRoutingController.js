@@ -7,7 +7,7 @@ import {
   toNavigationRequestInput,
 } from '../../utils/map/navigationPlaceMapper'
 
-export default function useMapNavigationController() {
+export default function useRoutingController() {
   const [currentNav, setCurrentNav] = useState('map')
   const [transportMode, setTransportMode] = useState('walk')
   const [routeSheetOpen, setRouteSheetOpen] = useState(false)
@@ -124,7 +124,7 @@ export default function useMapNavigationController() {
     setActiveGuidanceStepIndex(0)
     setRouteSheetOpen(false)
     navigationRoute.resetRoute()
-    setCurrentNav('map')
+    setCurrentNav('navigation')
   }
 
   const selectGuidanceStep = (step, index) => {

@@ -1,32 +1,71 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { searchPlaces } from '../../apis/placeApi'
 import CommonHeader from '../../components/CommonHeader/CommonHeader'
 import SearchAutocompleteList from '../../components/Search/SearchAutocompleteList'
 import SearchResultList from '../../components/Search/SearchResultList'
-import {
-  mockAutocompleteKeywords,
-  mockSearchPlaces,
-} from '../../mocks/search/searchPage.mock'
+import { mockAutocompleteKeywords } from '../../mocks/search/searchPage.mock'
 import './SearchPage.css'
 
 const SEARCH_DELAY_MS = 250
 const normalizeText = (value = '') => value.trim().toLowerCase()
+const GEOLOCATION_UNAVAILABLE_MESSAGE = '현재 위치 정보를 사용할 수 없습니다.'
+const GEOLOCATION_REQUIRED_MESSAGE = '현재 위치를 확인한 뒤 다시 검색해 주세요.'
 
 export default function SearchPage() {
   const navigate = useNavigate()
+  const supportsGeolocation =
+    typeof navigator !== 'undefined' && 'geolocation' in navigator
   const [keyword, setKeyword] = useState('')
   const [isResultMode, setIsResultMode] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [hasSearchError, setHasSearchError] = useState(false)
+  const [searchStateMessage, setSearchStateMessage] = useState(
+    supportsGeolocation ? '' : GEOLOCATION_UNAVAILABLE_MESSAGE,
+  )
+  const [searchCenter, setSearchCenter] = useState(null)
   const [resultItems, setResultItems] = useState([])
   const searchTimerRef = useRef(null)
+  const requestSeqRef = useRef(0)
+
+  const invalidatePendingSearch = () => {
+    requestSeqRef.current += 1
+    if (searchTimerRef.current) {
+      window.clearTimeout(searchTimerRef.current)
+      searchTimerRef.current = null
+    }
+  }
 
   useEffect(() => {
     return () => {
+      requestSeqRef.current += 1
       if (searchTimerRef.current) {
         window.clearTimeout(searchTimerRef.current)
+        searchTimerRef.current = null
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (!supportsGeolocation) return
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setSearchCenter({
+          lat: coords.latitude,
+          lng: coords.longitude,
+        })
+      },
+      () => {
+        setSearchStateMessage(GEOLOCATION_REQUIRED_MESSAGE)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      },
+    )
+  }, [supportsGeolocation])
 
   const autocompleteItems = useMemo(() => {
     const normalized = normalizeText(keyword)
@@ -41,58 +80,88 @@ export default function SearchPage() {
     const normalized = normalizeText(rawKeyword)
 
     if (!normalized) {
+      invalidatePendingSearch()
       setIsResultMode(false)
       setIsLoading(false)
+      setHasSearchError(false)
+      setSearchStateMessage('')
+      setResultItems([])
+      return
+    }
+
+    if (!searchCenter) {
+      invalidatePendingSearch()
+      setIsResultMode(true)
+      setIsLoading(false)
+      setHasSearchError(true)
+      setSearchStateMessage(GEOLOCATION_REQUIRED_MESSAGE)
       setResultItems([])
       return
     }
 
     setIsResultMode(true)
     setIsLoading(true)
+    setHasSearchError(false)
+    setSearchStateMessage('')
 
     if (searchTimerRef.current) {
       window.clearTimeout(searchTimerRef.current)
+      searchTimerRef.current = null
     }
 
-    searchTimerRef.current = window.setTimeout(() => {
-      const filtered = mockSearchPlaces.filter(
-        (item) =>
-          normalizeText(item.title).includes(normalized) ||
-          normalizeText(item.address).includes(normalized),
-      )
-      setResultItems(filtered)
-      setIsLoading(false)
+    const requestId = ++requestSeqRef.current
+
+    searchTimerRef.current = window.setTimeout(async () => {
+      try {
+        const places = await searchPlaces({
+          keyword: normalized,
+          lat: searchCenter.lat,
+          lng: searchCenter.lng,
+        })
+        if (requestId !== requestSeqRef.current) return
+
+        const mappedPlaces = places.map((place, idx) => ({
+          id: place.externalApiId ?? `${place.name}-${idx}`,
+          title: place.name,
+          address: place.roadAddress || place.address || '주소 정보 없음',
+          isRegistered: Boolean(place.isRegistered),
+          lat: place.lat,
+          lng: place.lng,
+          externalApiId: place.externalApiId,
+        }))
+
+        setResultItems(mappedPlaces)
+      } catch {
+        if (requestId !== requestSeqRef.current) return
+        setHasSearchError(true)
+        setSearchStateMessage('검색 결과를 불러오지 못했습니다.')
+        setResultItems([])
+      } finally {
+        if (requestId === requestSeqRef.current) {
+          setIsLoading(false)
+        }
+      }
     }, SEARCH_DELAY_MS)
   }
 
   const handleChangeKeyword = (nextKeyword) => {
+    invalidatePendingSearch()
     setKeyword(nextKeyword)
     setIsResultMode(false)
     setIsLoading(false)
-
-    if (searchTimerRef.current) {
-      window.clearTimeout(searchTimerRef.current)
-    }
   }
 
   const handleSelectAutocomplete = (selectedKeyword) => {
     setKeyword(selectedKeyword)
-
-    const exactMatch = mockSearchPlaces.find(
-      (item) => normalizeText(item.title) === normalizeText(selectedKeyword),
-    )
-
-    if (exactMatch) {
-      handleSelectResult(exactMatch)
-      return
-    }
-
     runSearch(selectedKeyword)
   }
 
   const handleSelectResult = (selectedPlace) => {
     navigate('/map', {
-      state: { selectedSearchPlace: selectedPlace },
+      state: {
+        selectedSearchPlace: selectedPlace,
+        openSheetFrom: 'search-result',
+      },
     })
   }
 
@@ -128,7 +197,11 @@ export default function SearchPage() {
         ) : null}
 
         {isResultMode && !isLoading && resultItems.length === 0 ? (
-          <p className="search-page__state">검색 결과가 없습니다.</p>
+          <p className="search-page__state">
+            {hasSearchError
+              ? searchStateMessage || '검색 결과를 불러오지 못했습니다.'
+              : '검색 결과가 없습니다.'}
+          </p>
         ) : null}
       </section>
     </main>

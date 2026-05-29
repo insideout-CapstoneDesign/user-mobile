@@ -21,6 +21,8 @@ export function resolvePoiFromSearch(selectedSearchPlace, mapPois = []) {
     id: `search-${selectedSearchPlace.id ?? keyword}`,
     name: selectedSearchPlace.title,
     address: selectedSearchPlace.address,
+    lat: selectedSearchPlace.lat,
+    lng: selectedSearchPlace.lng,
     isRegistered: selectedSearchPlace.isRegistered,
   }
 }

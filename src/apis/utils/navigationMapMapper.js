@@ -86,9 +86,11 @@ function normalizeMapSegment(segment, leg, context) {
 
 function normalizeStep(step, context) {
   const mode = step.mode ?? context.leg?.mode
+  const segmentPart =
+    context.segmentIndex === undefined ? '' : `-segment-${context.segmentIndex}`
 
   return {
-    id: `${context.routeId}-leg-${context.legIndex}-step-${context.stepIndex}`,
+    id: `${context.routeId}-leg-${context.legIndex}${segmentPart}-step-${context.stepIndex}`,
     routeId: context.routeId,
     routeType: context.routeType,
     routeOption: context.routeOption,

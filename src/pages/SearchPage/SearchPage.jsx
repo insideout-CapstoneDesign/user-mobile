@@ -8,7 +8,6 @@ import { mockAutocompleteKeywords } from '../../mocks/search/searchPage.mock'
 import './SearchPage.css'
 
 const SEARCH_DELAY_MS = 250
-const SEARCH_RADIUS_METERS = 3000
 const normalizeText = (value = '') => value.trim().toLowerCase()
 const GEOLOCATION_UNAVAILABLE_MESSAGE = '현재 위치 정보를 사용할 수 없습니다.'
 const GEOLOCATION_REQUIRED_MESSAGE = '현재 위치를 확인한 뒤 다시 검색해 주세요.'
@@ -105,7 +104,6 @@ export default function SearchPage() {
           keyword: normalized,
           lat: searchCenter.lat,
           lng: searchCenter.lng,
-          radius: SEARCH_RADIUS_METERS,
         })
         if (requestId !== requestSeqRef.current) return
 

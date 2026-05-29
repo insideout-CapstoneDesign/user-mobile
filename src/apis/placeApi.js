@@ -111,7 +111,7 @@ export async function getNearestPlace({ lat, lng, radius = 30 }) {
   return { place: data.result, code: data?.code }
 }
 
-export async function searchPlaces({ keyword, lat, lng, radius = 3000 }) {
+export async function searchPlaces({ keyword, lat, lng, radius }) {
   if (!keyword?.trim()) return []
 
   if (!isFiniteNumber(lat) || !isFiniteNumber(lng)) {
@@ -120,18 +120,23 @@ export async function searchPlaces({ keyword, lat, lng, radius = 3000 }) {
     throw error
   }
 
-  if (!isFiniteNumber(radius) || radius <= 0) {
+  if (radius !== undefined && (!isFiniteNumber(radius) || radius <= 0)) {
     const error = new Error('반경 정보가 올바르지 않습니다.')
     error.code = 'PLACE400_2'
     throw error
   }
 
-  const query = new URLSearchParams({
+  const queryParams = {
     q: keyword.trim(),
     lat: String(lat),
     lng: String(lng),
-    radius: String(radius),
-  }).toString()
+  }
+
+  if (radius !== undefined) {
+    queryParams.radius = String(radius)
+  }
+
+  const query = new URLSearchParams(queryParams).toString()
   const data = await getJson(`${SEARCH_PLACES_PATH}?${query}`, {
     fallbackMessage: '검색 결과를 불러오지 못했습니다.',
   })

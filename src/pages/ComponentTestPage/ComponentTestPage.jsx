@@ -28,136 +28,15 @@ import {
   mockTransitRouteOptions,
   mockWalkRouteOptions,
 } from '../../mocks/bottomSheet/routeOptions.mock'
-import { mockSearchResults } from '../../mocks/search/searchResult.mock'
 import { mockFloorList } from '../../mocks/floor/floorData.mock'
+import {
+  mockGuidanceSteps,
+  mockTransitDetailLegs,
+  mockTransitDetailRoute,
+} from '../../mocks/componentTest/navigationGuidance.mock'
+import { mockSearchResults } from '../../mocks/search/searchResult.mock'
 
 import './ComponentTestPage.css'
-
-const mockGuidanceSteps = [
-  {
-    id: 'guidance-origin',
-    type: 'walk',
-    instruction: '현재 위치',
-  },
-  {
-    id: 'guidance-straight',
-    type: 'walk',
-    instruction: '202m 이동',
-    distanceText: '202m',
-  },
-  {
-    id: 'guidance-left',
-    type: 'walk',
-    instruction: '왼쪽 길로 39m 이동',
-    distanceText: '39m',
-  },
-  {
-    id: 'guidance-stairs',
-    type: 'indoor',
-    instruction: '계단 이용',
-    floorName: '공학관 5F',
-  },
-  {
-    id: 'guidance-crosswalk',
-    type: 'walk',
-    instruction: '소망 메디컬 약국 까지 횡단보도 이용',
-  },
-  {
-    id: 'guidance-destination',
-    type: 'indoor',
-    instruction: '601호 강의실 도착',
-    floorName: '공학관 6F',
-  },
-]
-
-const mockTransitDetailRoute = {
-  name: '최단거리',
-  time: '27분',
-  segments: [
-    { type: 'walk', minutes: 2 },
-    {
-      type: 'subway',
-      line: '2',
-      minutes: 3,
-      routeColor: '00A835',
-      routeId: '2',
-      routeNm: '서울2호선',
-      typeCode: '1',
-    },
-    { type: 'walk', minutes: 4 },
-    {
-      type: 'subway',
-      line: '3',
-      minutes: 17,
-      routeColor: 'EF7C1C',
-      routeId: '3',
-      routeNm: '서울3호선',
-      typeCode: '1',
-    },
-    { type: 'walk', minutes: 1 },
-  ],
-}
-
-const mockTransitDetailLegs = [
-  {
-    id: 'transit-start',
-    type: 'point',
-    tone: 'origin',
-    title: '강남역',
-    detail: '서울 강남구 강남대로 지하 396',
-  },
-  {
-    id: 'transit-walk-1',
-    type: 'walk',
-    title: '도보 120m (2분)',
-    detail: '강남역 10번 출구 방면',
-  },
-  {
-    id: 'transit-subway-2',
-    type: 'subway',
-    routeColor: '00A835',
-    line: '서울2호선',
-    startName: '강남역',
-    startDetail: '외선순환 방면',
-    stopCount: 1,
-    durationText: '3분',
-    stops: ['역삼역'],
-    endName: '교대역',
-    endDetail: '3호선 환승',
-  },
-  {
-    id: 'transit-walk-2',
-    type: 'walk',
-    title: '3호선 환승 도보 210m (4분)',
-    detail: '3호선 승강장으로 이동',
-  },
-  {
-    id: 'transit-subway-3',
-    type: 'subway',
-    routeColor: 'EF7C1C',
-    line: '서울3호선',
-    startName: '교대역',
-    startDetail: '대화 방면',
-    stopCount: 6,
-    durationText: '17분',
-    stops: ['고속터미널역', '잠원역', '신사역', '압구정역', '옥수역', '동대입구역'],
-    endName: '충무로역',
-    endDetail: '내리는 문 왼쪽',
-  },
-  {
-    id: 'transit-walk-3',
-    type: 'walk',
-    title: '도보 80m (1분)',
-    detail: '충무로역 6번 출구 방면',
-  },
-  {
-    id: 'transit-destination',
-    type: 'point',
-    tone: 'destination',
-    title: '충무로역',
-    detail: '서울 중구 퇴계로 지하 214',
-  },
-]
 
 export default function ComponentTestPage() {
   const [sheetType, setSheetType] = useState(null)
@@ -178,25 +57,25 @@ export default function ComponentTestPage() {
   const [guidancePreview, setGuidancePreview] = useState('walkList')
   const [activeGuidanceIndex, setActiveGuidanceIndex] = useState(2)
 
-const formatPhoneNumber = (value) => {
-  if (!value) return value;
-  
-  const phoneNumber = value.replace(/[^\d]/g, '');
-  const phoneNumberLength = phoneNumber.length;
+  const formatPhoneNumber = (value) => {
+    if (!value) return value
 
-  if (phoneNumberLength > 11) return value.substring(0, 13); 
+    const phoneNumber = value.replace(/[^\d]/g, '')
+    const phoneNumberLength = phoneNumber.length
 
-  if (phoneNumberLength < 4) return phoneNumber;
-  if (phoneNumberLength < 8) {
-    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
+    if (phoneNumberLength > 11) return value.substring(0, 13)
+
+    if (phoneNumberLength < 4) return phoneNumber
+    if (phoneNumberLength < 8) {
+      return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`
+    }
+    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 7)}-${phoneNumber.slice(7, 11)}`
   }
-  return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 7)}-${phoneNumber.slice(7, 11)}`;
-};
 
-const handlePhoneChange = (e) => {
-  const formattedValue = formatPhoneNumber(e.target.value);
-  setTestPhone(formattedValue); 
-};
+  const handlePhoneChange = (e) => {
+    const formattedValue = formatPhoneNumber(e.target.value)
+    setTestPhone(formattedValue)
+  }
   
 
   const handleSwap = () => {

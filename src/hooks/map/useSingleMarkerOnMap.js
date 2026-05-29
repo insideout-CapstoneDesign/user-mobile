@@ -7,6 +7,8 @@ export default function useSingleMarkerOnMap({
 }) {
   const markerRef = useRef(null)
   const lastAdjustedKeyRef = useRef('')
+  const markerMapRef = useRef(null)
+  const panTimerRef = useRef(null)
 
   useEffect(() => {
     if (!map || !window.kakao?.maps) return
@@ -16,7 +18,12 @@ export default function useSingleMarkerOnMap({
         markerRef.current.setMap(null)
         markerRef.current = null
       }
+      markerMapRef.current = null
       lastAdjustedKeyRef.current = ''
+      if (panTimerRef.current) {
+        window.clearTimeout(panTimerRef.current)
+        panTimerRef.current = null
+      }
       return
     }
 
@@ -26,6 +33,9 @@ export default function useSingleMarkerOnMap({
     )
 
     if (markerRef.current) {
+      if (markerMapRef.current !== map) {
+        markerRef.current.setMap(map)
+      }
       markerRef.current.setPosition(target)
     } else {
       markerRef.current = new window.kakao.maps.Marker({
@@ -33,6 +43,7 @@ export default function useSingleMarkerOnMap({
         position: target,
       })
     }
+    markerMapRef.current = map
 
     markerRef.current.setZIndex(10)
 
@@ -43,8 +54,19 @@ export default function useSingleMarkerOnMap({
     lastAdjustedKeyRef.current = markerKey
 
     map.panTo(target)
-    window.setTimeout(() => {
+    if (panTimerRef.current) {
+      window.clearTimeout(panTimerRef.current)
+    }
+    panTimerRef.current = window.setTimeout(() => {
       map.panBy(0, markerOffsetY)
+      panTimerRef.current = null
     }, 0)
+
+    return () => {
+      if (panTimerRef.current) {
+        window.clearTimeout(panTimerRef.current)
+        panTimerRef.current = null
+      }
+    }
   }, [map, markerOffsetY, markerPosition])
 }

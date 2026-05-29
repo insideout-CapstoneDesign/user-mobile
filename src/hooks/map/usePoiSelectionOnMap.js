@@ -19,7 +19,15 @@ export default function usePoiSelectionOnMap({
         lat: clickLatLng.getLat(),
         lng: clickLatLng.getLng(),
       }
-      onMapClick?.(clickPoint)
+      if (onMapClick) {
+        if (selectedPoiMarkerRef.current) {
+          selectedPoiMarkerRef.current.setMap(null)
+          selectedPoiMarkerRef.current = null
+        }
+        onPoiSelect?.(null)
+        onMapClick(clickPoint)
+        return
+      }
 
       if (!pois.length) return
 

@@ -28,10 +28,20 @@ export default function SearchPage() {
   const searchTimerRef = useRef(null)
   const requestSeqRef = useRef(0)
 
+  const invalidatePendingSearch = () => {
+    requestSeqRef.current += 1
+    if (searchTimerRef.current) {
+      window.clearTimeout(searchTimerRef.current)
+      searchTimerRef.current = null
+    }
+  }
+
   useEffect(() => {
     return () => {
+      requestSeqRef.current += 1
       if (searchTimerRef.current) {
         window.clearTimeout(searchTimerRef.current)
+        searchTimerRef.current = null
       }
     }
   }, [])
@@ -70,6 +80,7 @@ export default function SearchPage() {
     const normalized = normalizeText(rawKeyword)
 
     if (!normalized) {
+      invalidatePendingSearch()
       setIsResultMode(false)
       setIsLoading(false)
       setHasSearchError(false)
@@ -79,6 +90,7 @@ export default function SearchPage() {
     }
 
     if (!searchCenter) {
+      invalidatePendingSearch()
       setIsResultMode(true)
       setIsLoading(false)
       setHasSearchError(true)
@@ -94,6 +106,7 @@ export default function SearchPage() {
 
     if (searchTimerRef.current) {
       window.clearTimeout(searchTimerRef.current)
+      searchTimerRef.current = null
     }
 
     const requestId = ++requestSeqRef.current
@@ -132,13 +145,10 @@ export default function SearchPage() {
   }
 
   const handleChangeKeyword = (nextKeyword) => {
+    invalidatePendingSearch()
     setKeyword(nextKeyword)
     setIsResultMode(false)
     setIsLoading(false)
-
-    if (searchTimerRef.current) {
-      window.clearTimeout(searchTimerRef.current)
-    }
   }
 
   const handleSelectAutocomplete = (selectedKeyword) => {

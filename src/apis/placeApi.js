@@ -54,8 +54,11 @@ async function getJson(path, options = {}) {
 
   try {
     data = await response.json()
-  } catch {
-    // 응답 본문이 없는 경우를 고려해 파싱 오류를 무시합니다.
+  } catch (error) {
+    const isNoContentResponse = response.status === 204 || response.status === 205
+    if (!isNoContentResponse && response.ok) {
+      throw new Error('서버 응답을 해석하지 못했습니다.', { cause: error })
+    }
   }
 
   if (!response.ok || data?.isSuccess === false) {

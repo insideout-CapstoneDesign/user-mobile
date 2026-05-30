@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { FaBus, FaCarAlt, FaChevronRight, FaSubway } from 'react-icons/fa'
 import Button from '../../Button/Button'
+import NavigationRouteBar from '../../NavigationGuidance/NavigationRouteBar'
 import {
-  RouteBar,
-  RouteBarSegment,
   RouteCard,
   RouteCardHead,
   RouteEmptyText,
-  RouteLineBadge,
   RouteList,
+  RouteBarSlot,
   RouteOptionDistance,
   RouteOptionExtra,
   RouteOptionMetaRow,
@@ -24,7 +23,6 @@ import {
   RouteSteps,
   RouteStepTitle,
   RouteTimeText,
-  RouteBarWalkText,
   StickyActionSection,
   TypeContainer,
 } from './BottomSheetTypes.styles'
@@ -38,39 +36,9 @@ export default function BottomSheetRouteOptions({
   const [selectedOptionId, setSelectedOptionId] = useState(
     () => options.find((option) => option.active)?.id ?? options[0]?.id ?? null,
   )
+  const defaultOption = options.find((option) => option.active) ?? options[0] ?? null
   const selectedOption =
-    options.find((option) => option.id === selectedOptionId) ?? null
-
-  const renderSegment = (segment, key) => {
-    const backgroundByType = {
-      walk: 'var(--surface-50)',
-      bus: segment.color || 'var(--green-500)',
-      subway: segment.color || 'var(--blue-900)',
-      car: segment.color || 'var(--blue-500)',
-    }
-
-    if (segment.type === 'walk') {
-      return (
-        <RouteBarSegment key={key} $weight={segment.minutes} $bg={backgroundByType.walk}>
-          <RouteBarWalkText>{segment.minutes}분</RouteBarWalkText>
-        </RouteBarSegment>
-      )
-    }
-
-    return (
-      <RouteBarSegment
-        key={key}
-        $weight={segment.minutes}
-        $bg={backgroundByType[segment.type]}
-      >
-        {segment.type === 'bus' ? <FaBus size={10} /> : null}
-        {segment.type === 'subway' ? <FaSubway size={10} /> : null}
-        {segment.type === 'car' ? <FaCarAlt size={10} /> : null}
-        {segment.line ? <RouteLineBadge>{segment.line}</RouteLineBadge> : null}
-        <span>{segment.minutes}분</span>
-      </RouteBarSegment>
-    )
-  }
+    options.find((option) => option.id === selectedOptionId) ?? defaultOption
 
   const renderStepIcon = (step) => {
     if (step.type === 'bus') return <FaBus size={12} />
@@ -96,7 +64,7 @@ export default function BottomSheetRouteOptions({
           <RouteCard
             key={option.id}
             type="button"
-            $active={selectedOptionId === option.id}
+            $active={selectedOption?.id === option.id}
             onClick={() => {
               setSelectedOptionId(option.id)
               onSelectOption?.(option)
@@ -109,11 +77,9 @@ export default function BottomSheetRouteOptions({
                   <FaChevronRight color="var(--gray-400)" size={14} />
                 </RouteCardHead>
 
-                <RouteBar>
-                  {option.segments.map((segment, index) =>
-                    renderSegment(segment, `${option.id}-segment-${index}`),
-                  )}
-                </RouteBar>
+                <RouteBarSlot>
+                  <NavigationRouteBar segments={option.segments} />
+                </RouteBarSlot>
 
                 <RouteSteps>
                   {option.steps.map((step, index) => (
@@ -136,8 +102,10 @@ export default function BottomSheetRouteOptions({
                   <div>
                     <RouteOptionName>{option.name}</RouteOptionName>
                     <RouteOptionMetaRow>
-                      <RouteOptionTime>{option.time}</RouteOptionTime>
-                      <RouteOptionDistance>{option.distance}</RouteOptionDistance>
+                      {option.time ? <RouteOptionTime>{option.time}</RouteOptionTime> : null}
+                      {option.distance ? (
+                        <RouteOptionDistance>{option.distance}</RouteOptionDistance>
+                      ) : null}
                     </RouteOptionMetaRow>
                     {option.extraInfo ? (
                       <RouteOptionExtra>{option.extraInfo}</RouteOptionExtra>

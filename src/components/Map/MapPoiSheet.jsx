@@ -4,7 +4,14 @@ import BottomSheetCompactInfo from '../BottomSheet/types/BottomSheetCompactInfo'
 import BottomSheetPlaceDetail from '../BottomSheet/types/BottomSheetPlaceDetail'
 import { getPlaceDetailMock } from '../../mocks/bottomSheet/placeDetail.mock'
 
-export default function MapPoiSheet({ isOpen, place, isRegistered, onClose }) {
+export default function MapPoiSheet({
+  isOpen,
+  place,
+  isRegistered,
+  onClose,
+  onDeparture,
+  onArrival,
+}) {
   const [isFavorite, setIsFavorite] = useState(false)
   const [showPOIs, setShowPOIs] = useState(false)
   const [selectedFloor, setSelectedFloor] = useState(null)
@@ -30,8 +37,14 @@ export default function MapPoiSheet({ isOpen, place, isRegistered, onClose }) {
           onToggleFavorite={() => setIsFavorite((prev) => !prev)}
           onSelectFloor={setSelectedFloor}
           selectedFloor={selectedFloor}
-          onDeparture={handleClose}
-          onArrival={handleClose}
+          onDeparture={() => {
+            onDeparture?.(place)
+            handleClose()
+          }}
+          onArrival={() => {
+            onArrival?.(place)
+            handleClose()
+          }}
           pois={pois}
           showPOIs={showPOIs}
           onTogglePOIs={() => setShowPOIs((prev) => !prev)}
@@ -41,8 +54,14 @@ export default function MapPoiSheet({ isOpen, place, isRegistered, onClose }) {
       ) : (
         <BottomSheetCompactInfo
           place={place}
-          onDeparture={handleClose}
-          onArrival={handleClose}
+          onDeparture={() => {
+            onDeparture?.(place)
+            handleClose()
+          }}
+          onArrival={() => {
+            onArrival?.(place)
+            handleClose()
+          }}
         />
       )}
     </BottomSheetBase>

@@ -6,6 +6,7 @@ import SplashPage from './pages/Splash/SplashPage'
 import SignupPage from './pages/Signup/SignupPage'
 import MapPage from './pages/MapPage/MapPage'
 import SearchPage from './pages/SearchPage/SearchPage'
+import RoutingPage from './pages/RoutingPage/RoutingPage'
 
 function App() {
   return (
@@ -14,6 +15,8 @@ function App() {
         <Routes>
           <Route path="/" element={<SplashPage />} />
           <Route path="/map" element={<MapPage />} />
+          <Route path="/routing" element={<RoutingPage />} />
+          <Route path="/RoutingPage" element={<RoutingPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />

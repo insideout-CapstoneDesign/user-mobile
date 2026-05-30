@@ -1,0 +1,98 @@
+.routing-page {
+  position: relative;
+  height: 100dvh;
+}
+
+.routing-page__viewport {
+  position: absolute;
+  inset: 0;
+}
+
+.routing-page__search {
+  position: absolute;
+  top: var(--space-16);
+  left: var(--space-16);
+  right: var(--space-16);
+  z-index: 10;
+}
+
+.routing-page__direction {
+  position: absolute;
+  top: var(--space-16);
+  left: var(--space-16);
+  right: var(--space-16);
+  z-index: 12;
+}
+
+.routing-page__transport {
+  position: absolute;
+  top: 7.25rem;
+  left: var(--space-16);
+  right: var(--space-16);
+  z-index: 12;
+}
+
+.routing-page__floor {
+  position: absolute;
+  top: 11.5rem;
+  left: var(--space-16);
+  z-index: 12;
+}
+
+.routing-page__guidance-floor {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--space-24) + env(safe-area-inset-bottom));
+  z-index: 24;
+  transform: translateX(-50%);
+}
+
+.routing-page__floor-steps {
+  position: absolute;
+  left: var(--space-16);
+  right: var(--space-16);
+  bottom: calc(5rem + env(safe-area-inset-bottom));
+  z-index: 12;
+  display: grid;
+  gap: var(--space-6);
+}
+
+.routing-page__floor-step {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--space-8) var(--space-12);
+  border: 0;
+  border-radius: var(--radius-8);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-searchbar);
+  color: var(--gray-700);
+  font-family: var(--font-sans);
+  font-size: var(--text-13);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.routing-page__state {
+  position: absolute;
+  left: var(--space-16);
+  right: var(--space-16);
+  bottom: calc(5rem + env(safe-area-inset-bottom));
+  z-index: 12;
+  min-height: 2.75rem;
+  display: grid;
+  place-items: center;
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-8);
+  background: var(--surface-0);
+  box-shadow: var(--shadow-bottom-sheet);
+  color: var(--gray-700);
+  font-family: var(--font-sans);
+  font-size: var(--text-14);
+  text-align: center;
+}
+
+.routing-page__state--error {
+  color: var(--red-500);
+}

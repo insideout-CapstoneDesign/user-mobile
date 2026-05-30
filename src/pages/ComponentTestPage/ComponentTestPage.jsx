@@ -12,6 +12,9 @@ import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
 import BottomSheetCompactInfo from '../../components/BottomSheet/types/BottomSheetCompactInfo'
 import BottomSheetPlaceDetail from '../../components/BottomSheet/types/BottomSheetPlaceDetail'
 import BottomSheetRouteOptions from '../../components/BottomSheet/types/BottomSheetRouteOptions'
+import NavigationMapOverlay from '../../components/NavigationGuidance/NavigationMapOverlay'
+import TransitTurnByTurnList from '../../components/NavigationGuidance/TransitTurnByTurnList'
+import TurnByTurnList from '../../components/NavigationGuidance/TurnByTurnList'
 
 import {
   mockBuilding,
@@ -25,8 +28,13 @@ import {
   mockTransitRouteOptions,
   mockWalkRouteOptions,
 } from '../../mocks/bottomSheet/routeOptions.mock'
-import { mockSearchResults } from '../../mocks/search/searchResult.mock'
 import { mockFloorList } from '../../mocks/floor/floorData.mock'
+import {
+  mockGuidanceSteps,
+  mockTransitDetailLegs,
+  mockTransitDetailRoute,
+} from '../../mocks/componentTest/navigationGuidance.mock'
+import { mockSearchResults } from '../../mocks/search/searchResult.mock'
 
 import './ComponentTestPage.css'
 
@@ -46,26 +54,28 @@ export default function ComponentTestPage() {
   const [origin, setOrigin] = useState('공학관 601호')
   const [destination, setDestination] = useState('충무로 4호선 1번출구')
   const [transport, setTransport] = useState('transit')
+  const [guidancePreview, setGuidancePreview] = useState('walkList')
+  const [activeGuidanceIndex, setActiveGuidanceIndex] = useState(2)
 
-const formatPhoneNumber = (value) => {
-  if (!value) return value;
-  
-  const phoneNumber = value.replace(/[^\d]/g, '');
-  const phoneNumberLength = phoneNumber.length;
+  const formatPhoneNumber = (value) => {
+    if (!value) return value
 
-  if (phoneNumberLength > 11) return value.substring(0, 13); 
+    const phoneNumber = value.replace(/[^\d]/g, '')
+    const phoneNumberLength = phoneNumber.length
 
-  if (phoneNumberLength < 4) return phoneNumber;
-  if (phoneNumberLength < 8) {
-    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
+    if (phoneNumberLength > 11) return value.substring(0, 13)
+
+    if (phoneNumberLength < 4) return phoneNumber
+    if (phoneNumberLength < 8) {
+      return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`
+    }
+    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 7)}-${phoneNumber.slice(7, 11)}`
   }
-  return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 7)}-${phoneNumber.slice(7, 11)}`;
-};
 
-const handlePhoneChange = (e) => {
-  const formattedValue = formatPhoneNumber(e.target.value);
-  setTestPhone(formattedValue); 
-};
+  const handlePhoneChange = (e) => {
+    const formattedValue = formatPhoneNumber(e.target.value)
+    setTestPhone(formattedValue)
+  }
   
 
   const handleSwap = () => {
@@ -80,7 +90,7 @@ const handlePhoneChange = (e) => {
   }
 
   return (
-    <main className='component-test-page' style={{ padding: '0', maxWidth: '375px', margin: '0 auto', background: '#fff', minHeight: '100vh' }}>
+    <main className="component-test-page">
       <h1>insideout</h1>
       <p className="component-test-description">
         컴포넌트 및 디자인 시스템 통합 테스트
@@ -137,14 +147,14 @@ const handlePhoneChange = (e) => {
         />
       </div>
 
-      <section style={{ padding: '0 1rem' }}>
+      <section className="component-demo-section">
         {mockSearchResults.map((item) => (
           <SearchResultItem 
             key={item.id}
             title={item.title}
             address={item.address}
             isRegistered={item.isRegistered}
-            onClick={() => alert(`${item.title} 선택됨`)}
+            onClick={() => setSearchKeyword(item.title)}
           />
         ))}
       </section>
@@ -160,10 +170,10 @@ const handlePhoneChange = (e) => {
         origin={origin}
         destination={destination}
         onSwap={handleSwap}
-        onBack={() => alert('이전 페이지로 이동!')} 
+        onBack={() => setCurrentNav('map')} 
       />
 
-      <section style={{ padding: '0 1rem' }}>
+      <section className="component-demo-section">
         <Input 
           label="이름" 
           type="text"
@@ -200,18 +210,18 @@ const handlePhoneChange = (e) => {
         onSelect={setTransport} 
       />
 
-      <section className="button-group" style={{ padding: '1rem' }}>
+      <section className="button-group component-demo-section component-demo-section--padded">
         <Button variant="outline">로그아웃</Button>
         <Button variant="primary">저장</Button>
         <Button disabled>저장 (비활성화)</Button>
         
-        <div className="button-row two-col" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+        <div className="button-row two-col component-demo-button-row">
           <Button variant="outline">출발</Button>
           <Button variant="primary">도착</Button>
         </div>
       </section>
 
-      <section style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <section className="component-demo-actions">
         <Button variant="primary" onClick={() => setSheetType('A_AUTH')}>장소 상세 (로그인)</Button>
         <Button variant="outline" onClick={() => setSheetType('B_TRANSIT')}>경로 정보 상세</Button>
         <Button variant="danger" onClick={() => setSheetType('C')}>간이 정보 (Type C)</Button>
@@ -219,7 +229,94 @@ const handlePhoneChange = (e) => {
 
       <p className="component-test-description">현재 선택: {currentNav}</p>
 
-      <BottomNav currentKey={currentNav} onChange={setCurrentNav} />
+      <p className="component-section-title">턴바이턴 안내 UI</p>
+      <div className="guidance-preview-tabs">
+        <button
+          type="button"
+          className={guidancePreview === 'walkList' ? 'active' : ''}
+          onClick={() => setGuidancePreview('walkList')}
+        >
+          도보/자동차
+        </button>
+        <button
+          type="button"
+          className={guidancePreview === 'transitList' ? 'active' : ''}
+          onClick={() => setGuidancePreview('transitList')}
+        >
+          대중교통
+        </button>
+        <button
+          type="button"
+          className={guidancePreview === 'map' ? 'active' : ''}
+          onClick={() => setGuidancePreview('map')}
+        >
+          지도 오버레이
+        </button>
+      </div>
+
+      <section className="guidance-preview-frame">
+        {guidancePreview === 'walkList' ? (
+          <TurnByTurnList
+            origin="현재 위치"
+            destination="공학관 601호"
+            route={{ time: '20분', distance: '1km', extraInfo: '계단 1회' }}
+            steps={mockGuidanceSteps}
+            activeStepId={mockGuidanceSteps[activeGuidanceIndex]?.id}
+            onBack={() => setGuidancePreview('map')}
+            onClose={() => {}}
+            onSelectStep={(_, index) => {
+              setActiveGuidanceIndex(index)
+              setGuidancePreview('map')
+            }}
+          />
+        ) : guidancePreview === 'transitList' ? (
+          <TransitTurnByTurnList
+            origin="강남역"
+            destination="충무로역"
+            route={mockTransitDetailRoute}
+            legs={mockTransitDetailLegs}
+            onBack={() => setGuidancePreview('map')}
+            onClose={() => {}}
+          />
+        ) : (
+          <>
+            <div className="guidance-preview-map">
+              <span>지도 또는 실내 도면 영역</span>
+              <svg viewBox="0 0 240 420" aria-hidden="true">
+                <polyline points="68,312 68,188 168,188 168,104" />
+              </svg>
+            </div>
+            <NavigationMapOverlay
+              origin="현재 위치"
+              destination="공학관 601호"
+              step={mockGuidanceSteps[activeGuidanceIndex]}
+              activeIndex={activeGuidanceIndex}
+              total={mockGuidanceSteps.length}
+              onBack={() => setGuidancePreview('walkList')}
+              onClose={() => {}}
+              onRouteClick={() => setGuidancePreview('walkList')}
+              onPrevious={() => setActiveGuidanceIndex((index) => Math.max(index - 1, 0))}
+              onNext={() =>
+                setActiveGuidanceIndex((index) =>
+                  Math.min(index + 1, mockGuidanceSteps.length - 1),
+                )
+              }
+            />
+            <div className="guidance-preview-floor">
+              <FloorSelector
+                buildingName="공학관"
+                floors={mockFloorList}
+                activeFloor={selectedFloor}
+                onSelect={setSelectedFloor}
+              />
+            </div>
+          </>
+        )}
+      </section>
+
+      {guidancePreview !== 'map' ? (
+        <BottomNav currentKey={currentNav} onChange={setCurrentNav} />
+      ) : null}
 
       <BottomSheetBase isOpen={!!sheetType} onClose={closeSheet}>
         {sheetType === 'A_AUTH' && (

@@ -1,14 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { getNearestPlace } from '../../apis/placeApi'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
 import SearchInput from '../../components/SearchInput/SearchInput'
-import { mockMapPois } from '../../mocks/map/poi.mock'
-import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
-import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
-import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
 import './MapPage.css'
 
 const NEAREST_RADIUS_METERS = 30
@@ -18,14 +14,28 @@ const DEFAULT_MAP_CENTER = { lat: 37.558107, lng: 126.998945 }
 
 function mapNearestPlaceToPoi(place) {
   return {
-    id:
-      place.externalApiId ??
-      place.id ??
-      `${place.name ?? place.placeName ?? 'place'}-${place.lat}-${place.lng}`,
-    name: place.name ?? place.placeName ?? place.title ?? '장소명',
+    id: place.externalApiId ?? `${place.name ?? 'place'}-${place.lat}-${place.lng}`,
+    name: place.name ?? '장소명',
     address: place.roadAddress || place.address || '주소 정보 없음',
     lat: place.lat,
     lng: place.lng,
+    isRegistered: Boolean(place.isRegistered),
+    externalApiId: place.externalApiId,
+  }
+}
+
+function mapSearchPlaceToPoi(place) {
+  if (!place) return null
+
+  const hasLat = typeof place.lat === 'number' && Number.isFinite(place.lat)
+  const hasLng = typeof place.lng === 'number' && Number.isFinite(place.lng)
+
+  return {
+    id: place.externalApiId ?? `search-${place.title ?? place.name ?? 'place'}`,
+    name: place.title ?? place.name ?? '장소명',
+    address: place.address ?? place.roadAddress ?? '주소 정보 없음',
+    lat: hasLat ? place.lat : null,
+    lng: hasLng ? place.lng : null,
     isRegistered: Boolean(place.isRegistered),
     externalApiId: place.externalApiId,
   }
@@ -38,8 +48,9 @@ export default function MapPage() {
   const shouldOpenFromSearch = location.state?.openSheetFrom === 'search-result'
   const initialSelectedPoi =
     shouldOpenFromSearch && selectedSearchPlace
-      ? resolvePoiFromSearch(selectedSearchPlace, mockMapPois)
+      ? mapSearchPlaceToPoi(selectedSearchPlace)
       : null
+  const shouldSkipAutoLocateRef = useRef(Boolean(initialSelectedPoi))
   const [currentNav, setCurrentNav] = useState('map')
   const [mapCenter, setMapCenter] = useState(() =>
     initialSelectedPoi &&
@@ -59,18 +70,6 @@ export default function MapPage() {
   const [selectedPoi, setSelectedPoi] = useState(initialSelectedPoi)
   const requestSeqRef = useRef(0)
   const noticeTimerRef = useRef(null)
-  const registeredPlaces = useMemo(
-    () => mockSearchPlaces.filter((place) => place.isRegistered),
-    [],
-  )
-  const isSelectedPoiRegistered = useMemo(
-    () =>
-      typeof selectedPoi?.isRegistered === 'boolean'
-        ? selectedPoi.isRegistered
-        : isRegisteredPlace(selectedPoi, registeredPlaces),
-    [registeredPlaces, selectedPoi],
-  )
-
   useEffect(() => {
     return () => {
       if (noticeTimerRef.current) {
@@ -80,7 +79,7 @@ export default function MapPage() {
   }, [])
 
   useEffect(() => {
-    if (shouldOpenFromSearch) return
+    if (shouldSkipAutoLocateRef.current) return
     if (!navigator.geolocation) return
 
     navigator.geolocation.getCurrentPosition(
@@ -90,16 +89,14 @@ export default function MapPage() {
           lng: coords.longitude,
         })
       },
-      () => {
-        // 권한 거부/실패 시 기본 중심 좌표(동국대)를 유지합니다.
-      },
+      () => {},
       {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 60000,
       },
     )
-  }, [shouldOpenFromSearch])
+  }, [])
 
   useEffect(() => {
     if (!selectedSearchPlace) return
@@ -211,7 +208,7 @@ export default function MapPage() {
         key={selectedPoi?.id ?? 'map-poi-sheet'}
         isOpen={!!selectedPoi}
         place={selectedPoi}
-        isRegistered={isSelectedPoiRegistered}
+        isRegistered={Boolean(selectedPoi?.isRegistered)}
         onClose={closePoiSheet}
       />
     </main>

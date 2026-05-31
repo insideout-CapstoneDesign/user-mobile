@@ -194,10 +194,10 @@ export default function SearchPage() {
         }))
 
         setResultItems(mappedPlaces)
-      } catch {
+      } catch (error) {
         if (requestId !== requestSeqRef.current) return
         setHasSearchError(true)
-        setSearchStateMessage(SEARCH_FAILED_MESSAGE)
+        setSearchStateMessage(error?.message || SEARCH_FAILED_MESSAGE)
         setResultItems([])
       } finally {
         if (requestId === requestSeqRef.current) {

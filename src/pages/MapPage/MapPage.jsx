@@ -31,8 +31,8 @@ function mapSearchPlaceToPoi(place) {
   const hasLng = typeof place.lng === 'number' && Number.isFinite(place.lng)
 
   return {
-    id: place.externalApiId ?? `search-${place.name ?? 'place'}`,
-    name: place.name ?? '장소명',
+    id: place.externalApiId ?? `search-${place.title ?? place.name ?? 'place'}`,
+    name: place.title ?? place.name ?? '장소명',
     address: place.address ?? place.roadAddress ?? '주소 정보 없음',
     lat: hasLat ? place.lat : null,
     lng: hasLng ? place.lng : null,
@@ -50,7 +50,7 @@ export default function MapPage() {
     shouldOpenFromSearch && selectedSearchPlace
       ? mapSearchPlaceToPoi(selectedSearchPlace)
       : null
-  const shouldSkipAutoLocate = Boolean(initialSelectedPoi)
+  const shouldSkipAutoLocateRef = useRef(Boolean(initialSelectedPoi))
   const [currentNav, setCurrentNav] = useState('map')
   const [mapCenter, setMapCenter] = useState(() =>
     initialSelectedPoi &&
@@ -76,10 +76,10 @@ export default function MapPage() {
         window.clearTimeout(noticeTimerRef.current)
       }
     }
-  }, [shouldSkipAutoLocate])
+  }, [])
 
   useEffect(() => {
-    if (shouldSkipAutoLocate) return
+    if (shouldSkipAutoLocateRef.current) return
     if (!navigator.geolocation) return
 
     navigator.geolocation.getCurrentPosition(
@@ -96,7 +96,7 @@ export default function MapPage() {
         maximumAge: 60000,
       },
     )
-  }, [shouldSkipAutoLocate])
+  }, [])
 
   useEffect(() => {
     if (!selectedSearchPlace) return

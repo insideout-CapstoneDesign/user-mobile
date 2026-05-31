@@ -14,11 +14,16 @@ export function isValidMapLevel(level) {
   return typeof level === 'number' && Number.isFinite(level)
 }
 
-export function getMapViewportState(state = {}) {
+export function getMapViewportState(state) {
+  const safeState =
+    state && typeof state === 'object' ? state : {}
+
   return {
-    mapCenter: isValidMapCenter(state.mapCenter)
-      ? state.mapCenter
+    mapCenter: isValidMapCenter(safeState.mapCenter)
+      ? safeState.mapCenter
       : DEFAULT_MAP_CENTER,
-    mapLevel: isValidMapLevel(state.mapLevel) ? state.mapLevel : DEFAULT_MAP_LEVEL,
+    mapLevel: isValidMapLevel(safeState.mapLevel)
+      ? safeState.mapLevel
+      : DEFAULT_MAP_LEVEL,
   }
 }

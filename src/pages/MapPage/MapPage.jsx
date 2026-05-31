@@ -17,6 +17,7 @@ import './MapPage.css'
 const NEAREST_RADIUS_METERS = 30
 const NOTICE_TIMEOUT_MS = 2400
 const NO_PLACE_CODE = 'PLACE_INFO_NOT_AVAILABLE'
+
 function mapNearestPlaceToPoi(place) {
   return {
     id:
@@ -30,6 +31,30 @@ function mapNearestPlaceToPoi(place) {
     isRegistered: Boolean(place.isRegistered),
     externalApiId: place.externalApiId,
   }
+}
+
+function getCurrentPositionAsync() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('geolocation-unavailable'))
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        resolve({
+          lat: coords.latitude,
+          lng: coords.longitude,
+        })
+      },
+      reject,
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      },
+    )
+  })
 }
 
 function mapRoutePlaceToPoi(place) {
@@ -178,7 +203,7 @@ export default function MapPage() {
     setCurrentNav(key)
   }
 
-  const openRoutingFromMapPoi = (field, place) => {
+  const openRoutingFromMapPoi = async (field, place) => {
     if (!place) return
 
     const normalizedPlace = {
@@ -200,10 +225,65 @@ export default function MapPage() {
             selectedRouteField: 'destination',
           }
         : {
-            routeOrigin: routeOrigin ?? DEFAULT_ROUTE_ORIGIN,
+            routeOrigin:
+              !routeOrigin || routeOrigin?.source === 'current-location'
+                ? null
+                : routeOrigin,
             routeDestination: normalizedPlace,
             selectedRouteField: 'origin',
           }
+
+    if (field === 'destination' && !nextState.routeOrigin) {
+      let originLat = mapCenter?.lat
+      let originLng = mapCenter?.lng
+
+      try {
+        const currentPosition = await getCurrentPositionAsync()
+        originLat = currentPosition.lat
+        originLng = currentPosition.lng
+      } catch {
+        // 현재 위치 권한 실패 시 지도 중심 좌표를 fallback으로 사용합니다.
+      }
+
+      if (typeof originLat === 'number' && typeof originLng === 'number') {
+        try {
+          const { place: nearestPlace } = await getNearestPlace({
+            lat: originLat,
+            lng: originLng,
+            radius: NEAREST_RADIUS_METERS,
+          })
+          const currentAddress =
+            nearestPlace?.roadAddress ||
+            nearestPlace?.address ||
+            nearestPlace?.name ||
+            '현재 위치'
+
+          nextState.routeOrigin = {
+            x: originLng,
+            y: originLat,
+            lat: originLat,
+            lng: originLng,
+            name: currentAddress,
+            title: currentAddress,
+            address: currentAddress,
+            source: 'map-current-location',
+          }
+        } catch {
+          nextState.routeOrigin = {
+            x: originLng,
+            y: originLat,
+            lat: originLat,
+            lng: originLng,
+            name: '현재 위치',
+            title: '현재 위치',
+            address: '현재 위치',
+            source: 'map-current-location',
+          }
+        }
+      } else {
+        nextState.routeOrigin = DEFAULT_ROUTE_ORIGIN
+      }
+    }
 
     navigate(ROUTES.ROUTING_SEARCH, {
       state: {

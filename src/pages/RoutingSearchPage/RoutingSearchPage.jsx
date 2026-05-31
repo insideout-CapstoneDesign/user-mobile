@@ -23,7 +23,7 @@ export default function RoutingSearchPage() {
 
   const originLabel = useMemo(() => {
     if (routeOrigin?.source === 'current-location') {
-      return '출발지 (현재 위치)'
+      return '출발지'
     }
 
     return getPlaceName(routeOrigin, '출발지 입력')

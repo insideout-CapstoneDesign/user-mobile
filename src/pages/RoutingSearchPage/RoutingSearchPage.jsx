@@ -30,7 +30,7 @@ export default function RoutingSearchPage() {
   }, [routeOrigin])
 
   const destinationLabel = useMemo(
-    () => getPlaceName(routeDestination, '도착지 입력 (예: 공학관 601호)'),
+    () => getPlaceName(routeDestination, '도착지 입력'),
     [routeDestination],
   )
 

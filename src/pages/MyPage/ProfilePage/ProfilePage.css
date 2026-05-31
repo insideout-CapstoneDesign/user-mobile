@@ -55,3 +55,17 @@
   font-size: var(--text-12);
   line-height: var(--line-16);
 }
+
+.profile-page__status {
+  margin: 0 0 var(--space-12);
+  font-size: var(--text-14);
+  line-height: var(--line-20);
+}
+
+.profile-page__status--error {
+  color: var(--red-500);
+}
+
+.profile-page__status--success {
+  color: var(--blue-700);
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import loadKakaoSdk from '../../services/map/loadKakaoSdk'
 
 export default function useKakaoMapInstance({
@@ -10,6 +10,9 @@ export default function useKakaoMapInstance({
   const [status, setStatus] = useState(appKey ? 'loading' : 'error-key')
   const [errorMessage, setErrorMessage] = useState('')
   const [map, setMap] = useState(null)
+  const kakaoRef = useRef(null)
+  const initialCenterRef = useRef(center)
+  const initialLevelRef = useRef(level)
 
   useEffect(() => {
     if (!appKey) return
@@ -20,10 +23,14 @@ export default function useKakaoMapInstance({
       .then((kakao) => {
         if (!isMounted || !mapRef.current) return
 
-        const mapCenter = new kakao.maps.LatLng(center.lat, center.lng)
+        kakaoRef.current = kakao
+        const mapCenter = new kakao.maps.LatLng(
+          initialCenterRef.current.lat,
+          initialCenterRef.current.lng,
+        )
         const nextMap = new kakao.maps.Map(mapRef.current, {
           center: mapCenter,
-          level,
+          level: initialLevelRef.current,
         })
 
         setMap(nextMap)
@@ -39,7 +46,28 @@ export default function useKakaoMapInstance({
     return () => {
       isMounted = false
     }
-  }, [appKey, center.lat, center.lng, level, mapRef])
+  }, [appKey, mapRef])
+
+  useEffect(() => {
+    if (!map || !kakaoRef.current) return
+
+    const currentCenter = map.getCenter()
+    const currentLat = currentCenter.getLat()
+    const currentLng = currentCenter.getLng()
+
+    if (currentLat === center.lat && currentLng === center.lng) {
+      return
+    }
+
+    map.setCenter(new kakaoRef.current.maps.LatLng(center.lat, center.lng))
+  }, [center.lat, center.lng, map])
+
+  useEffect(() => {
+    if (!map || typeof level !== 'number' || !Number.isFinite(level)) return
+    if (map.getLevel() === level) return
+
+    map.setLevel(level)
+  }, [level, map])
 
   return {
     map,

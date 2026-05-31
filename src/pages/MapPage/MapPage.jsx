@@ -5,17 +5,18 @@ import BottomNav from '../../components/BottomNav/BottomNav'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
 import SearchInput from '../../components/SearchInput/SearchInput'
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_LEVEL } from '../../constants/map'
+import { ROUTES } from '../../constants/routes'
 import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
 import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
+import { isValidMapCenter } from '../../utils/map/mapViewport'
 import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
 import './MapPage.css'
 
 const NEAREST_RADIUS_METERS = 30
 const NOTICE_TIMEOUT_MS = 2400
 const NO_PLACE_CODE = 'PLACE_INFO_NOT_AVAILABLE'
-const DEFAULT_MAP_CENTER = { lat: 37.558107, lng: 126.998945 }
-
 function mapNearestPlaceToPoi(place) {
   return {
     id:
@@ -41,18 +42,21 @@ export default function MapPage() {
       ? resolvePoiFromSearch(selectedSearchPlace, mockMapPois)
       : null
   const [currentNav, setCurrentNav] = useState('map')
-  const [mapCenter, setMapCenter] = useState(() =>
-    initialSelectedPoi &&
-    typeof initialSelectedPoi.lat === 'number' &&
-    typeof initialSelectedPoi.lng === 'number'
+  const initialMapCenter =
+    isValidMapCenter({
+      lat: initialSelectedPoi?.lat,
+      lng: initialSelectedPoi?.lng,
+    })
       ? { lat: initialSelectedPoi.lat, lng: initialSelectedPoi.lng }
-      : DEFAULT_MAP_CENTER,
-  )
+      : DEFAULT_MAP_CENTER
+  const [mapCenter, setMapCenter] = useState(initialMapCenter)
+  const [mapLevel, setMapLevel] = useState(DEFAULT_MAP_LEVEL)
   const [mapNotice, setMapNotice] = useState('')
   const [selectedMarkerPosition, setSelectedMarkerPosition] = useState(() =>
-    initialSelectedPoi &&
-    typeof initialSelectedPoi.lat === 'number' &&
-    typeof initialSelectedPoi.lng === 'number'
+    isValidMapCenter({
+      lat: initialSelectedPoi?.lat,
+      lng: initialSelectedPoi?.lng,
+    })
       ? { lat: initialSelectedPoi.lat, lng: initialSelectedPoi.lng }
       : null,
   )
@@ -99,11 +103,11 @@ export default function MapPage() {
         maximumAge: 60000,
       },
     )
-  }, [shouldOpenFromSearch])
+  }, [setMapCenter, shouldOpenFromSearch])
 
   useEffect(() => {
     if (!selectedSearchPlace) return
-    navigate('/map', { replace: true, state: null })
+    navigate(ROUTES.MAP, { replace: true, state: null })
   }, [navigate, selectedSearchPlace])
 
   const showMapNotice = (message) => {
@@ -124,7 +128,7 @@ export default function MapPage() {
   }
 
   const openSearchPage = () => {
-    navigate('/search')
+    navigate(ROUTES.SEARCH)
   }
 
   const handleSearchInputKeyDown = (event) => {
@@ -132,6 +136,20 @@ export default function MapPage() {
       event.preventDefault()
       openSearchPage()
     }
+  }
+
+  const handleBottomNavChange = (key) => {
+    if (key === 'navigation') {
+      navigate(ROUTES.ROUTING_SEARCH, {
+        state: {
+          mapCenter,
+          mapLevel,
+        },
+      })
+      return
+    }
+
+    setCurrentNav(key)
   }
 
   const handleCurrentLocationSelect = ({ lat, lng }) => {
@@ -186,11 +204,14 @@ export default function MapPage() {
       <div className="map-page__viewport">
         <KakaoMapView
           center={mapCenter}
+          level={mapLevel}
           pois={[]}
           markerPosition={selectedMarkerPosition}
           markerOffsetY={selectedPoi ? -200 : 0}
           onCurrentLocationSelect={handleCurrentLocationSelect}
           onMapClick={handleMapClick}
+          onCenterChange={setMapCenter}
+          onLevelChange={setMapLevel}
         />
       </div>
 
@@ -205,7 +226,7 @@ export default function MapPage() {
       </div>
       {mapNotice ? <p className="map-page__notice">{mapNotice}</p> : null}
 
-      <BottomNav currentKey={currentNav} onChange={setCurrentNav} />
+      <BottomNav currentKey={currentNav} onChange={handleBottomNavChange} />
 
       <MapPoiSheet
         key={selectedPoi?.id ?? 'map-poi-sheet'}

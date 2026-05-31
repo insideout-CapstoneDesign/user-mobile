@@ -10,6 +10,7 @@ export default function SearchResultList({ items = [], onSelect }) {
           title={item.title}
           address={item.address}
           isRegistered={item.isRegistered}
+          distanceMeters={item.distanceMeters}
           onClick={() => onSelect?.(item)}
         />
       ))}

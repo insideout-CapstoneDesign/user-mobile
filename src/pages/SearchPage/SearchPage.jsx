@@ -1,16 +1,24 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { searchPlaces } from '../../apis/placeApi'
+import { searchPlaces, suggestPlaces } from '../../apis/placeApi'
 import CommonHeader from '../../components/CommonHeader/CommonHeader'
 import SearchAutocompleteList from '../../components/Search/SearchAutocompleteList'
 import SearchResultList from '../../components/Search/SearchResultList'
-import { mockAutocompleteKeywords } from '../../mocks/search/searchPage.mock'
 import './SearchPage.css'
 
 const SEARCH_DELAY_MS = 250
+const SUGGEST_DELAY_MS = 180
+const SEARCH_SIZE = 15
+const SUGGEST_SIZE = 10
 const normalizeText = (value = '') => value.trim().toLowerCase()
+const HANGUL_JAMO_ONLY_REGEX = /^[ㄱ-ㅎㅏ-ㅣ]+$/
 const GEOLOCATION_UNAVAILABLE_MESSAGE = '현재 위치 정보를 사용할 수 없습니다.'
 const GEOLOCATION_REQUIRED_MESSAGE = '현재 위치를 확인한 뒤 다시 검색해 주세요.'
+const SEARCH_FAILED_MESSAGE = '검색 결과를 불러오지 못했습니다.'
+
+function isInvalidIntermediateKeyword(keyword) {
+  return HANGUL_JAMO_ONLY_REGEX.test(keyword)
+}
 
 export default function SearchPage() {
   const navigate = useNavigate()
@@ -24,9 +32,12 @@ export default function SearchPage() {
     supportsGeolocation ? '' : GEOLOCATION_UNAVAILABLE_MESSAGE,
   )
   const [searchCenter, setSearchCenter] = useState(null)
+  const [autocompleteItems, setAutocompleteItems] = useState([])
   const [resultItems, setResultItems] = useState([])
   const searchTimerRef = useRef(null)
+  const suggestTimerRef = useRef(null)
   const requestSeqRef = useRef(0)
+  const suggestSeqRef = useRef(0)
 
   const invalidatePendingSearch = () => {
     requestSeqRef.current += 1
@@ -36,12 +47,25 @@ export default function SearchPage() {
     }
   }
 
+  const invalidatePendingSuggest = () => {
+    suggestSeqRef.current += 1
+    if (suggestTimerRef.current) {
+      window.clearTimeout(suggestTimerRef.current)
+      suggestTimerRef.current = null
+    }
+  }
+
   useEffect(() => {
     return () => {
       requestSeqRef.current += 1
       if (searchTimerRef.current) {
         window.clearTimeout(searchTimerRef.current)
         searchTimerRef.current = null
+      }
+      suggestSeqRef.current += 1
+      if (suggestTimerRef.current) {
+        window.clearTimeout(suggestTimerRef.current)
+        suggestTimerRef.current = null
       }
     }
   }, [])
@@ -67,19 +91,56 @@ export default function SearchPage() {
     )
   }, [supportsGeolocation])
 
-  const autocompleteItems = useMemo(() => {
-    const normalized = normalizeText(keyword)
-    if (!normalized) return mockAutocompleteKeywords
+  const suggestByKeyword = (rawKeyword) => {
+    const normalized = normalizeText(rawKeyword)
 
-    return mockAutocompleteKeywords.filter((item) =>
-      normalizeText(item).includes(normalized),
-    )
-  }, [keyword])
+    if (!normalized || isInvalidIntermediateKeyword(normalized)) {
+      invalidatePendingSuggest()
+      setAutocompleteItems([])
+      return
+    }
+
+    if (suggestTimerRef.current) {
+      window.clearTimeout(suggestTimerRef.current)
+      suggestTimerRef.current = null
+    }
+
+    const requestId = ++suggestSeqRef.current
+
+    suggestTimerRef.current = window.setTimeout(async () => {
+      try {
+        const suggestions = await suggestPlaces({
+          keyword: normalized,
+          lat: searchCenter?.lat,
+          lng: searchCenter?.lng,
+          size: SUGGEST_SIZE,
+        })
+
+        if (requestId !== suggestSeqRef.current) return
+
+        const mappedSuggestions = suggestions.map((item, idx) => ({
+          id: item.externalApiId ?? `${item.name}-${idx}`,
+          title: item.name,
+          address: item.roadAddress || item.address || '주소 정보 없음',
+          isRegistered: Boolean(item.isRegistered),
+          lat: item.lat,
+          lng: item.lng,
+          externalApiId: item.externalApiId,
+          distanceMeters: item.distanceMeters ?? null,
+        }))
+
+        setAutocompleteItems(mappedSuggestions)
+      } catch {
+        if (requestId !== suggestSeqRef.current) return
+        setAutocompleteItems([])
+      }
+    }, SUGGEST_DELAY_MS)
+  }
 
   const runSearch = (rawKeyword) => {
     const normalized = normalizeText(rawKeyword)
 
-    if (!normalized) {
+    if (!normalized || isInvalidIntermediateKeyword(normalized)) {
       invalidatePendingSearch()
       setIsResultMode(false)
       setIsLoading(false)
@@ -115,8 +176,9 @@ export default function SearchPage() {
       try {
         const places = await searchPlaces({
           keyword: normalized,
-          lat: searchCenter.lat,
-          lng: searchCenter.lng,
+          lat: searchCenter?.lat,
+          lng: searchCenter?.lng,
+          size: SEARCH_SIZE,
         })
         if (requestId !== requestSeqRef.current) return
 
@@ -128,13 +190,14 @@ export default function SearchPage() {
           lat: place.lat,
           lng: place.lng,
           externalApiId: place.externalApiId,
+          distanceMeters: place.distanceMeters ?? null,
         }))
 
         setResultItems(mappedPlaces)
       } catch {
         if (requestId !== requestSeqRef.current) return
         setHasSearchError(true)
-        setSearchStateMessage('검색 결과를 불러오지 못했습니다.')
+        setSearchStateMessage(SEARCH_FAILED_MESSAGE)
         setResultItems([])
       } finally {
         if (requestId === requestSeqRef.current) {
@@ -149,11 +212,15 @@ export default function SearchPage() {
     setKeyword(nextKeyword)
     setIsResultMode(false)
     setIsLoading(false)
+    setHasSearchError(false)
+    setSearchStateMessage('')
+    setResultItems([])
+    suggestByKeyword(nextKeyword)
   }
 
-  const handleSelectAutocomplete = (selectedKeyword) => {
-    setKeyword(selectedKeyword)
-    runSearch(selectedKeyword)
+  const handleSelectAutocomplete = (selectedItem) => {
+    setKeyword(selectedItem.title)
+    runSearch(selectedItem.title)
   }
 
   const handleSelectResult = (selectedPlace) => {
@@ -199,7 +266,7 @@ export default function SearchPage() {
         {isResultMode && !isLoading && resultItems.length === 0 ? (
           <p className="search-page__state">
             {hasSearchError
-              ? searchStateMessage || '검색 결과를 불러오지 못했습니다.'
+              ? searchStateMessage || SEARCH_FAILED_MESSAGE
               : '검색 결과가 없습니다.'}
           </p>
         ) : null}

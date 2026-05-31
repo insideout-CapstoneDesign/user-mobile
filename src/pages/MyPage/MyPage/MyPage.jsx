@@ -94,7 +94,7 @@ export default function MyPage() {
           <span>
             {isLoggedIn
               ? email || '이메일 정보 없음'
-              : '로그인하면 즐겨찾기와 내가 쓴 리뷰를 확인할 수 있어요'}
+              : '로그인하면 즐겨찾기/리뷰를 확인할 수 있어요.'}
           </span>
         </div>
       </section>

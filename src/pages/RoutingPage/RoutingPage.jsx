@@ -13,6 +13,7 @@ import SearchInput from '../../components/SearchInput/SearchInput'
 import TransportSelector from '../../components/Transport/TransportSelector'
 import TransitTurnByTurnList from '../../components/NavigationGuidance/TransitTurnByTurnList'
 import TurnByTurnList from '../../components/NavigationGuidance/TurnByTurnList'
+import { ROUTES } from '../../constants/routes'
 import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
 import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
@@ -186,7 +187,24 @@ export default function RoutingPage() {
       ) : null}
 
       {!guidanceStarted ? (
-        <BottomNav currentKey={currentNav} onChange={routing.setCurrentNav} />
+        <BottomNav
+          currentKey={currentNav}
+          onChange={(key) => {
+            if (key === 'navigation') {
+              routing.setCurrentNav('navigation')
+              return
+            }
+
+            if (key === 'map') {
+              navigate(ROUTES.MAP)
+              return
+            }
+
+            if (key === 'my') {
+              navigate('/my')
+            }
+          }}
+        />
       ) : null}
 
       <MapPoiSheet

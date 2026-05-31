@@ -51,6 +51,11 @@ export default function RoutingSearchPage() {
   const handleBottomNavChange = (key) => {
     if (key === 'map') {
       navigate(ROUTES.MAP)
+      return
+    }
+
+    if (key === 'my') {
+      navigate('/my')
     }
   }
 

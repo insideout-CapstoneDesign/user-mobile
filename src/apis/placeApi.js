@@ -1,8 +1,9 @@
-import { ERROR_MESSAGE } from '../constants/errorMessages'
+import { ERROR_MESSAGE, PLACE_ERROR_MESSAGE } from '../constants/errorMessages'
 import getErrorMessage from './utils/getErrorMessage'
 
 const NEAREST_PLACE_PATH = '/api/v1/places/nearest'
 const SEARCH_PLACES_PATH = '/api/v1/places/search'
+const SUGGEST_PLACES_PATH = '/api/v1/places/suggest'
 const REQUEST_TIMEOUT_MS = 10000
 const NO_PLACE_CODES = new Set(['PLACE_INFO_NOT_AVAILABLE', 'PLACE200_1'])
 
@@ -18,6 +19,86 @@ function getApiBaseUrl() {
 
 function isFiniteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value)
+}
+
+function hasLocation(lat, lng) {
+  return isFiniteNumber(lat) && isFiniteNumber(lng)
+}
+
+function validateLocationPair(lat, lng) {
+  const hasLat = isFiniteNumber(lat)
+  const hasLng = isFiniteNumber(lng)
+
+  if ((hasLat && !hasLng) || (!hasLat && hasLng)) {
+    const error = new Error(PLACE_ERROR_MESSAGE.INVALID_COORDINATE)
+    error.code = 'PLACE400_1'
+    throw error
+  }
+}
+
+function validateSize(size) {
+  if (size === undefined) return
+
+  if (!Number.isInteger(size) || size <= 0) {
+    const error = new Error('size 값이 올바르지 않습니다.')
+    error.code = 'PLACE400_3'
+    throw error
+  }
+}
+
+function buildSearchQuery({ keyword, lat, lng, radius, size }) {
+  if (!keyword?.trim()) return null
+  validateLocationPair(lat, lng)
+  validateSize(size)
+
+  if (radius !== undefined && !hasLocation(lat, lng)) {
+    const error = new Error(PLACE_ERROR_MESSAGE.INVALID_COORDINATE)
+    error.code = 'PLACE400_1'
+    throw error
+  }
+
+  if (radius !== undefined && (!isFiniteNumber(radius) || radius <= 0)) {
+    const error = new Error(PLACE_ERROR_MESSAGE.INVALID_RADIUS)
+    error.code = 'PLACE400_2'
+    throw error
+  }
+
+  const queryParams = {
+    q: keyword.trim(),
+  }
+
+  if (hasLocation(lat, lng)) {
+    queryParams.lat = String(lat)
+    queryParams.lng = String(lng)
+  }
+
+  if (radius !== undefined) {
+    queryParams.radius = String(radius)
+  }
+
+  if (size !== undefined) {
+    queryParams.size = String(size)
+  }
+
+  return new URLSearchParams(queryParams).toString()
+}
+
+function getPlaceCodeMap(fallbackType = 'search') {
+  return {
+    PLACE400_1: PLACE_ERROR_MESSAGE.INVALID_COORDINATE,
+    PLACE400_2: PLACE_ERROR_MESSAGE.INVALID_RADIUS,
+    PLACE400_3: PLACE_ERROR_MESSAGE.INVALID_QUERY,
+    PLACE503_1: PLACE_ERROR_MESSAGE.KAKAO_UNAVAILABLE,
+    PLACE503_2: PLACE_ERROR_MESSAGE.SEARCH_UNAVAILABLE,
+    INVALID_COORDINATE: PLACE_ERROR_MESSAGE.INVALID_COORDINATE,
+    INVALID_RADIUS: PLACE_ERROR_MESSAGE.INVALID_RADIUS,
+    SEARCH_INVALID_QUERY: PLACE_ERROR_MESSAGE.INVALID_QUERY,
+    KAKAO_LOCAL_API_UNAVAILABLE: PLACE_ERROR_MESSAGE.KAKAO_UNAVAILABLE,
+    SEARCH_SERVICE_UNAVAILABLE: PLACE_ERROR_MESSAGE.SEARCH_UNAVAILABLE,
+    ...(fallbackType === 'suggest'
+      ? { COMMON400_1: PLACE_ERROR_MESSAGE.INVALID_QUERY }
+      : {}),
+  }
 }
 
 async function getJson(path, options = {}) {
@@ -101,10 +182,7 @@ export async function getNearestPlace({ lat, lng, radius = 30 }) {
 
   const data = await getJson(`${NEAREST_PLACE_PATH}?${query}`, {
     fallbackMessage: '장소 정보를 불러오지 못했습니다.',
-    codeMap: {
-      PLACE400_1: '좌표 정보가 올바르지 않습니다.',
-      PLACE400_2: '반경 정보가 올바르지 않습니다.',
-    },
+    codeMap: getPlaceCodeMap(),
   })
 
   if (NO_PLACE_CODES.has(data?.code) || data?.result == null) {
@@ -114,34 +192,30 @@ export async function getNearestPlace({ lat, lng, radius = 30 }) {
   return { place: data.result, code: data?.code }
 }
 
-export async function searchPlaces({ keyword, lat, lng, radius }) {
-  if (!keyword?.trim()) return []
+export async function searchPlaces({ keyword, lat, lng, radius, size }) {
+  const query = buildSearchQuery({ keyword, lat, lng, radius, size })
+  if (!query) return []
 
-  if (!isFiniteNumber(lat) || !isFiniteNumber(lng)) {
-    const error = new Error('현재 위치 정보를 확인할 수 없습니다.')
-    error.code = 'PLACE400_1'
-    throw error
-  }
-
-  if (radius !== undefined && (!isFiniteNumber(radius) || radius <= 0)) {
-    const error = new Error('반경 정보가 올바르지 않습니다.')
-    error.code = 'PLACE400_2'
-    throw error
-  }
-
-  const queryParams = {
-    q: keyword.trim(),
-    lat: String(lat),
-    lng: String(lng),
-  }
-
-  if (radius !== undefined) {
-    queryParams.radius = String(radius)
-  }
-
-  const query = new URLSearchParams(queryParams).toString()
   const data = await getJson(`${SEARCH_PLACES_PATH}?${query}`, {
-    fallbackMessage: '검색 결과를 불러오지 못했습니다.',
+    fallbackMessage: PLACE_ERROR_MESSAGE.SEARCH_FAILED,
+    codeMap: getPlaceCodeMap('search'),
+  })
+
+  const rawResult = data?.result
+
+  if (Array.isArray(rawResult)) return rawResult
+  if (Array.isArray(rawResult?.content)) return rawResult.content
+
+  return []
+}
+
+export async function suggestPlaces({ keyword, lat, lng, size }) {
+  const query = buildSearchQuery({ keyword, lat, lng, size })
+  if (!query) return []
+
+  const data = await getJson(`${SUGGEST_PLACES_PATH}?${query}`, {
+    fallbackMessage: PLACE_ERROR_MESSAGE.SUGGEST_FAILED,
+    codeMap: getPlaceCodeMap('suggest'),
   })
 
   const rawResult = data?.result

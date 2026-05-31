@@ -59,6 +59,13 @@ export const Address = styled.span`
   line-height: var(--line-20);
 `
 
+export const Distance = styled.span`
+  font-family: var(--font-sans);
+  font-size: var(--text-12);
+  color: var(--gray-500);
+  line-height: var(--line-16);
+`
+
 export const ArrowIcon = styled.img`
   width: var(--size-20);
   height: var(--size-20);

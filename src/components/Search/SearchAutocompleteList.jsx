@@ -12,12 +12,16 @@ export default function SearchAutocompleteList({ items = [], onSelect }) {
     <AutocompleteSection>
       <SectionTitle>자동완성</SectionTitle>
       <KeywordList>
-        {items.map((item) => (
-          <KeywordItem key={item} type="button" onClick={() => onSelect?.(item)}>
+        {items.map((item, index) => (
+          <KeywordItem
+            key={item.id ?? `${item.title}-${index}`}
+            type="button"
+            onClick={() => onSelect?.(item)}
+          >
             <KeywordIcon>
               <IoSearchOutline size={14} />
             </KeywordIcon>
-            <span>{item}</span>
+            <span>{item.title}</span>
           </KeywordItem>
         ))}
       </KeywordList>

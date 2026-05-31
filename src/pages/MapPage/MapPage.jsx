@@ -40,6 +40,7 @@ export default function MapPage() {
     shouldOpenFromSearch && selectedSearchPlace
       ? resolvePoiFromSearch(selectedSearchPlace, mockMapPois)
       : null
+  const shouldSkipAutoLocateRef = useRef(Boolean(initialSelectedPoi))
   const [currentNav, setCurrentNav] = useState('map')
   const [mapCenter, setMapCenter] = useState(() =>
     initialSelectedPoi &&
@@ -80,7 +81,7 @@ export default function MapPage() {
   }, [])
 
   useEffect(() => {
-    if (shouldOpenFromSearch) return
+    if (shouldSkipAutoLocateRef.current) return
     if (!navigator.geolocation) return
 
     navigator.geolocation.getCurrentPosition(
@@ -99,7 +100,7 @@ export default function MapPage() {
         maximumAge: 60000,
       },
     )
-  }, [shouldOpenFromSearch])
+  }, [])
 
   useEffect(() => {
     if (!selectedSearchPlace) return

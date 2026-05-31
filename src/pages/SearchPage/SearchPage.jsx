@@ -30,6 +30,7 @@ export default function SearchPage() {
   const returnTo = location.state?.returnTo ?? ROUTES.ROUTING_SEARCH
   const routeOrigin = location.state?.routeOrigin ?? null
   const routeDestination = location.state?.routeDestination ?? null
+  const selectedMapPlace = location.state?.selectedMapPlace ?? null
   const mapCenter = location.state?.mapCenter ?? null
   const mapLevel = location.state?.mapLevel ?? null
   const supportsGeolocation =
@@ -243,10 +244,10 @@ export default function SearchPage() {
         state: {
           routeOrigin: nextOrigin,
           routeDestination: nextDestination,
+          selectedMapPlace,
           mapCenter,
           mapLevel,
           selectedRouteField: routeField,
-          isRouteReady: Boolean(nextOrigin && nextDestination),
         },
       })
       return

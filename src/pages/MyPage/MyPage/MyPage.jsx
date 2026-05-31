@@ -9,6 +9,7 @@ import { getMyProfile } from '../../../apis/profileApi'
 import BottomNav from '../../../components/BottomNav/BottomNav'
 import Button from '../../../components/Button/Button'
 import MyMenuRow from '../../../components/My/MyMenuRow'
+import { AUTH_STORAGE_KEY } from '../../../constants/auth'
 import getBottomNavRoute from '../../../utils/navigation/bottomNavRoute'
 import './MyPage.css'
 
@@ -16,6 +17,7 @@ export default function MyPage() {
   const navigate = useNavigate()
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   const handleBottomNavChange = (key) => {
     navigate(getBottomNavRoute(key))
@@ -25,13 +27,25 @@ export default function MyPage() {
     let isMounted = true
 
     async function loadProfileSummary() {
+      const token = localStorage.getItem(AUTH_STORAGE_KEY.ACCESS_TOKEN)
+
+      if (!token) {
+        if (!isMounted) return
+        setIsLoggedIn(false)
+        setDisplayName('')
+        setEmail('')
+        return
+      }
+
       try {
         const profile = await getMyProfile()
         if (!isMounted) return
+        setIsLoggedIn(true)
         setDisplayName(profile.displayName)
         setEmail(profile.email)
       } catch {
         if (!isMounted) return
+        setIsLoggedIn(false)
         setDisplayName('')
         setEmail('')
       }
@@ -44,6 +58,27 @@ export default function MyPage() {
     }
   }, [])
 
+  const handleProtectedNavigation = (path) => {
+    if (!isLoggedIn) {
+      navigate('/login')
+      return
+    }
+    navigate(path)
+  }
+
+  const handleAuthAction = () => {
+    if (!isLoggedIn) {
+      navigate('/login')
+      return
+    }
+
+    localStorage.removeItem(AUTH_STORAGE_KEY.ACCESS_TOKEN)
+    setIsLoggedIn(false)
+    setDisplayName('')
+    setEmail('')
+    navigate('/login', { replace: true })
+  }
+
   return (
     <main className="my-page">
       <header className="my-page__header">
@@ -55,8 +90,12 @@ export default function MyPage() {
           <IoPersonOutline size={32} />
         </div>
         <div className="my-page__profile-text">
-          <strong>{displayName || email || '-'}</strong>
-          <span>{email || '이메일 정보 없음'}</span>
+          <strong>{isLoggedIn ? displayName || email : '로그인이 필요해요'}</strong>
+          <span>
+            {isLoggedIn
+              ? email || '이메일 정보 없음'
+              : '로그인하면 즐겨찾기와 내가 쓴 리뷰를 확인할 수 있어요'}
+          </span>
         </div>
       </section>
 
@@ -64,18 +103,20 @@ export default function MyPage() {
         <MyMenuRow
           icon={IoHeartOutline}
           label="즐겨찾기"
-          onClick={() => navigate('/my/favorites')}
+          onClick={() => handleProtectedNavigation('/my/favorites')}
         />
         <MyMenuRow
           icon={IoChatbubbleEllipsesOutline}
           label="내가 쓴 리뷰"
-          onClick={() => navigate('/my/reviews')}
+          onClick={() => handleProtectedNavigation('/my/reviews')}
         />
-        <MyMenuRow label="설정" onClick={() => navigate('/my/settings')} />
+        <MyMenuRow label="설정" onClick={() => handleProtectedNavigation('/my/settings')} />
       </section>
 
       <div className="my-page__logout">
-        <Button variant="outline">로그아웃</Button>
+        <Button variant="outline" onClick={handleAuthAction}>
+          {isLoggedIn ? '로그아웃' : '로그인'}
+        </Button>
       </div>
 
       <BottomNav currentKey="my" onChange={handleBottomNavChange} />

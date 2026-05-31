@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import useCurrentLocationOnKakaoMap from '../../hooks/map/useCurrentLocationOnKakaoMap'
 import useKakaoMapInstance from '../../hooks/map/useKakaoMapInstance'
 import usePoiSelectionOnMap from '../../hooks/map/usePoiSelectionOnMap'
@@ -16,6 +16,8 @@ export default function KakaoMapView({
   markerPosition = null,
   markerOffsetY = 0,
   onCurrentLocationSelect,
+  onCenterChange,
+  onLevelChange,
 }) {
   const appKey = import.meta.env.VITE_KAKAO_MAP_APP_KEY
   const mapRef = useRef(null)
@@ -34,6 +36,27 @@ export default function KakaoMapView({
     onMapClick,
   })
   useSingleMarkerOnMap({ map, markerPosition, markerOffsetY })
+
+  useEffect(() => {
+    if (!map || (!onCenterChange && !onLevelChange) || !window.kakao?.maps?.event) {
+      return
+    }
+
+    const handleIdle = () => {
+      const centerPosition = map.getCenter()
+      onCenterChange?.({
+        lat: centerPosition.getLat(),
+        lng: centerPosition.getLng(),
+      })
+      onLevelChange?.(map.getLevel())
+    }
+
+    window.kakao.maps.event.addListener(map, 'idle', handleIdle)
+
+    return () => {
+      window.kakao.maps.event.removeListener(map, 'idle', handleIdle)
+    }
+  }, [map, onCenterChange, onLevelChange])
 
   const { isLocating, geoMessage, moveToCurrentLocation } =
     useCurrentLocationOnKakaoMap(map, onCurrentLocationSelect)

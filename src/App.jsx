@@ -5,22 +5,25 @@ import LoginPage from './pages/Login/LoginPage'
 import SplashPage from './pages/Splash/SplashPage'
 import SignupPage from './pages/Signup/SignupPage'
 import MapPage from './pages/MapPage/MapPage'
+import RoutingSearchPage from './pages/RoutingSearchPage/RoutingSearchPage'
 import SearchPage from './pages/SearchPage/SearchPage'
 import RoutingPage from './pages/RoutingPage/RoutingPage'
+import { ROUTES } from './constants/routes'
 
 function App() {
   return (
     <BrowserRouter>
       <AppLayout>
         <Routes>
-          <Route path="/" element={<SplashPage />} />
-          <Route path="/map" element={<MapPage />} />
-          <Route path="/routing" element={<RoutingPage />} />
-          <Route path="/RoutingPage" element={<RoutingPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/component-test" element={<ComponentTestPage />} />
+          <Route path={ROUTES.HOME} element={<SplashPage />} />
+          <Route path={ROUTES.MAP} element={<MapPage />} />
+          <Route path={ROUTES.ROUTING_SEARCH} element={<RoutingSearchPage />} />
+          <Route path={ROUTES.ROUTING} element={<RoutingPage />} />
+          <Route path={ROUTES.ROUTING_LEGACY} element={<RoutingPage />} />
+          <Route path={ROUTES.SEARCH} element={<SearchPage />} />
+          <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+          <Route path={ROUTES.SIGNUP} element={<SignupPage />} />
+          <Route path={ROUTES.COMPONENT_TEST} element={<ComponentTestPage />} />
         </Routes>
       </AppLayout>
     </BrowserRouter>

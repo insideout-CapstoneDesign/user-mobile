@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { searchPlaces, suggestPlaces } from '../../apis/placeApi'
 import CommonHeader from '../../components/CommonHeader/CommonHeader'
 import SearchAutocompleteList from '../../components/Search/SearchAutocompleteList'
 import SearchResultList from '../../components/Search/SearchResultList'
+import { ROUTES } from '../../constants/routes'
+import { SEARCH_MODES } from '../../constants/search'
 import './SearchPage.css'
 
 const SEARCH_DELAY_MS = 250
@@ -21,7 +23,15 @@ function isInvalidIntermediateKeyword(keyword) {
 }
 
 export default function SearchPage() {
+  const location = useLocation()
   const navigate = useNavigate()
+  const searchMode = location.state?.mode
+  const routeField = location.state?.routeField
+  const returnTo = location.state?.returnTo ?? ROUTES.ROUTING_SEARCH
+  const routeOrigin = location.state?.routeOrigin ?? null
+  const routeDestination = location.state?.routeDestination ?? null
+  const mapCenter = location.state?.mapCenter ?? null
+  const mapLevel = location.state?.mapLevel ?? null
   const supportsGeolocation =
     typeof navigator !== 'undefined' && 'geolocation' in navigator
   const [keyword, setKeyword] = useState('')
@@ -224,7 +234,25 @@ export default function SearchPage() {
   }
 
   const handleSelectResult = (selectedPlace) => {
-    navigate('/map', {
+    if (searchMode === SEARCH_MODES.ROUTE) {
+      const nextOrigin = routeField === 'origin' ? selectedPlace : routeOrigin
+      const nextDestination =
+        routeField === 'destination' ? selectedPlace : routeDestination
+
+      navigate(returnTo, {
+        state: {
+          routeOrigin: nextOrigin,
+          routeDestination: nextDestination,
+          mapCenter,
+          mapLevel,
+          selectedRouteField: routeField,
+          isRouteReady: Boolean(nextOrigin && nextDestination),
+        },
+      })
+      return
+    }
+
+    navigate(ROUTES.MAP, {
       state: {
         selectedSearchPlace: selectedPlace,
         openSheetFrom: 'search-result',

@@ -1,41 +1,32 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { getNearestPlace } from '../../apis/placeApi'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
 import SearchInput from '../../components/SearchInput/SearchInput'
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_LEVEL } from '../../constants/map'
+import { ROUTES } from '../../constants/routes'
+import { mockMapPois } from '../../mocks/map/poi.mock'
+import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
+import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
+import { isValidMapCenter } from '../../utils/map/mapViewport'
+import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
 import './MapPage.css'
 
 const NEAREST_RADIUS_METERS = 30
 const NOTICE_TIMEOUT_MS = 2400
 const NO_PLACE_CODE = 'PLACE_INFO_NOT_AVAILABLE'
-const DEFAULT_MAP_CENTER = { lat: 37.558107, lng: 126.998945 }
-
 function mapNearestPlaceToPoi(place) {
   return {
-    id: place.externalApiId ?? `${place.name ?? 'place'}-${place.lat}-${place.lng}`,
-    name: place.name ?? '장소명',
+    id:
+      place.externalApiId ??
+      place.id ??
+      `${place.name ?? place.placeName ?? 'place'}-${place.lat}-${place.lng}`,
+    name: place.name ?? place.placeName ?? place.title ?? '장소명',
     address: place.roadAddress || place.address || '주소 정보 없음',
     lat: place.lat,
     lng: place.lng,
-    isRegistered: Boolean(place.isRegistered),
-    externalApiId: place.externalApiId,
-  }
-}
-
-function mapSearchPlaceToPoi(place) {
-  if (!place) return null
-
-  const hasLat = typeof place.lat === 'number' && Number.isFinite(place.lat)
-  const hasLng = typeof place.lng === 'number' && Number.isFinite(place.lng)
-
-  return {
-    id: place.externalApiId ?? `search-${place.title ?? place.name ?? 'place'}`,
-    name: place.title ?? place.name ?? '장소명',
-    address: place.address ?? place.roadAddress ?? '주소 정보 없음',
-    lat: hasLat ? place.lat : null,
-    lng: hasLng ? place.lng : null,
     isRegistered: Boolean(place.isRegistered),
     externalApiId: place.externalApiId,
   }
@@ -48,28 +39,42 @@ export default function MapPage() {
   const shouldOpenFromSearch = location.state?.openSheetFrom === 'search-result'
   const initialSelectedPoi =
     shouldOpenFromSearch && selectedSearchPlace
-      ? mapSearchPlaceToPoi(selectedSearchPlace)
+      ? resolvePoiFromSearch(selectedSearchPlace, mockMapPois)
       : null
-  const shouldSkipAutoLocateRef = useRef(Boolean(initialSelectedPoi))
   const [currentNav, setCurrentNav] = useState('map')
-  const [mapCenter, setMapCenter] = useState(() =>
-    initialSelectedPoi &&
-    typeof initialSelectedPoi.lat === 'number' &&
-    typeof initialSelectedPoi.lng === 'number'
+  const initialMapCenter =
+    isValidMapCenter({
+      lat: initialSelectedPoi?.lat,
+      lng: initialSelectedPoi?.lng,
+    })
       ? { lat: initialSelectedPoi.lat, lng: initialSelectedPoi.lng }
-      : DEFAULT_MAP_CENTER,
-  )
+      : DEFAULT_MAP_CENTER
+  const [mapCenter, setMapCenter] = useState(initialMapCenter)
+  const [mapLevel, setMapLevel] = useState(DEFAULT_MAP_LEVEL)
   const [mapNotice, setMapNotice] = useState('')
   const [selectedMarkerPosition, setSelectedMarkerPosition] = useState(() =>
-    initialSelectedPoi &&
-    typeof initialSelectedPoi.lat === 'number' &&
-    typeof initialSelectedPoi.lng === 'number'
+    isValidMapCenter({
+      lat: initialSelectedPoi?.lat,
+      lng: initialSelectedPoi?.lng,
+    })
       ? { lat: initialSelectedPoi.lat, lng: initialSelectedPoi.lng }
       : null,
   )
   const [selectedPoi, setSelectedPoi] = useState(initialSelectedPoi)
   const requestSeqRef = useRef(0)
   const noticeTimerRef = useRef(null)
+  const registeredPlaces = useMemo(
+    () => mockSearchPlaces.filter((place) => place.isRegistered),
+    [],
+  )
+  const isSelectedPoiRegistered = useMemo(
+    () =>
+      typeof selectedPoi?.isRegistered === 'boolean'
+        ? selectedPoi.isRegistered
+        : isRegisteredPlace(selectedPoi, registeredPlaces),
+    [registeredPlaces, selectedPoi],
+  )
+
   useEffect(() => {
     return () => {
       if (noticeTimerRef.current) {
@@ -79,7 +84,7 @@ export default function MapPage() {
   }, [])
 
   useEffect(() => {
-    if (shouldSkipAutoLocateRef.current) return
+    if (shouldOpenFromSearch) return
     if (!navigator.geolocation) return
 
     navigator.geolocation.getCurrentPosition(
@@ -89,18 +94,20 @@ export default function MapPage() {
           lng: coords.longitude,
         })
       },
-      () => {},
+      () => {
+        // 권한 거부/실패 시 기본 중심 좌표(동국대)를 유지합니다.
+      },
       {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 60000,
       },
     )
-  }, [])
+  }, [setMapCenter, shouldOpenFromSearch])
 
   useEffect(() => {
     if (!selectedSearchPlace) return
-    navigate('/map', { replace: true, state: null })
+    navigate(ROUTES.MAP, { replace: true, state: null })
   }, [navigate, selectedSearchPlace])
 
   const showMapNotice = (message) => {
@@ -121,7 +128,7 @@ export default function MapPage() {
   }
 
   const openSearchPage = () => {
-    navigate('/search')
+    navigate(ROUTES.SEARCH)
   }
 
   const handleSearchInputKeyDown = (event) => {
@@ -129,6 +136,20 @@ export default function MapPage() {
       event.preventDefault()
       openSearchPage()
     }
+  }
+
+  const handleBottomNavChange = (key) => {
+    if (key === 'navigation') {
+      navigate(ROUTES.ROUTING_SEARCH, {
+        state: {
+          mapCenter,
+          mapLevel,
+        },
+      })
+      return
+    }
+
+    setCurrentNav(key)
   }
 
   const handleCurrentLocationSelect = ({ lat, lng }) => {
@@ -183,11 +204,14 @@ export default function MapPage() {
       <div className="map-page__viewport">
         <KakaoMapView
           center={mapCenter}
+          level={mapLevel}
           pois={[]}
           markerPosition={selectedMarkerPosition}
           markerOffsetY={selectedPoi ? -200 : 0}
           onCurrentLocationSelect={handleCurrentLocationSelect}
           onMapClick={handleMapClick}
+          onCenterChange={setMapCenter}
+          onLevelChange={setMapLevel}
         />
       </div>
 
@@ -202,13 +226,13 @@ export default function MapPage() {
       </div>
       {mapNotice ? <p className="map-page__notice">{mapNotice}</p> : null}
 
-      <BottomNav currentKey={currentNav} onChange={setCurrentNav} />
+      <BottomNav currentKey={currentNav} onChange={handleBottomNavChange} />
 
       <MapPoiSheet
         key={selectedPoi?.id ?? 'map-poi-sheet'}
         isOpen={!!selectedPoi}
         place={selectedPoi}
-        isRegistered={Boolean(selectedPoi?.isRegistered)}
+        isRegistered={isSelectedPoiRegistered}
         onClose={closePoiSheet}
       />
     </main>

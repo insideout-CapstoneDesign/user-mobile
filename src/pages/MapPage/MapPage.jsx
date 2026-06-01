@@ -1,75 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { getNearestPlace } from '../../apis/placeApi'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
 import SearchInput from '../../components/SearchInput/SearchInput'
+import useMapPoiSelection from '../../hooks/map/useMapPoiSelection'
+import useMapRoutingBridge from '../../hooks/map/useMapRoutingBridge'
 import { ROUTES } from '../../constants/routes'
 import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
 import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
 import { getMapViewportState, isValidMapCenter, isValidMapLevel } from '../../utils/map/mapViewport'
-import { DEFAULT_ROUTE_ORIGIN } from '../../utils/map/navigationPlaceMapper'
+import { mapRoutePlaceToPoi } from '../../utils/map/mapPoiMappers'
 import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
 import './MapPage.css'
-
-const NEAREST_RADIUS_METERS = 30
-const NOTICE_TIMEOUT_MS = 2400
-const NO_PLACE_CODE = 'PLACE_INFO_NOT_AVAILABLE'
-
-function mapNearestPlaceToPoi(place) {
-  return {
-    id:
-      place.externalApiId ??
-      place.id ??
-      `${place.name ?? place.placeName ?? 'place'}-${place.lat}-${place.lng}`,
-    name: place.name ?? place.placeName ?? place.title ?? '장소명',
-    address: place.roadAddress || place.address || '주소 정보 없음',
-    lat: place.lat,
-    lng: place.lng,
-    isRegistered: Boolean(place.isRegistered),
-    externalApiId: place.externalApiId,
-  }
-}
-
-function getCurrentPositionAsync() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('geolocation-unavailable'))
-      return
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        resolve({
-          lat: coords.latitude,
-          lng: coords.longitude,
-        })
-      },
-      reject,
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
-      },
-    )
-  })
-}
-
-function mapRoutePlaceToPoi(place) {
-  if (!place) return null
-
-  return {
-    id: place.externalApiId ?? place.id ?? `route-${place.name ?? place.title ?? 'place'}`,
-    name: place.name ?? place.title ?? '장소명',
-    address: place.address ?? place.roadAddress ?? '주소 정보 없음',
-    lat: place.lat,
-    lng: place.lng,
-    isRegistered: Boolean(place.isRegistered),
-    externalApiId: place.externalApiId ?? null,
-  }
-}
 
 export default function MapPage() {
   const location = useLocation()
@@ -100,18 +44,30 @@ export default function MapPage() {
       : mapViewportState.mapCenter
   const [mapCenter, setMapCenter] = useState(initialMapCenter)
   const [mapLevel, setMapLevel] = useState(mapViewportState.mapLevel)
-  const [mapNotice, setMapNotice] = useState('')
-  const [selectedMarkerPosition, setSelectedMarkerPosition] = useState(() =>
-    isValidMapCenter({
-      lat: initialSelectedPoi?.lat,
-      lng: initialSelectedPoi?.lng,
-    })
-      ? { lat: initialSelectedPoi.lat, lng: initialSelectedPoi.lng }
-      : null,
-  )
-  const [selectedPoi, setSelectedPoi] = useState(initialSelectedPoi)
-  const requestSeqRef = useRef(0)
-  const noticeTimerRef = useRef(null)
+  const {
+    mapNotice,
+    selectedPoi,
+    selectedMarkerPosition,
+    closePoiSheet,
+    handleCurrentLocationSelect,
+    handleMapClick,
+  } = useMapPoiSelection({
+    initialSelectedPoi,
+    setMapCenter,
+  })
+  const {
+    openSearchPage,
+    handleSearchInputKeyDown,
+    handleBottomNavChange,
+    openRoutingFromMapPoi,
+  } = useMapRoutingBridge({
+    navigate,
+    routeOrigin,
+    routeDestination,
+    mapCenter,
+    mapLevel,
+    setCurrentNav,
+  })
   const registeredPlaces = useMemo(
     () => mockSearchPlaces.filter((place) => place.isRegistered),
     [],
@@ -123,14 +79,6 @@ export default function MapPage() {
         : isRegisteredPlace(selectedPoi, registeredPlaces),
     [registeredPlaces, selectedPoi],
   )
-
-  useEffect(() => {
-    return () => {
-      if (noticeTimerRef.current) {
-        window.clearTimeout(noticeTimerRef.current)
-      }
-    }
-  }, [])
 
   useEffect(() => {
     if (shouldOpenFromSearch || hasInitialViewportFromState) return
@@ -158,189 +106,6 @@ export default function MapPage() {
     if (!selectedSearchPlace && !selectedMapPlace) return
     navigate(ROUTES.MAP, { replace: true, state: null })
   }, [navigate, selectedMapPlace, selectedSearchPlace])
-
-  const showMapNotice = (message) => {
-    setMapNotice(message)
-
-    if (noticeTimerRef.current) {
-      window.clearTimeout(noticeTimerRef.current)
-    }
-
-    noticeTimerRef.current = window.setTimeout(() => {
-      setMapNotice('')
-    }, NOTICE_TIMEOUT_MS)
-  }
-
-  const closePoiSheet = () => {
-    setSelectedPoi(null)
-    setSelectedMarkerPosition(null)
-  }
-
-  const openSearchPage = () => {
-    navigate(ROUTES.SEARCH)
-  }
-
-  const handleSearchInputKeyDown = (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      openSearchPage()
-    }
-  }
-
-  const handleBottomNavChange = (key) => {
-    if (key === 'navigation') {
-      navigate(ROUTES.ROUTING_SEARCH, {
-        state: {
-          routeOrigin,
-          routeDestination,
-          mapCenter,
-          mapLevel,
-        },
-      })
-      return
-    }
-
-    setCurrentNav(key)
-  }
-
-  const openRoutingFromMapPoi = async (field, place) => {
-    if (!place) return
-
-    const normalizedPlace = {
-      ...place,
-      name: place.name ?? place.title ?? '장소',
-      title: place.name ?? place.title ?? '장소',
-      address: place.address ?? '주소 정보 없음',
-      lat: place.lat,
-      lng: place.lng,
-      externalApiId: place.externalApiId ?? place.id ?? null,
-      isRegistered: Boolean(place.isRegistered),
-    }
-
-    const nextState =
-      field === 'origin'
-        ? {
-            routeOrigin: normalizedPlace,
-            routeDestination: routeDestination ?? null,
-            selectedRouteField: 'destination',
-          }
-        : {
-            routeOrigin:
-              !routeOrigin || routeOrigin?.source === 'current-location'
-                ? null
-                : routeOrigin,
-            routeDestination: normalizedPlace,
-            selectedRouteField: 'origin',
-          }
-
-    if (field === 'destination' && !nextState.routeOrigin) {
-      let originLat = mapCenter?.lat
-      let originLng = mapCenter?.lng
-
-      try {
-        const currentPosition = await getCurrentPositionAsync()
-        originLat = currentPosition.lat
-        originLng = currentPosition.lng
-      } catch {
-        // 현재 위치 권한 실패 시 지도 중심 좌표를 fallback으로 사용합니다.
-      }
-
-      if (typeof originLat === 'number' && typeof originLng === 'number') {
-        try {
-          const { place: nearestPlace } = await getNearestPlace({
-            lat: originLat,
-            lng: originLng,
-            radius: NEAREST_RADIUS_METERS,
-          })
-          const currentAddress =
-            nearestPlace?.roadAddress ||
-            nearestPlace?.address ||
-            nearestPlace?.name ||
-            '현재 위치'
-
-          nextState.routeOrigin = {
-            x: originLng,
-            y: originLat,
-            lat: originLat,
-            lng: originLng,
-            name: currentAddress,
-            title: currentAddress,
-            address: currentAddress,
-            source: 'map-current-location',
-          }
-        } catch {
-          nextState.routeOrigin = {
-            x: originLng,
-            y: originLat,
-            lat: originLat,
-            lng: originLng,
-            name: '현재 위치',
-            title: '현재 위치',
-            address: '현재 위치',
-            source: 'map-current-location',
-          }
-        }
-      } else {
-        nextState.routeOrigin = DEFAULT_ROUTE_ORIGIN
-      }
-    }
-
-    navigate(ROUTES.ROUTING_SEARCH, {
-      state: {
-        ...nextState,
-        selectedMapPlace: normalizedPlace,
-        mapCenter,
-        mapLevel,
-      },
-    })
-  }
-
-  const handleCurrentLocationSelect = ({ lat, lng }) => {
-    setMapCenter({ lat, lng })
-    setSelectedPoi(null)
-    setSelectedMarkerPosition({ lat, lng })
-    setMapNotice('')
-  }
-
-  const handleMapClick = async ({ lat, lng }) => {
-    const requestId = ++requestSeqRef.current
-
-    try {
-      const { place, code } = await getNearestPlace({
-        lat,
-        lng,
-        radius: NEAREST_RADIUS_METERS,
-      })
-
-      if (requestId !== requestSeqRef.current) return
-
-      if (!place) {
-        setSelectedPoi(null)
-        setSelectedMarkerPosition(null)
-        if (code === NO_PLACE_CODE || code === 'PLACE200_1') {
-          showMapNotice('해당 위치의 장소 정보를 찾을 수 없어요.')
-        }
-        return
-      }
-
-      const mappedPoi = mapNearestPlaceToPoi(place)
-      setMapNotice('')
-      setSelectedPoi(mappedPoi)
-      setMapCenter({
-        lat: mappedPoi.lat,
-        lng: mappedPoi.lng,
-      })
-      setSelectedMarkerPosition({
-        lat: mappedPoi.lat,
-        lng: mappedPoi.lng,
-      })
-    } catch (error) {
-      if (requestId !== requestSeqRef.current) return
-      setSelectedPoi(null)
-      setSelectedMarkerPosition(null)
-      showMapNotice(error?.message ?? '장소 정보를 불러오지 못했습니다.')
-    }
-  }
 
   return (
     <main className="map-page">

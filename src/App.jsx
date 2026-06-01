@@ -8,6 +8,12 @@ import MapPage from './pages/MapPage/MapPage'
 import RoutingSearchPage from './pages/RoutingSearchPage/RoutingSearchPage'
 import SearchPage from './pages/SearchPage/SearchPage'
 import RoutingPage from './pages/RoutingPage/RoutingPage'
+import MyPage from './pages/MyPage/MyPage/MyPage'
+import FavoritesPage from './pages/MyPage/FavoritesPage/FavoritesPage'
+import ReviewsPage from './pages/MyPage/ReviewsPage/ReviewsPage'
+import SettingsPage from './pages/MyPage/SettingsPage/SettingsPage'
+import ProfilePage from './pages/MyPage/ProfilePage/ProfilePage'
+import PasswordPage from './pages/MyPage/PasswordPage/PasswordPage'
 import { ROUTES } from './constants/routes'
 
 function App() {
@@ -21,6 +27,12 @@ function App() {
           <Route path={ROUTES.ROUTING} element={<RoutingPage />} />
           <Route path={ROUTES.ROUTING_LEGACY} element={<RoutingPage />} />
           <Route path={ROUTES.SEARCH} element={<SearchPage />} />
+          <Route path="/my" element={<MyPage />} />
+          <Route path="/my/favorites" element={<FavoritesPage />} />
+          <Route path="/my/reviews" element={<ReviewsPage />} />
+          <Route path="/my/settings" element={<SettingsPage />} />
+          <Route path="/my/profile" element={<ProfilePage />} />
+          <Route path="/my/password" element={<PasswordPage />} />
           <Route path={ROUTES.LOGIN} element={<LoginPage />} />
           <Route path={ROUTES.SIGNUP} element={<SignupPage />} />
           <Route path={ROUTES.COMPONENT_TEST} element={<ComponentTestPage />} />

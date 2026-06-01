@@ -249,6 +249,21 @@ export const RouteSectionTitle = styled.p`
   font-weight: 500;
 `
 
+export const RouteOptionsBody = styled.div`
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--space-12);
+  min-height: 0;
+  max-height: min(58dvh, 31rem);
+`
+
+export const RouteListViewport = styled.div`
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding-right: var(--space-2);
+`
 
 export const RouteList = styled.div`
   display: grid;

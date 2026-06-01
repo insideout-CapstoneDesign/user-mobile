@@ -1,0 +1,49 @@
+.routing-option-page {
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.routing-option-page__viewport {
+  position: absolute;
+  inset: 0;
+}
+
+.routing-option-page__direction {
+  position: absolute;
+  top: var(--space-16);
+  left: var(--space-16);
+  right: var(--space-16);
+  z-index: 12;
+}
+
+.routing-option-page__transport {
+  position: absolute;
+  top: 7.25rem;
+  left: var(--space-16);
+  right: var(--space-16);
+  z-index: 12;
+}
+
+.routing-option-page__state {
+  position: absolute;
+  left: var(--space-16);
+  right: var(--space-16);
+  bottom: calc(18rem + env(safe-area-inset-bottom));
+  z-index: 12;
+  min-height: 2.75rem;
+  display: grid;
+  place-items: center;
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-8);
+  background: var(--surface-0);
+  box-shadow: var(--shadow-bottom-sheet);
+  color: var(--gray-700);
+  font-family: var(--font-sans);
+  font-size: var(--text-14);
+  text-align: center;
+}
+
+.routing-option-page__state--error {
+  color: var(--red-500);
+}

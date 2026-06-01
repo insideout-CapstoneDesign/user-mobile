@@ -12,7 +12,23 @@ import {
 import SwapIcon from '../../assets/icons/swap-icon.svg';
 import BackIcon from '../../assets/icons/back-icon.svg';
 
-export default function DirectionSearch({ origin, destination, onSwap, onBack }) {
+export default function DirectionSearch({
+  origin,
+  destination,
+  onSwap,
+  onBack,
+  onOriginClick,
+  onDestinationClick,
+}) {
+  const handleInputKeyDown = (event, handler) => {
+    if (!handler || (event.key !== 'Enter' && event.key !== ' ')) {
+      return
+    }
+
+    event.preventDefault()
+    handler()
+  }
+
   return (
     <Container>
       <BackButton type="button" onClick={onBack}>
@@ -22,14 +38,28 @@ export default function DirectionSearch({ origin, destination, onSwap, onBack })
       <ContentWrapper>
         <InputRow>
           <Dot $color="var(--blue-500)" />
-          <PlainInput placeholder="출발지" value={origin} readOnly />
+          <PlainInput
+            placeholder="출발지"
+            value={origin}
+            readOnly
+            $clickable={Boolean(onOriginClick)}
+            onClick={onOriginClick}
+            onKeyDown={(event) => handleInputKeyDown(event, onOriginClick)}
+          />
         </InputRow>
 
         <HorizontalDivider />
 
         <InputRow>
           <Dot $color="var(--red-500)" />
-          <PlainInput placeholder="도착지" value={destination} readOnly />
+          <PlainInput
+            placeholder="도착지"
+            value={destination}
+            readOnly
+            $clickable={Boolean(onDestinationClick)}
+            onClick={onDestinationClick}
+            onKeyDown={(event) => handleInputKeyDown(event, onDestinationClick)}
+          />
         </InputRow>
       </ContentWrapper>
 

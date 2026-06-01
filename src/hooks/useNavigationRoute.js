@@ -6,12 +6,23 @@ import {
 
 const EMPTY_ARRAY = []
 
-export default function useNavigationRoute() {
+export default function useNavigationRoute({
+  initialData = null,
+  initialSelectedRouteOptionId = null,
+} = {}) {
   const requestSequenceRef = useRef(0)
-  const [status, setStatus] = useState('idle')
+  const [status, setStatus] = useState(() => (initialData ? 'success' : 'idle'))
   const [error, setError] = useState(null)
-  const [data, setData] = useState(null)
-  const [selectedRouteOptionId, setSelectedRouteOptionId] = useState(null)
+  const [data, setData] = useState(initialData)
+  const [selectedRouteOptionId, setSelectedRouteOptionId] = useState(() => {
+    const initialRouteOptions = initialData?.routeOptions ?? EMPTY_ARRAY
+    return (
+      initialSelectedRouteOptionId ??
+      initialRouteOptions.find((option) => option.active)?.id ??
+      initialRouteOptions[0]?.id ??
+      null
+    )
+  })
   const [selectedFloorplanKey, setSelectedFloorplanKey] = useState(null)
 
   const routeOptions = data?.routeOptions ?? EMPTY_ARRAY

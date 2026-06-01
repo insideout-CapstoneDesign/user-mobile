@@ -2,6 +2,8 @@ import styled from 'styled-components'
 
 export const CardRoot = styled.div`
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   display: grid;
   gap: var(--space-10);
 `
@@ -17,6 +19,7 @@ export const CardButton = styled.button`
   display: flex;
   align-items: center;
   gap: var(--space-14);
+  min-width: 0;
   color: var(--black-900);
   font-family: var(--font-sans);
   text-align: left;
@@ -25,6 +28,7 @@ export const CardButton = styled.button`
 `
 
 export const CardContent = styled.span`
+  flex: 1;
   min-width: 0;
   display: grid;
   gap: var(--space-4);
@@ -47,7 +51,11 @@ export const CardMeta = styled.span`
 export const ProgressRow = styled.div`
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: var(--space-4);
+  max-width: 100%;
+  padding: 0 var(--space-8);
+  overflow: hidden;
 `
 
 export const ProgressDot = styled.span`

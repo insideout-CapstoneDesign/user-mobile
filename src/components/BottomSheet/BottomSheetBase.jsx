@@ -13,6 +13,7 @@ export default function BottomSheetBase({
   detent = 'content',
   snapPoints,
   initialSnap,
+  showBackdrop = true,
 }) {
   return (
     <Sheet
@@ -28,7 +29,7 @@ export default function BottomSheetBase({
           <SheetBody>{children}</SheetBody>
         </StyledSheetContent>
       </StyledSheetContainer>
-      <StyledSheetBackdrop onTap={onClose} />
+      {showBackdrop ? <StyledSheetBackdrop onTap={onClose} /> : null}
     </Sheet>
   )
 }

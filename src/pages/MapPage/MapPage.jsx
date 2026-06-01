@@ -104,8 +104,24 @@ export default function MapPage() {
 
   useEffect(() => {
     if (!selectedSearchPlace && !selectedMapPlace) return
-    navigate(ROUTES.MAP, { replace: true, state: null })
-  }, [navigate, selectedMapPlace, selectedSearchPlace])
+    navigate(ROUTES.MAP, {
+      replace: true,
+      state: {
+        routeOrigin: routeOrigin ?? null,
+        routeDestination: routeDestination ?? null,
+        mapCenter,
+        mapLevel,
+      },
+    })
+  }, [
+    mapCenter,
+    mapLevel,
+    navigate,
+    routeDestination,
+    routeOrigin,
+    selectedMapPlace,
+    selectedSearchPlace,
+  ])
 
   return (
     <main className="map-page">

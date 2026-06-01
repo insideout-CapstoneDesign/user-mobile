@@ -257,6 +257,11 @@ export default function SearchPage() {
       state: {
         selectedSearchPlace: selectedPlace,
         openSheetFrom: 'search-result',
+        routeOrigin,
+        routeDestination,
+        mapCenter,
+        mapLevel,
+        selectedMapPlace,
       },
     })
   }

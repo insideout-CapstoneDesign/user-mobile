@@ -41,7 +41,14 @@ export default function useMapRoutingBridge({
   setCurrentNav,
 }) {
   const openSearchPage = () => {
-    navigate(ROUTES.SEARCH)
+    navigate(ROUTES.SEARCH, {
+      state: {
+        routeOrigin,
+        routeDestination,
+        mapCenter,
+        mapLevel,
+      },
+    })
   }
 
   const handleSearchInputKeyDown = (event) => {

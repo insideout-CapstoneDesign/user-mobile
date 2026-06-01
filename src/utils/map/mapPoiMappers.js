@@ -53,6 +53,6 @@ export function createCurrentLocationOrigin({ lat, lng, address }) {
     name: safeAddress,
     title: safeAddress,
     address: safeAddress,
-    source: 'map-current-location',
+    source: 'current-location',
   }
 }

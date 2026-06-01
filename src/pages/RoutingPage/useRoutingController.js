@@ -8,7 +8,7 @@ import {
 } from '../../utils/map/navigationPlaceMapper'
 
 export default function useRoutingController() {
-  const [currentNav, setCurrentNav] = useState('map')
+const [currentNav, setCurrentNav] = useState('map')
   const [transportMode, setTransportMode] = useState('walk')
   const [routeSheetOpen, setRouteSheetOpen] = useState(false)
   const [guidanceStarted, setGuidanceStarted] = useState(false)

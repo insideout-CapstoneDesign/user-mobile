@@ -149,7 +149,12 @@ export default function MapPage() {
       return
     }
 
-    setCurrentNav(key)
+    if (key === 'my') {
+      navigate('/my')
+      return
+    }
+
+    setCurrentNav('map')
   }
 
   const handleCurrentLocationSelect = ({ lat, lng }) => {

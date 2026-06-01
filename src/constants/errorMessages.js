@@ -18,3 +18,9 @@ export const PLACE_ERROR_MESSAGE = {
   SEARCH_FAILED: '검색 결과를 불러오지 못했습니다.',
   SUGGEST_FAILED: '자동완성 결과를 불러오지 못했습니다.',
 }
+
+export const PROFILE_ERROR_MESSAGE = {
+  UNAUTHORIZED: '로그인이 필요합니다. 다시 로그인해 주세요.',
+  LOAD_FAILED: '프로필 정보를 불러오지 못했습니다.',
+  UPDATE_FAILED: '프로필 정보를 저장하지 못했습니다.',
+}

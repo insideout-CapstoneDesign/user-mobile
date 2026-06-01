@@ -1,0 +1,77 @@
+.my-page {
+  min-height: 100dvh;
+  background: var(--surface-0);
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+}
+
+.my-page__header {
+  min-height: 61px;
+  padding: var(--space-16);
+  border-bottom: var(--size-1) solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.my-page__header h1 {
+  margin: 0;
+  color: var(--black-950);
+  font-size: var(--text-20);
+  line-height: 1.75rem;
+  font-weight: var(--fw-medium);
+}
+
+.my-page__profile {
+  min-height: 113px;
+  padding: var(--space-24) var(--space-16) var(--space-16);
+  border-bottom: var(--size-1) solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.my-page__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: var(--gray-200);
+  color: var(--gray-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.my-page__profile-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.my-page__profile-text strong {
+  color: var(--black-950);
+  font-size: var(--text-16);
+  line-height: var(--line-24);
+  font-weight: var(--fw-medium);
+  word-break: break-all;
+}
+
+.my-page__profile-text span {
+  color: var(--gray-500);
+  font-size: var(--text-14);
+  line-height: var(--line-20);
+}
+
+.my-page__menu {
+  padding: var(--space-16);
+}
+
+.my-page__logout {
+  padding: 0 var(--space-16);
+}
+
+.my-page__logout button {
+  color: var(--gray-600);
+  font-weight: var(--fw-medium);
+}

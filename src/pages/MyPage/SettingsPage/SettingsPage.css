@@ -1,0 +1,70 @@
+.settings-page {
+  min-height: 100dvh;
+  background: var(--surface-0);
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+}
+
+.settings-page__section {
+  padding: var(--space-16);
+}
+
+.settings-page__section > p {
+  margin: 0;
+  color: var(--gray-500);
+  font-size: var(--text-14);
+  line-height: var(--line-20);
+  font-weight: var(--fw-medium);
+}
+
+.settings-page__menu {
+  margin-top: var(--space-12);
+}
+
+.withdraw-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: var(--space-16);
+}
+
+.withdraw-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay-dim);
+}
+
+.withdraw-modal__content {
+  position: relative;
+  width: 100%;
+  max-width: 362px;
+  padding: var(--space-24);
+  border-radius: var(--radius-12);
+  background: var(--surface-0);
+}
+
+.withdraw-modal__content h2 {
+  margin: 0;
+  color: var(--black-950);
+  font-size: var(--text-20);
+  line-height: 1.75rem;
+  font-weight: var(--fw-medium);
+}
+
+.withdraw-modal__content p {
+  margin: var(--space-8) 0 0;
+  color: var(--gray-600);
+  font-size: var(--text-16);
+  line-height: var(--line-24);
+}
+
+.withdraw-modal__actions {
+  margin-top: var(--space-24);
+  display: flex;
+  gap: var(--space-12);
+}
+
+.withdraw-modal__actions > div {
+  flex: 1;
+}

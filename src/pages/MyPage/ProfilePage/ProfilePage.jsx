@@ -64,8 +64,8 @@ export default function ProfilePage() {
         phoneNumber: phone.trim(),
       })
       setEmail(updatedProfile.email || email)
-      setName(updatedProfile.displayName)
-      setPhone(updatedProfile.phoneNumber)
+      setName(updatedProfile.displayName || name)
+      setPhone(updatedProfile.phoneNumber || phone)
       setSuccessMessage('프로필 정보가 저장되었습니다.')
     } catch (error) {
       setServerError(error.message)

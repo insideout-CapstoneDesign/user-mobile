@@ -1,3 +1,5 @@
+import { formatMinutes } from '../../utils/navigationFormatters'
+
 export function buildTransitDetailLegs(routeOption) {
   const rawLegs = routeOption?.raw?.legs
 
@@ -91,5 +93,5 @@ function formatRawDuration(durationSeconds) {
     return ''
   }
 
-  return `${Math.max(Math.round(durationSeconds / 60), 1)}분`
+  return formatMinutes(Math.max(Math.round(durationSeconds / 60), 1))
 }

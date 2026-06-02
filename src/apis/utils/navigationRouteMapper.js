@@ -15,7 +15,8 @@ export function normalizeRouteOption(route, index) {
   const routeType = route.routeType ?? 'WALK'
   const routeOption = route.routeOption ?? null
   const mode = routeType.toLowerCase()
-  const id = `${mode}-${(routeOption ?? index).toString().toLowerCase()}`
+  const optionKey = (routeOption ?? 'option').toString().toLowerCase()
+  const id = `${mode}-${optionKey}-${index}`
   const meta = ROUTE_OPTION_META[routeOption] ?? ROUTE_OPTION_META[routeType] ?? {}
   const legs = Array.isArray(route.legs) ? route.legs : []
   const mapLegs = normalizeMapLegs(legs, { routeId: id, routeType, routeOption })

@@ -136,7 +136,12 @@ export default function useMapRoutingBridge({
       }
     }
 
-    navigate(ROUTES.ROUTING_SEARCH, {
+    const nextRoute =
+      nextState.routeOrigin && nextState.routeDestination
+        ? ROUTES.ROUTING_OPTION
+        : ROUTES.ROUTING_SEARCH
+
+    navigate(nextRoute, {
       state: {
         ...nextState,
         selectedMapPlace: normalizedPlace,

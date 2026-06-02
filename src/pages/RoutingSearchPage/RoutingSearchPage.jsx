@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import KakaoMapView from '../../components/Map/KakaoMapView'
@@ -25,6 +25,23 @@ export default function RoutingSearchPage() {
   const initialMapViewport = getMapViewportState(location.state)
   const [mapCenter, setMapCenter] = useState(initialMapViewport.mapCenter)
   const [mapLevel, setMapLevel] = useState(initialMapViewport.mapLevel)
+
+  useEffect(() => {
+    if (!routeOrigin || !routeDestination) {
+      return
+    }
+
+    navigate(ROUTES.ROUTING_OPTION, {
+      replace: true,
+      state: {
+        routeOrigin,
+        routeDestination,
+        selectedMapPlace,
+        mapCenter,
+        mapLevel,
+      },
+    })
+  }, [mapCenter, mapLevel, navigate, routeDestination, routeOrigin, selectedMapPlace])
 
   const originLabel = useMemo(() => {
     if (routeOrigin?.source === 'current-location') {

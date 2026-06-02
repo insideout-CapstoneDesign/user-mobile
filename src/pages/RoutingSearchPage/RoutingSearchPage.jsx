@@ -20,7 +20,9 @@ export default function RoutingSearchPage() {
   const selectedMapPlace = location.state?.selectedMapPlace ?? null
   const routeOrigin = routeOriginState ?? DEFAULT_ROUTE_ORIGIN
   const routeDestination = routeDestinationState ?? null
-  const hasOriginValue = Boolean(routeOriginState)
+  const hasOriginValue = Boolean(
+    routeOriginState && routeOriginState.source !== 'current-location',
+  )
   const hasDestinationValue = Boolean(routeDestination)
   const initialMapViewport = getMapViewportState(location.state)
   const [mapCenter, setMapCenter] = useState(initialMapViewport.mapCenter)

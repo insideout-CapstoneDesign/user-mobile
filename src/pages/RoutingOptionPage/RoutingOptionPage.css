@@ -19,7 +19,7 @@
 
 .routing-option-page__transport {
   position: absolute;
-  top: 7.25rem;
+  top: 7.85rem;
   left: var(--space-16);
   right: var(--space-16);
   z-index: 12;

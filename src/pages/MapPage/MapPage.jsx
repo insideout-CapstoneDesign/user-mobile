@@ -1,45 +1,38 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { getNearestPlace } from '../../apis/placeApi'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
 import SearchInput from '../../components/SearchInput/SearchInput'
-import { DEFAULT_MAP_CENTER, DEFAULT_MAP_LEVEL } from '../../constants/map'
+import useMapPoiSelection from '../../hooks/map/useMapPoiSelection'
+import useMapRoutingBridge from '../../hooks/map/useMapRoutingBridge'
 import { ROUTES } from '../../constants/routes'
 import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
 import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
-import { isValidMapCenter } from '../../utils/map/mapViewport'
+import { getMapViewportState, isValidMapCenter, isValidMapLevel } from '../../utils/map/mapViewport'
+import { mapRoutePlaceToPoi } from '../../utils/map/mapPoiMappers'
 import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
 import './MapPage.css'
-
-const NEAREST_RADIUS_METERS = 30
-const NOTICE_TIMEOUT_MS = 2400
-const NO_PLACE_CODE = 'PLACE_INFO_NOT_AVAILABLE'
-function mapNearestPlaceToPoi(place) {
-  return {
-    id:
-      place.externalApiId ??
-      place.id ??
-      `${place.name ?? place.placeName ?? 'place'}-${place.lat}-${place.lng}`,
-    name: place.name ?? place.placeName ?? place.title ?? '장소명',
-    address: place.roadAddress || place.address || '주소 정보 없음',
-    lat: place.lat,
-    lng: place.lng,
-    isRegistered: Boolean(place.isRegistered),
-    externalApiId: place.externalApiId,
-  }
-}
 
 export default function MapPage() {
   const location = useLocation()
   const navigate = useNavigate()
+  const routeState = location.state
+  const mapViewportState = getMapViewportState(routeState)
+  const routeOrigin = location.state?.routeOrigin ?? null
+  const routeDestination = location.state?.routeDestination ?? null
   const selectedSearchPlace = location.state?.selectedSearchPlace
+  const selectedMapPlace = location.state?.selectedMapPlace
   const shouldOpenFromSearch = location.state?.openSheetFrom === 'search-result'
+  const shouldOpenFromRouting = location.state?.openSheetFrom === 'routing-return'
+  const hasInitialViewportFromState =
+    isValidMapCenter(routeState?.mapCenter) || isValidMapLevel(routeState?.mapLevel)
   const initialSelectedPoi =
     shouldOpenFromSearch && selectedSearchPlace
       ? resolvePoiFromSearch(selectedSearchPlace, mockMapPois)
+      : shouldOpenFromRouting && selectedMapPlace
+        ? mapRoutePlaceToPoi(selectedMapPlace)
       : null
   const [currentNav, setCurrentNav] = useState('map')
   const initialMapCenter =
@@ -48,21 +41,33 @@ export default function MapPage() {
       lng: initialSelectedPoi?.lng,
     })
       ? { lat: initialSelectedPoi.lat, lng: initialSelectedPoi.lng }
-      : DEFAULT_MAP_CENTER
+      : mapViewportState.mapCenter
   const [mapCenter, setMapCenter] = useState(initialMapCenter)
-  const [mapLevel, setMapLevel] = useState(DEFAULT_MAP_LEVEL)
-  const [mapNotice, setMapNotice] = useState('')
-  const [selectedMarkerPosition, setSelectedMarkerPosition] = useState(() =>
-    isValidMapCenter({
-      lat: initialSelectedPoi?.lat,
-      lng: initialSelectedPoi?.lng,
-    })
-      ? { lat: initialSelectedPoi.lat, lng: initialSelectedPoi.lng }
-      : null,
-  )
-  const [selectedPoi, setSelectedPoi] = useState(initialSelectedPoi)
-  const requestSeqRef = useRef(0)
-  const noticeTimerRef = useRef(null)
+  const [mapLevel, setMapLevel] = useState(mapViewportState.mapLevel)
+  const {
+    mapNotice,
+    selectedPoi,
+    selectedMarkerPosition,
+    closePoiSheet,
+    handleCurrentLocationSelect,
+    handleMapClick,
+  } = useMapPoiSelection({
+    initialSelectedPoi,
+    setMapCenter,
+  })
+  const {
+    openSearchPage,
+    handleSearchInputKeyDown,
+    handleBottomNavChange,
+    openRoutingFromMapPoi,
+  } = useMapRoutingBridge({
+    navigate,
+    routeOrigin,
+    routeDestination,
+    mapCenter,
+    mapLevel,
+    setCurrentNav,
+  })
   const registeredPlaces = useMemo(
     () => mockSearchPlaces.filter((place) => place.isRegistered),
     [],
@@ -76,15 +81,7 @@ export default function MapPage() {
   )
 
   useEffect(() => {
-    return () => {
-      if (noticeTimerRef.current) {
-        window.clearTimeout(noticeTimerRef.current)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (shouldOpenFromSearch) return
+    if (shouldOpenFromSearch || hasInitialViewportFromState) return
     if (!navigator.geolocation) return
 
     navigator.geolocation.getCurrentPosition(
@@ -103,106 +100,28 @@ export default function MapPage() {
         maximumAge: 60000,
       },
     )
-  }, [setMapCenter, shouldOpenFromSearch])
+  }, [hasInitialViewportFromState, setMapCenter, shouldOpenFromSearch])
 
   useEffect(() => {
-    if (!selectedSearchPlace) return
-    navigate(ROUTES.MAP, { replace: true, state: null })
-  }, [navigate, selectedSearchPlace])
-
-  const showMapNotice = (message) => {
-    setMapNotice(message)
-
-    if (noticeTimerRef.current) {
-      window.clearTimeout(noticeTimerRef.current)
-    }
-
-    noticeTimerRef.current = window.setTimeout(() => {
-      setMapNotice('')
-    }, NOTICE_TIMEOUT_MS)
-  }
-
-  const closePoiSheet = () => {
-    setSelectedPoi(null)
-    setSelectedMarkerPosition(null)
-  }
-
-  const openSearchPage = () => {
-    navigate(ROUTES.SEARCH)
-  }
-
-  const handleSearchInputKeyDown = (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      openSearchPage()
-    }
-  }
-
-  const handleBottomNavChange = (key) => {
-    if (key === 'navigation') {
-      navigate(ROUTES.ROUTING_SEARCH, {
-        state: {
-          mapCenter,
-          mapLevel,
-        },
-      })
-      return
-    }
-
-    if (key === 'my') {
-      navigate('/my')
-      return
-    }
-
-    setCurrentNav('map')
-  }
-
-  const handleCurrentLocationSelect = ({ lat, lng }) => {
-    setMapCenter({ lat, lng })
-    setSelectedPoi(null)
-    setSelectedMarkerPosition({ lat, lng })
-    setMapNotice('')
-  }
-
-  const handleMapClick = async ({ lat, lng }) => {
-    const requestId = ++requestSeqRef.current
-
-    try {
-      const { place, code } = await getNearestPlace({
-        lat,
-        lng,
-        radius: NEAREST_RADIUS_METERS,
-      })
-
-      if (requestId !== requestSeqRef.current) return
-
-      if (!place) {
-        setSelectedPoi(null)
-        setSelectedMarkerPosition(null)
-        if (code === NO_PLACE_CODE || code === 'PLACE200_1') {
-          showMapNotice('해당 위치의 장소 정보를 찾을 수 없어요.')
-        }
-        return
-      }
-
-      const mappedPoi = mapNearestPlaceToPoi(place)
-      setMapNotice('')
-      setSelectedPoi(mappedPoi)
-      setMapCenter({
-        lat: mappedPoi.lat,
-        lng: mappedPoi.lng,
-      })
-      setSelectedMarkerPosition({
-        lat: mappedPoi.lat,
-        lng: mappedPoi.lng,
-      })
-    } catch (error) {
-      if (requestId !== requestSeqRef.current) return
-      setSelectedPoi(null)
-      setSelectedMarkerPosition(null)
-      showMapNotice(error?.message ?? '장소 정보를 불러오지 못했습니다.')
-    }
-  }
+    if (!selectedSearchPlace && !selectedMapPlace) return
+    navigate(ROUTES.MAP, {
+      replace: true,
+      state: {
+        routeOrigin: routeOrigin ?? null,
+        routeDestination: routeDestination ?? null,
+        mapCenter,
+        mapLevel,
+      },
+    })
+  }, [
+    mapCenter,
+    mapLevel,
+    navigate,
+    routeDestination,
+    routeOrigin,
+    selectedMapPlace,
+    selectedSearchPlace,
+  ])
 
   return (
     <main className="map-page">
@@ -239,6 +158,8 @@ export default function MapPage() {
         place={selectedPoi}
         isRegistered={isSelectedPoiRegistered}
         onClose={closePoiSheet}
+        onDeparture={(place) => openRoutingFromMapPoi('origin', place)}
+        onArrival={(place) => openRoutingFromMapPoi('destination', place)}
       />
     </main>
   )

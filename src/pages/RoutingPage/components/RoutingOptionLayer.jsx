@@ -4,13 +4,15 @@ import TransportSelector from '../../../components/Transport/TransportSelector'
 
 export default function RoutingOptionLayer({ routing }) {
   const { navigationRoute, routeDestination, routeOrigin, transportMode } = routing
+  const originName = routeOrigin?.name ?? '출발지'
+  const destinationName = routeDestination?.name ?? '도착지'
 
   return (
     <>
       <div className="routing-page__direction">
         <DirectionSearch
-          origin={routeOrigin.name}
-          destination={routeDestination?.name ?? '도착지'}
+          origin={originName}
+          destination={destinationName}
           onSwap={routing.swapRoute}
           onBack={routing.resetRouteView}
         />

@@ -16,12 +16,14 @@ export default function RoutingGuidanceLayer({ routing, onBackToRouteOptions }) 
     routeOrigin,
     transitDetailLegs,
   } = routing
+  const originName = routeOrigin?.name ?? '출발지'
+  const destinationName = routeDestination?.name ?? '도착지'
 
   return (
     <>
       <NavigationMapOverlay
-        origin={routeOrigin.name}
-        destination={routeDestination?.name ?? '도착지'}
+        origin={originName}
+        destination={destinationName}
         step={activeGuidanceStep}
         activeIndex={boundedGuidanceStepIndex}
         total={guidanceSteps.length}
@@ -46,8 +48,8 @@ export default function RoutingGuidanceLayer({ routing, onBackToRouteOptions }) 
       {guidanceView === 'list' ? (
         isTransitGuidance ? (
           <TransitTurnByTurnList
-            origin={routeOrigin.name}
-            destination={routeDestination?.name ?? '도착지'}
+            origin={originName}
+            destination={destinationName}
             route={navigationRoute.selectedRouteOption}
             legs={transitDetailLegs}
             onBack={onBackToRouteOptions}
@@ -55,8 +57,8 @@ export default function RoutingGuidanceLayer({ routing, onBackToRouteOptions }) 
           />
         ) : (
           <TurnByTurnList
-            origin={routeOrigin.name}
-            destination={routeDestination?.name ?? '도착지'}
+            origin={originName}
+            destination={destinationName}
             route={navigationRoute.selectedRouteOption}
             steps={guidanceSteps}
             activeStepId={activeGuidanceStep?.id}

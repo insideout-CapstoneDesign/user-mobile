@@ -15,8 +15,11 @@ function getPlaceName(place, fallback) {
 export default function RoutingSearchPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const routeOrigin = location.state?.routeOrigin ?? DEFAULT_ROUTE_ORIGIN
-  const routeDestination = location.state?.routeDestination ?? null
+  const routeOriginState = location.state?.routeOrigin ?? null
+  const routeDestinationState = location.state?.routeDestination ?? null
+  const selectedMapPlace = location.state?.selectedMapPlace ?? null
+  const routeOrigin = routeOriginState ?? DEFAULT_ROUTE_ORIGIN
+  const routeDestination = routeDestinationState ?? null
   const initialMapViewport = getMapViewportState(location.state)
   const [mapCenter, setMapCenter] = useState(initialMapViewport.mapCenter)
   const [mapLevel, setMapLevel] = useState(initialMapViewport.mapLevel)
@@ -42,6 +45,7 @@ export default function RoutingSearchPage() {
         returnTo: ROUTES.ROUTING_SEARCH,
         routeOrigin,
         routeDestination,
+        selectedMapPlace,
         mapCenter,
         mapLevel,
       },
@@ -50,12 +54,14 @@ export default function RoutingSearchPage() {
 
   const handleBottomNavChange = (key) => {
     if (key === 'map') {
-      navigate(ROUTES.MAP)
-      return
-    }
-
-    if (key === 'my') {
-      navigate('/my')
+      navigate(ROUTES.MAP, {
+        state: {
+          routeOrigin,
+          routeDestination,
+          mapCenter,
+          mapLevel,
+        },
+      })
     }
   }
 

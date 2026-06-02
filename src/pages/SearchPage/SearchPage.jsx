@@ -12,14 +12,42 @@ const SEARCH_DELAY_MS = 250
 const SUGGEST_DELAY_MS = 180
 const SEARCH_SIZE = 15
 const SUGGEST_SIZE = 10
+const GEOLOCATION_INITIAL_OPTIONS = {
+  enableHighAccuracy: true,
+  timeout: 10000,
+  maximumAge: 60000,
+}
+const GEOLOCATION_WATCH_OPTIONS = {
+  enableHighAccuracy: true,
+  timeout: 10000,
+  maximumAge: 0,
+}
 const normalizeText = (value = '') => value.trim().toLowerCase()
 const HANGUL_JAMO_ONLY_REGEX = /^[ㄱ-ㅎㅏ-ㅣ]+$/
 const GEOLOCATION_UNAVAILABLE_MESSAGE = '현재 위치 정보를 사용할 수 없습니다.'
 const GEOLOCATION_REQUIRED_MESSAGE = '현재 위치를 확인한 뒤 다시 검색해 주세요.'
 const SEARCH_FAILED_MESSAGE = '검색 결과를 불러오지 못했습니다.'
+const DEBUG_SUGGEST_LOG = import.meta.env.DEV && import.meta.env.VITE_DEBUG_SUGGEST_LOG === 'true'
 
 function isInvalidIntermediateKeyword(keyword) {
   return HANGUL_JAMO_ONLY_REGEX.test(keyword)
+}
+
+function getNowMs() {
+  return typeof performance !== 'undefined' ? performance.now() : Date.now()
+}
+
+function mapPlaceToSearchItem(place, idx) {
+  return {
+    id: place.externalApiId ?? `${place.name}-${idx}`,
+    title: place.name,
+    address: place.roadAddress || place.address || '주소 정보 없음',
+    isRegistered: Boolean(place.isRegistered),
+    lat: place.lat,
+    lng: place.lng,
+    externalApiId: place.externalApiId,
+    distanceMeters: place.distanceMeters ?? null,
+  }
 }
 
 export default function SearchPage() {
@@ -30,6 +58,7 @@ export default function SearchPage() {
   const returnTo = location.state?.returnTo ?? ROUTES.ROUTING_SEARCH
   const routeOrigin = location.state?.routeOrigin ?? null
   const routeDestination = location.state?.routeDestination ?? null
+  const selectedMapPlace = location.state?.selectedMapPlace ?? null
   const mapCenter = location.state?.mapCenter ?? null
   const mapLevel = location.state?.mapLevel ?? null
   const supportsGeolocation =
@@ -48,57 +77,76 @@ export default function SearchPage() {
   const suggestTimerRef = useRef(null)
   const requestSeqRef = useRef(0)
   const suggestSeqRef = useRef(0)
+  const mountedAtRef = useRef(getNowMs())
+  const lastLocationUpdatedAtRef = useRef(null)
+
+  const getCenterParams = () => ({
+    lat: searchCenter?.lat,
+    lng: searchCenter?.lng,
+  })
+
+  const clearTimer = (timerRef) => {
+    if (!timerRef.current) return
+    window.clearTimeout(timerRef.current)
+    timerRef.current = null
+  }
 
   const invalidatePendingSearch = () => {
     requestSeqRef.current += 1
-    if (searchTimerRef.current) {
-      window.clearTimeout(searchTimerRef.current)
-      searchTimerRef.current = null
-    }
+    clearTimer(searchTimerRef)
   }
 
   const invalidatePendingSuggest = () => {
     suggestSeqRef.current += 1
-    if (suggestTimerRef.current) {
-      window.clearTimeout(suggestTimerRef.current)
-      suggestTimerRef.current = null
-    }
+    clearTimer(suggestTimerRef)
   }
 
   useEffect(() => {
     return () => {
       requestSeqRef.current += 1
-      if (searchTimerRef.current) {
-        window.clearTimeout(searchTimerRef.current)
-        searchTimerRef.current = null
-      }
+      clearTimer(searchTimerRef)
       suggestSeqRef.current += 1
-      if (suggestTimerRef.current) {
-        window.clearTimeout(suggestTimerRef.current)
-        suggestTimerRef.current = null
-      }
+      clearTimer(suggestTimerRef)
     }
   }, [])
 
   useEffect(() => {
     if (!supportsGeolocation) return
 
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        setSearchCenter({
+    const handleSuccess = ({ coords }) => {
+      const updatedAt = getNowMs()
+      lastLocationUpdatedAtRef.current = updatedAt
+      setSearchCenter({
+        lat: coords.latitude,
+        lng: coords.longitude,
+      })
+
+      if (DEBUG_SUGGEST_LOG) {
+        console.debug('[search][geo:update]', {
+          elapsedMsFromMount: Math.round(updatedAt - mountedAtRef.current),
           lat: coords.latitude,
           lng: coords.longitude,
         })
-      },
-      () => {
-        setSearchStateMessage(GEOLOCATION_REQUIRED_MESSAGE)
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
-      },
+      }
+    }
+
+    const handleError = () => {
+      setSearchStateMessage(GEOLOCATION_REQUIRED_MESSAGE)
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      handleSuccess,
+      handleError,
+      GEOLOCATION_INITIAL_OPTIONS,
     )
+
+    const watchId = navigator.geolocation.watchPosition(handleSuccess, handleError, {
+      ...GEOLOCATION_WATCH_OPTIONS,
+    })
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId)
+    }
   }, [supportsGeolocation])
 
   const suggestByKeyword = (rawKeyword) => {
@@ -110,36 +158,38 @@ export default function SearchPage() {
       return
     }
 
-    if (suggestTimerRef.current) {
-      window.clearTimeout(suggestTimerRef.current)
-      suggestTimerRef.current = null
-    }
+    clearTimer(suggestTimerRef)
 
     const requestId = ++suggestSeqRef.current
 
     suggestTimerRef.current = window.setTimeout(async () => {
       try {
+        const { lat, lng } = getCenterParams()
+
+        if (DEBUG_SUGGEST_LOG) {
+          const now = getNowMs()
+          console.debug('[search][suggest:req]', {
+            q: normalized,
+            lat: lat ?? null,
+            lng: lng ?? null,
+            size: SUGGEST_SIZE,
+            elapsedMsFromMount: Math.round(now - mountedAtRef.current),
+            elapsedMsAfterGeoUpdate: lastLocationUpdatedAtRef.current
+              ? Math.round(now - lastLocationUpdatedAtRef.current)
+              : null,
+          })
+        }
+
         const suggestions = await suggestPlaces({
           keyword: normalized,
-          lat: searchCenter?.lat,
-          lng: searchCenter?.lng,
+          lat,
+          lng,
           size: SUGGEST_SIZE,
         })
 
         if (requestId !== suggestSeqRef.current) return
 
-        const mappedSuggestions = suggestions.map((item, idx) => ({
-          id: item.externalApiId ?? `${item.name}-${idx}`,
-          title: item.name,
-          address: item.roadAddress || item.address || '주소 정보 없음',
-          isRegistered: Boolean(item.isRegistered),
-          lat: item.lat,
-          lng: item.lng,
-          externalApiId: item.externalApiId,
-          distanceMeters: item.distanceMeters ?? null,
-        }))
-
-        setAutocompleteItems(mappedSuggestions)
+        setAutocompleteItems(suggestions.map(mapPlaceToSearchItem))
       } catch {
         if (requestId !== suggestSeqRef.current) return
         setAutocompleteItems([])
@@ -175,35 +225,22 @@ export default function SearchPage() {
     setHasSearchError(false)
     setSearchStateMessage('')
 
-    if (searchTimerRef.current) {
-      window.clearTimeout(searchTimerRef.current)
-      searchTimerRef.current = null
-    }
+    clearTimer(searchTimerRef)
 
     const requestId = ++requestSeqRef.current
 
     searchTimerRef.current = window.setTimeout(async () => {
       try {
+        const { lat, lng } = getCenterParams()
         const places = await searchPlaces({
           keyword: normalized,
-          lat: searchCenter?.lat,
-          lng: searchCenter?.lng,
+          lat,
+          lng,
           size: SEARCH_SIZE,
         })
         if (requestId !== requestSeqRef.current) return
 
-        const mappedPlaces = places.map((place, idx) => ({
-          id: place.externalApiId ?? `${place.name}-${idx}`,
-          title: place.name,
-          address: place.roadAddress || place.address || '주소 정보 없음',
-          isRegistered: Boolean(place.isRegistered),
-          lat: place.lat,
-          lng: place.lng,
-          externalApiId: place.externalApiId,
-          distanceMeters: place.distanceMeters ?? null,
-        }))
-
-        setResultItems(mappedPlaces)
+        setResultItems(places.map(mapPlaceToSearchItem))
       } catch (error) {
         if (requestId !== requestSeqRef.current) return
         setHasSearchError(true)
@@ -243,10 +280,10 @@ export default function SearchPage() {
         state: {
           routeOrigin: nextOrigin,
           routeDestination: nextDestination,
+          selectedMapPlace,
           mapCenter,
           mapLevel,
           selectedRouteField: routeField,
-          isRouteReady: Boolean(nextOrigin && nextDestination),
         },
       })
       return
@@ -256,6 +293,11 @@ export default function SearchPage() {
       state: {
         selectedSearchPlace: selectedPlace,
         openSheetFrom: 'search-result',
+        routeOrigin,
+        routeDestination,
+        mapCenter,
+        mapLevel,
+        selectedMapPlace,
       },
     })
   }

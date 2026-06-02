@@ -20,6 +20,8 @@ export default function RoutingSearchPage() {
   const selectedMapPlace = location.state?.selectedMapPlace ?? null
   const routeOrigin = routeOriginState ?? DEFAULT_ROUTE_ORIGIN
   const routeDestination = routeDestinationState ?? null
+  const hasOriginValue = Boolean(routeOriginState)
+  const hasDestinationValue = Boolean(routeDestination)
   const initialMapViewport = getMapViewportState(location.state)
   const [mapCenter, setMapCenter] = useState(initialMapViewport.mapCenter)
   const [mapLevel, setMapLevel] = useState(initialMapViewport.mapLevel)
@@ -90,7 +92,13 @@ export default function RoutingSearchPage() {
             className="routing-search-page__dot routing-search-page__dot--origin"
             aria-hidden="true"
           />
-          <span className="routing-search-page__field-text">{originLabel}</span>
+          <span
+            className={`routing-search-page__field-text${
+              hasOriginValue ? ' routing-search-page__field-text--filled' : ''
+            }`}
+          >
+            {originLabel}
+          </span>
         </button>
 
         <button
@@ -102,7 +110,11 @@ export default function RoutingSearchPage() {
             className="routing-search-page__dot routing-search-page__dot--destination"
             aria-hidden="true"
           />
-          <span className="routing-search-page__field-text">
+          <span
+            className={`routing-search-page__field-text${
+              hasDestinationValue ? ' routing-search-page__field-text--filled' : ''
+            }`}
+          >
             {destinationLabel}
           </span>
         </button>

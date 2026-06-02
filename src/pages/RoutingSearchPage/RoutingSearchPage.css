@@ -67,3 +67,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.routing-search-page__field-text--filled {
+  color: var(--black-1000);
+}

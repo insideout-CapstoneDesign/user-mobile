@@ -8,5 +8,4 @@ export const ROUTES = {
   SEARCH: '/search',
   LOGIN: '/login',
   SIGNUP: '/signup',
-  COMPONENT_TEST: '/component-test',
 }

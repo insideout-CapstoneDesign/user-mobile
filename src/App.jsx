@@ -1,6 +1,5 @@
 import AppLayout from './layouts/AppLayout'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import ComponentTestPage from './pages/ComponentTestPage/ComponentTestPage'
 import LoginPage from './pages/Login/LoginPage'
 import SplashPage from './pages/Splash/SplashPage'
 import SignupPage from './pages/Signup/SignupPage'
@@ -37,7 +36,6 @@ function App() {
           <Route path="/my/password" element={<PasswordPage />} />
           <Route path={ROUTES.LOGIN} element={<LoginPage />} />
           <Route path={ROUTES.SIGNUP} element={<SignupPage />} />
-          <Route path={ROUTES.COMPONENT_TEST} element={<ComponentTestPage />} />
         </Routes>
       </AppLayout>
     </BrowserRouter>

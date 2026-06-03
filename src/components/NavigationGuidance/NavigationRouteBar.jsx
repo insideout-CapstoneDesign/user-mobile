@@ -4,6 +4,7 @@ import {
   RouteBarWalkText,
   RouteLineBadge,
 } from './NavigationRouteBar.styles'
+import { formatMinutes } from '../../utils/navigationFormatters'
 import { normalizeRouteColor } from './routeColor'
 
 export default function NavigationRouteBar({ segments = [] }) {
@@ -57,5 +58,5 @@ function getSegmentKey(segment, index) {
 }
 
 function formatSegmentMinutes(minutes) {
-  return typeof minutes === 'number' ? `${minutes}분` : null
+  return formatMinutes(minutes)
 }

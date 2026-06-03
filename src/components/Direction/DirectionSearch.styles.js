@@ -55,6 +55,7 @@ export const PlainInput = styled.input`
   font-weight: var(--fw-medium);
   color: var(--black-1000);
   flex: 1;
+  cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
   
   &:focus { outline: none; }
   

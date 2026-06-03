@@ -7,16 +7,28 @@ import {
   toNavigationRequestInput,
 } from '../../utils/map/navigationPlaceMapper'
 
-export default function useRoutingController() {
-const [currentNav, setCurrentNav] = useState('map')
-  const [transportMode, setTransportMode] = useState('walk')
+export default function useRoutingController({
+  initialCurrentNav = 'map',
+  initialGuidanceStarted = false,
+  initialGuidanceView = initialGuidanceStarted ? 'list' : 'map',
+  initialNavigationData = null,
+  initialRouteDestination = null,
+  initialRouteOrigin = DEFAULT_ROUTE_ORIGIN,
+  initialSelectedRouteOptionId = null,
+  initialTransportMode = 'walk',
+} = {}) {
+  const [currentNav, setCurrentNav] = useState(initialCurrentNav)
+  const [transportMode, setTransportMode] = useState(initialTransportMode)
   const [routeSheetOpen, setRouteSheetOpen] = useState(false)
-  const [guidanceStarted, setGuidanceStarted] = useState(false)
-  const [guidanceView, setGuidanceView] = useState('map')
+  const [guidanceStarted, setGuidanceStarted] = useState(initialGuidanceStarted)
+  const [guidanceView, setGuidanceView] = useState(initialGuidanceView)
   const [activeGuidanceStepIndex, setActiveGuidanceStepIndex] = useState(0)
-  const [routeOrigin, setRouteOrigin] = useState(DEFAULT_ROUTE_ORIGIN)
-  const [routeDestination, setRouteDestination] = useState(null)
-  const navigationRoute = useNavigationRoute()
+  const [routeOrigin, setRouteOrigin] = useState(initialRouteOrigin)
+  const [routeDestination, setRouteDestination] = useState(initialRouteDestination)
+  const navigationRoute = useNavigationRoute({
+    initialData: initialNavigationData,
+    initialSelectedRouteOptionId,
+  })
 
   const isRouteMode = currentNav === 'navigation' || guidanceStarted
   const guidanceSteps = useMemo(

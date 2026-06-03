@@ -3,21 +3,18 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
 import BottomSheetRouteOptions from '../../components/BottomSheet/types/BottomSheetRouteOptions'
-import DirectionSearch from '../../components/Direction/DirectionSearch'
-import FloorSelector from '../../components/Floor/FloorSelector'
 import FloorplanRouteView from '../../components/Map/FloorplanRouteView'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
-import NavigationMapOverlay from '../../components/NavigationGuidance/NavigationMapOverlay'
 import SearchInput from '../../components/SearchInput/SearchInput'
-import TransportSelector from '../../components/Transport/TransportSelector'
-import TransitTurnByTurnList from '../../components/NavigationGuidance/TransitTurnByTurnList'
-import TurnByTurnList from '../../components/NavigationGuidance/TurnByTurnList'
 import { ROUTES } from '../../constants/routes'
 import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
 import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
 import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
+import { getRoutingGuidanceState } from '../../utils/routing/routingGuidanceState'
+import RoutingGuidanceLayer from './components/RoutingGuidanceLayer'
+import RoutingOptionLayer from './components/RoutingOptionLayer'
 import useRoutingController from './useRoutingController'
 import './RoutingPage.css'
 
@@ -25,25 +22,32 @@ export default function RoutingPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const selectedSearchPlace = location.state?.selectedSearchPlace
+  const routingGuidanceState = getRoutingGuidanceState(location.state)
   const [selectedPoi, setSelectedPoi] = useState(() =>
     resolvePoiFromSearch(selectedSearchPlace, mockMapPois),
   )
-  const routing = useRoutingController()
+  const routing = useRoutingController(
+    routingGuidanceState
+      ? {
+          initialCurrentNav: 'navigation',
+          initialGuidanceStarted: true,
+          initialNavigationData: routingGuidanceState.navigationData,
+          initialRouteDestination: routingGuidanceState.routeDestination,
+          initialRouteOrigin: routingGuidanceState.routeOrigin,
+          initialSelectedRouteOptionId: routingGuidanceState.selectedRouteOptionId,
+          initialTransportMode: routingGuidanceState.transportMode,
+        }
+      : undefined,
+  )
   const {
-    activeGuidanceStep,
-    boundedGuidanceStepIndex,
     currentNav,
     guidanceStarted,
-    guidanceSteps,
-    guidanceView,
     isIndoorGuidanceStep,
     isRouteMode,
-    isTransitGuidance,
     navigationRoute,
     routeDestination,
     routeOrigin,
     routeSheetOpen,
-    transitDetailLegs,
     transportMode,
   } = routing
   const registeredPlaces = useMemo(
@@ -70,6 +74,16 @@ export default function RoutingPage() {
     }
   }
 
+  const openRouteOptions = () => {
+    navigate(ROUTES.ROUTING_OPTION, {
+      state: {
+        routeOrigin,
+        routeDestination,
+        transportMode,
+      },
+    })
+  }
+
   return (
     <main className="routing-page">
       <div className="routing-page__viewport">
@@ -84,85 +98,15 @@ export default function RoutingPage() {
       </div>
 
       {guidanceStarted ? (
-        <>
-          <NavigationMapOverlay
-            origin={routeOrigin.name}
-            destination={routeDestination?.name ?? '도착지'}
-            step={activeGuidanceStep}
-            activeIndex={boundedGuidanceStepIndex}
-            total={guidanceSteps.length}
-            onBack={routing.openGuidanceList}
-            onClose={routing.resetRouteView}
-            onRouteClick={routing.openGuidanceList}
-            onPrevious={() => routing.moveGuidanceStep(-1)}
-            onNext={() => routing.moveGuidanceStep(1)}
-          />
+        <RoutingGuidanceLayer
+          routing={routing}
+          onBackToRouteOptions={openRouteOptions}
+        />
+      ) : null}
 
-          {isIndoorGuidanceStep && navigationRoute.mapFloors.length > 0 ? (
-            <div className="routing-page__guidance-floor">
-              <FloorSelector
-                buildingName={navigationRoute.selectedFloorplan?.mapType ?? '도면'}
-                floors={navigationRoute.mapFloors}
-                activeFloor={navigationRoute.selectedFloorplan}
-                onSelect={routing.selectFloorplan}
-              />
-            </div>
-          ) : null}
+      {!guidanceStarted && isRouteMode ? <RoutingOptionLayer routing={routing} /> : null}
 
-          {guidanceView === 'list' ? (
-            isTransitGuidance ? (
-              <TransitTurnByTurnList
-                origin={routeOrigin.name}
-                destination={routeDestination?.name ?? '도착지'}
-                route={navigationRoute.selectedRouteOption}
-                legs={transitDetailLegs}
-                onBack={routing.showGuidanceMap}
-                onClose={routing.resetRouteView}
-              />
-            ) : (
-              <TurnByTurnList
-                origin={routeOrigin.name}
-                destination={routeDestination?.name ?? '도착지'}
-                route={navigationRoute.selectedRouteOption}
-                steps={guidanceSteps}
-                activeStepId={activeGuidanceStep?.id}
-                onBack={routing.showGuidanceMap}
-                onClose={routing.resetRouteView}
-                onSelectStep={routing.selectGuidanceStep}
-              />
-            )
-          ) : null}
-        </>
-      ) : isRouteMode ? (
-        <>
-          <div className="routing-page__direction">
-            <DirectionSearch
-              origin={routeOrigin.name}
-              destination={routeDestination?.name ?? '도착지'}
-              onSwap={routing.swapRoute}
-              onBack={routing.resetRouteView}
-            />
-          </div>
-
-          <div className="routing-page__transport">
-            <TransportSelector
-              activeMode={transportMode}
-              onSelect={routing.selectTransportMode}
-            />
-          </div>
-
-          {navigationRoute.mapFloors.length > 0 ? (
-            <div className="routing-page__floor">
-              <FloorSelector
-                buildingName={navigationRoute.selectedFloorplan?.mapType ?? '도면'}
-                floors={navigationRoute.mapFloors}
-                activeFloor={navigationRoute.selectedFloorplan}
-                onSelect={routing.selectFloorplan}
-              />
-            </div>
-          ) : null}
-        </>
-      ) : (
+      {!guidanceStarted && !isRouteMode ? (
         <div className="routing-page__search">
           <SearchInput
             value=""
@@ -172,7 +116,7 @@ export default function RoutingPage() {
             onKeyDown={handleSearchInputKeyDown}
           />
         </div>
-      )}
+      ) : null}
 
       {navigationRoute.isLoading ? (
         <div className="routing-page__state">경로를 찾는 중</div>

@@ -13,7 +13,9 @@ import {
   RouteOptionMetaRow,
   RouteOptionName,
   RouteOptionTime,
+  RouteOptionsBody,
   RoutePointDot,
+  RouteListViewport,
   RouteSectionTitle,
   RouteStepConnector,
   RouteStepContent,
@@ -30,13 +32,15 @@ import {
 export default function BottomSheetRouteOptions({
   options = [],
   mode = 'transit',
+  selectedOptionId: controlledSelectedOptionId,
   onSelectOption,
   onStartNavigation,
 }) {
-  const [selectedOptionId, setSelectedOptionId] = useState(
+  const [internalSelectedOptionId, setInternalSelectedOptionId] = useState(
     () => options.find((option) => option.active)?.id ?? options[0]?.id ?? null,
   )
   const defaultOption = options.find((option) => option.active) ?? options[0] ?? null
+  const selectedOptionId = controlledSelectedOptionId ?? internalSelectedOptionId
   const selectedOption =
     options.find((option) => option.id === selectedOptionId) ?? defaultOption
 
@@ -57,81 +61,85 @@ export default function BottomSheetRouteOptions({
 
   return (
     <TypeContainer>
-      <RouteSectionTitle>경로 옵션</RouteSectionTitle>
+      <RouteOptionsBody>
+        <RouteSectionTitle>경로 옵션</RouteSectionTitle>
 
-      <RouteList>
-        {options.map((option) => (
-          <RouteCard
-            key={option.id}
-            type="button"
-            $active={selectedOption?.id === option.id}
-            onClick={() => {
-              setSelectedOptionId(option.id)
-              onSelectOption?.(option)
-            }}
+        <RouteListViewport>
+          <RouteList>
+            {options.map((option) => (
+              <RouteCard
+                key={option.id}
+                type="button"
+                $active={selectedOption?.id === option.id}
+                onClick={() => {
+                  setInternalSelectedOptionId(option.id)
+                  onSelectOption?.(option)
+                }}
+              >
+                {mode === 'transit' ? (
+                  <>
+                    <RouteCardHead>
+                      <RouteTimeText>{option.totalTime}</RouteTimeText>
+                      <FaChevronRight color="var(--gray-400)" size={14} />
+                    </RouteCardHead>
+
+                    <RouteBarSlot>
+                      <NavigationRouteBar segments={option.segments} />
+                    </RouteBarSlot>
+
+                    <RouteSteps>
+                      {option.steps.map((step, index) => (
+                        <RouteStepItem key={`${option.id}-step-${index}`}>
+                          <RouteStepIconColumn $color={stepColorByType(step.type)}>
+                            {renderStepIcon(step)}
+                            {index < option.steps.length - 1 ? <RouteStepConnector /> : null}
+                          </RouteStepIconColumn>
+                          <RouteStepContent>
+                            <RouteStepTitle>{step.name}</RouteStepTitle>
+                            {step.sub ? <RouteStepSub>{step.sub}</RouteStepSub> : null}
+                          </RouteStepContent>
+                        </RouteStepItem>
+                      ))}
+                    </RouteSteps>
+                  </>
+                ) : (
+                  <>
+                    <RouteCardHead>
+                      <div>
+                        <RouteOptionName>{option.name}</RouteOptionName>
+                        <RouteOptionMetaRow>
+                          {option.time ? <RouteOptionTime>{option.time}</RouteOptionTime> : null}
+                          {option.distance ? (
+                            <RouteOptionDistance>{option.distance}</RouteOptionDistance>
+                          ) : null}
+                        </RouteOptionMetaRow>
+                        {option.extraInfo ? (
+                          <RouteOptionExtra>{option.extraInfo}</RouteOptionExtra>
+                        ) : null}
+                      </div>
+                      <FaChevronRight color="var(--gray-400)" size={14} />
+                    </RouteCardHead>
+                  </>
+                )}
+              </RouteCard>
+            ))}
+          </RouteList>
+
+          {!options.length ? (
+            <RouteEmptyText>표시할 경로 옵션이 없습니다.</RouteEmptyText>
+          ) : null}
+        </RouteListViewport>
+
+        <StickyActionSection>
+          <Button
+            variant="primary"
+            disabled={!selectedOption}
+            onClick={() => onStartNavigation?.(selectedOption)}
           >
-            {mode === 'transit' ? (
-              <>
-                <RouteCardHead>
-                  <RouteTimeText>{option.totalTime}</RouteTimeText>
-                  <FaChevronRight color="var(--gray-400)" size={14} />
-                </RouteCardHead>
-
-                <RouteBarSlot>
-                  <NavigationRouteBar segments={option.segments} />
-                </RouteBarSlot>
-
-                <RouteSteps>
-                  {option.steps.map((step, index) => (
-                    <RouteStepItem key={`${option.id}-step-${index}`}>
-                      <RouteStepIconColumn $color={stepColorByType(step.type)}>
-                        {renderStepIcon(step)}
-                        {index < option.steps.length - 1 ? <RouteStepConnector /> : null}
-                      </RouteStepIconColumn>
-                      <RouteStepContent>
-                        <RouteStepTitle>{step.name}</RouteStepTitle>
-                        {step.sub ? <RouteStepSub>{step.sub}</RouteStepSub> : null}
-                      </RouteStepContent>
-                    </RouteStepItem>
-                  ))}
-                </RouteSteps>
-              </>
-            ) : (
-              <>
-                <RouteCardHead>
-                  <div>
-                    <RouteOptionName>{option.name}</RouteOptionName>
-                    <RouteOptionMetaRow>
-                      {option.time ? <RouteOptionTime>{option.time}</RouteOptionTime> : null}
-                      {option.distance ? (
-                        <RouteOptionDistance>{option.distance}</RouteOptionDistance>
-                      ) : null}
-                    </RouteOptionMetaRow>
-                    {option.extraInfo ? (
-                      <RouteOptionExtra>{option.extraInfo}</RouteOptionExtra>
-                    ) : null}
-                  </div>
-                  <FaChevronRight color="var(--gray-400)" size={14} />
-                </RouteCardHead>
-              </>
-            )}
-          </RouteCard>
-        ))}
-      </RouteList>
-
-      {!options.length ? (
-        <RouteEmptyText>표시할 경로 옵션이 없습니다.</RouteEmptyText>
-      ) : null}
-
-      <StickyActionSection>
-        <Button
-          variant="primary"
-          disabled={!selectedOption}
-          onClick={() => onStartNavigation?.(selectedOption)}
-        >
-          안내 시작
-        </Button>
-      </StickyActionSection>
+            안내 시작
+          </Button>
+        </StickyActionSection>
+      </RouteOptionsBody>
     </TypeContainer>
   )
 }

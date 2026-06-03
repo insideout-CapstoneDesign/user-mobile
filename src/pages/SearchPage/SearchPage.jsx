@@ -275,8 +275,11 @@ export default function SearchPage() {
       const nextOrigin = routeField === 'origin' ? selectedPlace : routeOrigin
       const nextDestination =
         routeField === 'destination' ? selectedPlace : routeDestination
+      const nextRoute = nextOrigin && nextDestination
+        ? ROUTES.ROUTING_OPTION
+        : returnTo
 
-      navigate(returnTo, {
+      navigate(nextRoute, {
         state: {
           routeOrigin: nextOrigin,
           routeDestination: nextDestination,

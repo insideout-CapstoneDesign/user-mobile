@@ -1,11 +1,11 @@
 import AppLayout from './layouts/AppLayout'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import ComponentTestPage from './pages/ComponentTestPage/ComponentTestPage'
 import LoginPage from './pages/Login/LoginPage'
 import SplashPage from './pages/Splash/SplashPage'
 import SignupPage from './pages/Signup/SignupPage'
 import MapPage from './pages/MapPage/MapPage'
 import RoutingSearchPage from './pages/RoutingSearchPage/RoutingSearchPage'
+import RoutingOptionPage from './pages/RoutingOptionPage/RoutingOptionPage'
 import SearchPage from './pages/SearchPage/SearchPage'
 import RoutingPage from './pages/RoutingPage/RoutingPage'
 import MyPage from './pages/MyPage/MyPage/MyPage'
@@ -24,6 +24,7 @@ function App() {
           <Route path={ROUTES.HOME} element={<SplashPage />} />
           <Route path={ROUTES.MAP} element={<MapPage />} />
           <Route path={ROUTES.ROUTING_SEARCH} element={<RoutingSearchPage />} />
+          <Route path={ROUTES.ROUTING_OPTION} element={<RoutingOptionPage />} />
           <Route path={ROUTES.ROUTING} element={<RoutingPage />} />
           <Route path={ROUTES.ROUTING_LEGACY} element={<RoutingPage />} />
           <Route path={ROUTES.SEARCH} element={<SearchPage />} />
@@ -35,7 +36,6 @@ function App() {
           <Route path="/my/password" element={<PasswordPage />} />
           <Route path={ROUTES.LOGIN} element={<LoginPage />} />
           <Route path={ROUTES.SIGNUP} element={<SignupPage />} />
-          <Route path={ROUTES.COMPONENT_TEST} element={<ComponentTestPage />} />
         </Routes>
       </AppLayout>
     </BrowserRouter>

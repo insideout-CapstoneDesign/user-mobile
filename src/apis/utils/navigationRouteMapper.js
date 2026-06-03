@@ -11,6 +11,14 @@ import {
   normalizeTurnByTurnSteps,
 } from './navigationMapMapper'
 
+const TRANSIT_TYPES = new Set(['bus', 'subway'])
+const PARENTHETICAL_TEXT_PATTERN = /\([^)]*\)/g
+const SUBWAY_LINE_PATTERN = /(?:[0-9]+|[가-힣A-Za-z]+)\s*호선/
+const SUBWAY_NOISE_PATTERN = /수도권|서울|지하철|도시철도|급행|완행|일반/g
+const BUS_TYPE_WORDS = '간선|지선|광역|마을|일반|급행|직행|좌석|입석|공항|순환|버스'
+const LEADING_BUS_TYPE_PATTERN = new RegExp(`^(${BUS_TYPE_WORDS})\\s*[:：-]?\\s*`)
+const INLINE_BUS_TYPE_PATTERN = new RegExp(`\\b(${BUS_TYPE_WORDS})\\b\\s*[:：-]?\\s*`, 'g')
+
 export function normalizeRouteOption(route, index) {
   const routeType = route.routeType ?? 'WALK'
   const routeOption = route.routeOption ?? null
@@ -46,15 +54,16 @@ function normalizeRouteSegments(legs) {
   return legs
     .map((leg) => {
       const minutes = secondsToMinutes(leg.durationSeconds)
+      const type = modeToUiType(leg.mode)
 
       if (minutes === null) {
         return null
       }
 
       return {
-        type: modeToUiType(leg.mode),
+        type,
         minutes,
-        line: leg.routeName,
+        line: buildRouteBarLineLabel(leg, type),
         routeColor: leg.routeColor,
         routeId: leg.routeId,
         routeNm: leg.routeNm,
@@ -65,6 +74,36 @@ function normalizeRouteSegments(legs) {
 }
 
 function normalizeRouteSummarySteps(legs) {
+  const transitSteps = buildTransitSummarySteps(legs)
+
+  if (transitSteps.length > 0) {
+    return transitSteps
+  }
+
+  return buildDefaultSummarySteps(legs)
+}
+
+function buildTransitSummarySteps(legs) {
+  const transitSteps = legs
+    .filter((leg) => isTransitLeg(leg))
+    .map(buildTransitBoardingStep)
+    .filter(Boolean)
+
+  const lastTransitLeg = findLastTransitLeg(legs)
+  const destinationName = lastTransitLeg?.endName
+
+  if (destinationName) {
+    transitSteps.push({
+      type: 'point',
+      name: destinationName,
+      sub: null,
+    })
+  }
+
+  return transitSteps
+}
+
+function buildDefaultSummarySteps(legs) {
   return legs
     .map((leg) => {
       const name = buildLegTitle(leg)
@@ -80,6 +119,22 @@ function normalizeRouteSummarySteps(legs) {
       }
     })
     .filter(Boolean)
+}
+
+function buildTransitBoardingStep(leg) {
+  const name = leg.startName ?? buildLegTitle(leg)
+
+  if (!name) {
+    return null
+  }
+
+  const type = modeToUiType(leg.mode)
+
+  return {
+    type,
+    name,
+    sub: buildTransitLineLabel(leg, type),
+  }
 }
 
 function buildLegTitle(leg) {
@@ -107,4 +162,76 @@ function buildLegSubtitle(leg) {
   }
 
   return details.length > 0 ? details.join(' · ') : null
+}
+
+function isTransitLeg(leg) {
+  const type = modeToUiType(leg?.mode)
+  return TRANSIT_TYPES.has(type)
+}
+
+function findLastTransitLeg(legs) {
+  for (let index = legs.length - 1; index >= 0; index -= 1) {
+    if (isTransitLeg(legs[index])) {
+      return legs[index]
+    }
+  }
+
+  return null
+}
+
+function buildTransitLineLabel(leg, type = modeToUiType(leg?.mode)) {
+  const rawName = leg?.routeName ?? leg?.routeNm ?? leg?.routeId
+
+  if (!rawName) {
+    return null
+  }
+
+  const name = String(rawName).trim()
+
+  if (type === 'subway') {
+    return simplifySubwayName(name)
+  }
+
+  if (type === 'bus') {
+    return simplifyBusName(name)
+  }
+
+  return name
+}
+
+function buildRouteBarLineLabel(leg, type = modeToUiType(leg?.mode)) {
+  const label = buildTransitLineLabel(leg, type)
+
+  if (type !== 'bus' || !label) {
+    return label
+  }
+
+  return label.split(',')[0].trim()
+}
+
+function simplifySubwayName(name) {
+  const withoutParentheses = name.replace(PARENTHETICAL_TEXT_PATTERN, ' ')
+  const lineMatch = withoutParentheses.match(SUBWAY_LINE_PATTERN)
+
+  if (lineMatch) {
+    return removeWhitespace(lineMatch[0])
+  }
+
+  return normalizeSpaces(withoutParentheses.replace(SUBWAY_NOISE_PATTERN, ' '))
+}
+
+function simplifyBusName(name) {
+  return normalizeSpaces(
+    name
+      .replace(LEADING_BUS_TYPE_PATTERN, '')
+      .replace(INLINE_BUS_TYPE_PATTERN, ''),
+  )
+}
+
+function normalizeSpaces(value) {
+  return value.replace(/\s+/g, ' ').trim()
+}
+
+function removeWhitespace(value) {
+  return value.replace(/\s+/g, '')
 }

@@ -71,6 +71,11 @@ export default function useMapRoutingBridge({
       return
     }
 
+    if (key === 'my') {
+      navigate('/my')
+      return
+    }
+
     setCurrentNav(key)
   }
 

@@ -1,5 +1,6 @@
 import { UI_TYPE_BY_LEG_MODE } from '../../constants/navigation'
 import { formatDistance, formatDuration } from '../../utils/navigationFormatters'
+import { isDistanceSummaryInstruction } from '../../utils/navigationStepFilters'
 
 export function normalizeMapLegs(legs, routeContext) {
   return legs.flatMap((leg, legIndex) => {
@@ -53,49 +54,7 @@ function shouldShowTurnByTurnStep(step) {
 }
 
 function isRouteSegmentSummaryStep(step = {}) {
-  const instruction = normalizeInstructionText(step.instruction)
-
-  if (!instruction || isEndpointInstruction(instruction)) {
-    return false
-  }
-
-  if (hasManeuverInstruction(instruction)) {
-    return false
-  }
-
-  const distancePattern = buildDistanceInstructionPattern(step.distanceText)
-
-  return distancePattern.test(instruction)
-}
-
-function normalizeInstructionText(value) {
-  return String(value ?? '').replace(/\s+/g, ' ').trim()
-}
-
-function isEndpointInstruction(instruction) {
-  return instruction.includes('도착') || instruction.includes('출발') || instruction.includes('현재 위치')
-}
-
-function hasManeuverInstruction(instruction) {
-  return /좌회전|우회전|직진|유턴|계단|엘리베이터|에스컬레이터|횡단보도|따라|이동|통과|후/.test(
-    instruction,
-  )
-}
-
-function buildDistanceInstructionPattern(distanceText) {
-  const normalizedDistance = normalizeInstructionText(distanceText)
-  const distanceSource = normalizedDistance
-    ? escapeRegExp(normalizedDistance)
-    : '\\d+(?:\\.\\d+)?\\s*(?:m|km)'
-
-  return new RegExp(
-    `^(?:.*?(?:,\\s*|\\s+))?${distanceSource}(?:\\s*\\([^)]*\\))?$`,
-    'i',
-  )
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return isDistanceSummaryInstruction(step.instruction)
 }
 
 function normalizeStep(step, context) {

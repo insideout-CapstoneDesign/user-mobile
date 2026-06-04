@@ -17,7 +17,8 @@ export function getTransitStopName(stop) {
 }
 
 export function getIntermediateStops(leg, startName, endName) {
-  const stops = getRawStopCandidates(leg)
+  const safeLeg = isObject(leg) ? leg : {}
+  const stops = getRawStopCandidates(safeLeg)
     .flatMap(normalizeStopCandidate)
     .filter((stop) => getTransitStopName(stop))
 
@@ -54,16 +55,20 @@ function getStepStops(steps) {
   }
 
   return steps
-    .map((step) => ({
-      name:
-        step.stationName ??
-        step.stationNm ??
-        step.stopName ??
-        step.stopNm ??
-        step.name ??
-        step.title ??
-        null,
-    }))
+    .map((step) => {
+      const safeStep = isObject(step) ? step : {}
+
+      return {
+        name:
+          safeStep.stationName ??
+          safeStep.stationNm ??
+          safeStep.stopName ??
+          safeStep.stopNm ??
+          safeStep.name ??
+          safeStep.title ??
+          null,
+      }
+    })
     .filter((stop) => stop.name)
 }
 
@@ -106,6 +111,10 @@ function getNestedStopCandidates(value, parentKey = '', visited = new WeakSet())
 
     return []
   })
+}
+
+function isObject(value) {
+  return Boolean(value && typeof value === 'object')
 }
 
 function removeEndpointStops(stops, startName, endName) {

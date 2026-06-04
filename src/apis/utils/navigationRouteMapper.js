@@ -117,7 +117,7 @@ function buildDefaultSummarySteps(legs) {
 }
 
 function buildTransitBoardingStep(leg) {
-  const name = leg.startName ?? buildLegTitle(leg)
+  const name = leg.startName || buildLegTitle(leg)
 
   if (!name) {
     return null

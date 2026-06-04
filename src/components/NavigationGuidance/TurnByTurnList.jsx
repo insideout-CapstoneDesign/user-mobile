@@ -1,4 +1,5 @@
 import CommonHeader from '../CommonHeader/CommonHeader'
+import { isDistanceSummaryInstruction } from '../../utils/navigationStepFilters'
 import TurnByTurnStepItem from './TurnByTurnStepItem'
 import {
   DestinationText,
@@ -22,7 +23,7 @@ export default function TurnByTurnList({
   onClose,
   onSelectStep,
 }) {
-  const visibleSteps = steps.filter((step) => !hasStepMeta(step))
+  const visibleSteps = steps.filter(shouldShowStep)
 
   return (
     <ListRoot>
@@ -60,6 +61,17 @@ export default function TurnByTurnList({
   )
 }
 
-function hasStepMeta(step = {}) {
-  return [step.distanceText, step.durationText, step.floorName].some(Boolean)
+function shouldShowStep(step = {}) {
+  return !isMetaOnlyStep(step) && !isDistanceSummaryStep(step)
+}
+
+function isMetaOnlyStep(step = {}) {
+  const instruction = String(step.instruction ?? '').trim()
+  const hasMeta = [step.distanceText, step.durationText, step.floorName].some(Boolean)
+
+  return !instruction && hasMeta
+}
+
+function isDistanceSummaryStep(step = {}) {
+  return isDistanceSummaryInstruction(step.instruction)
 }

@@ -127,6 +127,31 @@ export default function MapPoiSheet({
     }
   }, [place, placeDetail])
 
+  const selectedPoi = useMemo(() => {
+    if (!selectedPoiId) return selectedPoiFromPlace
+
+    return pois.find((poi) => poi.id === selectedPoiId) ?? selectedPoiFromPlace
+  }, [pois, selectedPoiFromPlace, selectedPoiId])
+
+  const routablePlace = useMemo(() => {
+    if (!place) return null
+
+    if (!selectedPoi) {
+      return place
+    }
+
+    const selectedPoiIdentifier = selectedPoi.externalApiId ?? selectedPoi.id ?? null
+
+    return {
+      ...place,
+      name: selectedPoi.name ?? place.name,
+      title: selectedPoi.name ?? place.title ?? place.name,
+      publicId: selectedPoiIdentifier,
+      startPoiId: selectedPoiIdentifier,
+      destinationPoiId: selectedPoiIdentifier,
+    }
+  }, [place, selectedPoi])
+
   useEffect(() => {
     if (!selectedPoiFromPlace) return
 
@@ -163,11 +188,11 @@ export default function MapPoiSheet({
           onSelectFloor={setSelectedFloor}
           selectedFloor={selectedFloor}
           onDeparture={() => {
-            onDeparture?.(place)
+            onDeparture?.(routablePlace ?? place)
             handleClose()
           }}
           onArrival={() => {
-            onArrival?.(place)
+            onArrival?.(routablePlace ?? place)
             handleClose()
           }}
           pois={pois}

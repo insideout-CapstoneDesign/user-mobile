@@ -1,4 +1,5 @@
 import { FaChevronDown } from 'react-icons/fa'
+import { getTransitStopName } from '../../utils/transitStopMapper'
 import { normalizeRouteColor } from './routeColor'
 import TransitTimelineIcon from './TransitTimelineIcon'
 import {
@@ -83,8 +84,10 @@ function TransitLegContent({ leg, hiddenStops, expanded, onToggle }) {
       {expanded && hiddenStops.length > 0 ? (
         <HiddenStopList>
           {hiddenStops.map((stop, index) => (
-            <HiddenStop key={`${leg.id ?? 'transit-leg'}-${getStopLabel(stop)}-${index}`}>
-              {getStopLabel(stop)}
+            <HiddenStop
+              key={`${leg.id ?? 'transit-leg'}-${getTransitStopName(stop)}-${index}`}
+            >
+              {getTransitStopName(stop)}
             </HiddenStop>
           ))}
         </HiddenStopList>
@@ -103,12 +106,4 @@ function WalkLegContent({ leg }) {
       {leg.detail ? <WalkDetailText>{leg.detail}</WalkDetailText> : null}
     </>
   )
-}
-
-function getStopLabel(stop) {
-  if (stop && typeof stop === 'object') {
-    return stop.name ?? stop.stationName ?? stop.stopName ?? stop.title ?? ''
-  }
-
-  return stop
 }

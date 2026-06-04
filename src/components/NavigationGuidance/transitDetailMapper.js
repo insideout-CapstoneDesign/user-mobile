@@ -1,17 +1,23 @@
 import { formatMinutes } from '../../utils/navigationFormatters'
+import { simplifyTransitLineName } from '../../utils/transitLineFormatter'
+import { getIntermediateStops } from '../../utils/transitStopMapper'
 
-export function buildTransitDetailLegs(routeOption) {
+export function buildTransitDetailLegs(routeOption, routeContext = {}) {
   const rawLegs = routeOption?.raw?.legs
 
   if (Array.isArray(rawLegs) && rawLegs.length > 0) {
-    return rawLegs
+    const legs = rawLegs
       .map((leg, index) => toRawTransitDetailLeg(leg, routeOption.id, index))
       .filter((leg) => leg.title || leg.startName)
+
+    return withEndpointLegs(legs, routeOption.id, routeContext)
   }
 
-  return (routeOption?.steps ?? []).map((step, index) =>
+  const legs = (routeOption?.steps ?? []).map((step, index) =>
     toSummaryTransitDetailLeg(step, routeOption.id, index),
   )
+
+  return withEndpointLegs(legs, routeOption?.id ?? 'transit', routeContext)
 }
 
 function toRawTransitDetailLeg(leg, routeId, index) {
@@ -27,17 +33,21 @@ function toRawTransitDetailLeg(leg, routeId, index) {
     }
   }
 
+  const startName = leg.startName ?? leg.fromName ?? '승차 지점'
+  const endName = leg.endName ?? leg.toName ?? '하차 지점'
+  const stops = getIntermediateStops(leg, startName, endName)
+
   return {
     id: `${routeId}-raw-detail-${index}`,
     type,
     routeColor: leg.routeColor,
-    line: leg.routeNm ?? leg.routeName,
-    startName: leg.startName ?? leg.fromName ?? '승차 지점',
+    line: buildTransitLineLabel(leg, type),
+    startName,
     startDetail: leg.startDetail ?? leg.startStationId ?? null,
-    stopCount: leg.stopCount ?? leg.stations?.length ?? 0,
+    stopCount: getTransitStopCount(leg, stops),
     durationText: formatRawDuration(leg.durationSeconds),
-    stops: leg.stations ?? leg.stops ?? [],
-    endName: leg.endName ?? leg.toName ?? '하차 지점',
+    stops,
+    endName,
     endDetail: leg.endDetail ?? null,
   }
 }
@@ -58,7 +68,7 @@ function toSummaryTransitDetailLeg(step, routeId, index) {
   return {
     id: `${routeId}-detail-${index}`,
     type,
-    line: step.sub,
+    line: simplifyTransitLineName(step.sub, type),
     startName: step.name,
     stopCount: 0,
     durationText: '',
@@ -80,6 +90,10 @@ function normalizeTransitType(type) {
   return String(type ?? '').trim().toLowerCase()
 }
 
+function buildTransitLineLabel(leg, type) {
+  return simplifyTransitLineName(leg.routeName ?? leg.routeNm ?? leg.routeId, type)
+}
+
 function buildRawWalkTitle(leg) {
   const distance = leg.distanceMeters ? `${Math.round(leg.distanceMeters)}m` : ''
   const duration = formatRawDuration(leg.durationSeconds)
@@ -94,4 +108,60 @@ function formatRawDuration(durationSeconds) {
   }
 
   return formatMinutes(Math.max(Math.round(durationSeconds / 60), 1))
+}
+
+function getTransitStopCount(leg, stops) {
+  const explicitCount =
+    toFiniteNumber(leg.stopCount) ??
+    toFiniteNumber(leg.stationCount) ??
+    toFiniteNumber(leg.passStopCount) ??
+    toFiniteNumber(leg.passStationCount) ??
+    toFiniteNumber(leg.viaStopCount) ??
+    toFiniteNumber(leg.viaStationCount)
+
+  return explicitCount ?? stops.length
+}
+
+function toFiniteNumber(value) {
+  const number = Number(value)
+
+  return Number.isFinite(number) ? number : null
+}
+
+function withEndpointLegs(legs, routeId, routeContext) {
+  return [
+    buildEndpointLeg('origin', routeId, routeContext.origin, getFirstLegStartName(legs)),
+    ...legs,
+    buildEndpointLeg('destination', routeId, routeContext.destination, getLastLegEndName(legs)),
+  ].filter(Boolean)
+}
+
+function buildEndpointLeg(tone, routeId, place, fallbackName) {
+  const name = place?.name ?? fallbackName
+
+  if (!name) {
+    return null
+  }
+
+  return {
+    id: `${routeId}-${tone}`,
+    type: 'point',
+    tone,
+    title: name,
+    detail: tone === 'origin' ? '출발지' : '도착지',
+  }
+}
+
+function getFirstLegStartName(legs) {
+  return legs.find((leg) => leg.startName || leg.title)?.startName ?? null
+}
+
+function getLastLegEndName(legs) {
+  for (let index = legs.length - 1; index >= 0; index -= 1) {
+    if (legs[index].endName || legs[index].title) {
+      return legs[index].endName ?? legs[index].title
+    }
+  }
+
+  return null
 }

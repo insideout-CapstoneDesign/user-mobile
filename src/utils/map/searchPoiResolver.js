@@ -13,6 +13,7 @@ export function resolvePoiFromSearch(selectedSearchPlace, mapPois = []) {
   if (exactMatch) {
     return {
       ...exactMatch,
+      placeId: selectedSearchPlace.placeId ?? exactMatch.placeId ?? null,
       lat: selectedSearchPlace.lat ?? exactMatch.lat,
       lng: selectedSearchPlace.lng ?? exactMatch.lng,
       isRegistered: selectedSearchPlace.isRegistered ?? exactMatch.isRegistered,
@@ -24,6 +25,7 @@ export function resolvePoiFromSearch(selectedSearchPlace, mapPois = []) {
 
   return {
     id: `search-${selectedSearchPlace.id ?? keyword}`,
+    placeId: selectedSearchPlace.placeId ?? null,
     name: selectedSearchPlace.title,
     address: selectedSearchPlace.address,
     lat: selectedSearchPlace.lat,

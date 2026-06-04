@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import KakaoMapView from '../../components/Map/KakaoMapView'
@@ -7,12 +7,8 @@ import SearchInput from '../../components/SearchInput/SearchInput'
 import useMapPoiSelection from '../../hooks/map/useMapPoiSelection'
 import useMapRoutingBridge from '../../hooks/map/useMapRoutingBridge'
 import { ROUTES } from '../../constants/routes'
-import { mockMapPois } from '../../mocks/map/poi.mock'
-import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
-import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
 import { getMapViewportState, isValidMapCenter, isValidMapLevel } from '../../utils/map/mapViewport'
-import { mapRoutePlaceToPoi } from '../../utils/map/mapPoiMappers'
-import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
+import { mapRoutePlaceToPoi, mapSearchPlaceToPoi } from '../../utils/map/mapPoiMappers'
 import './MapPage.css'
 
 export default function MapPage() {
@@ -30,7 +26,7 @@ export default function MapPage() {
     isValidMapCenter(routeState?.mapCenter) || isValidMapLevel(routeState?.mapLevel)
   const initialSelectedPoi =
     shouldOpenFromSearch && selectedSearchPlace
-      ? resolvePoiFromSearch(selectedSearchPlace, mockMapPois)
+      ? mapSearchPlaceToPoi(selectedSearchPlace)
       : shouldOpenFromRouting && selectedMapPlace
         ? mapRoutePlaceToPoi(selectedMapPlace)
       : null
@@ -68,17 +64,7 @@ export default function MapPage() {
     mapLevel,
     setCurrentNav,
   })
-  const registeredPlaces = useMemo(
-    () => mockSearchPlaces.filter((place) => place.isRegistered),
-    [],
-  )
-  const isSelectedPoiRegistered = useMemo(
-    () =>
-      typeof selectedPoi?.isRegistered === 'boolean'
-        ? selectedPoi.isRegistered
-        : isRegisteredPlace(selectedPoi, registeredPlaces),
-    [registeredPlaces, selectedPoi],
-  )
+  const isSelectedPoiRegistered = Boolean(selectedPoi?.isRegistered)
 
   useEffect(() => {
     if (shouldOpenFromSearch || hasInitialViewportFromState) return

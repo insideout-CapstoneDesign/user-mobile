@@ -133,8 +133,10 @@ export const PoiList = styled.div`
 `
 
 export const PoiItem = styled.button`
-  border: none;
-  background: var(--surface-50);
+  border: var(--size-1) solid
+    ${({ $active }) => ($active ? 'var(--blue-600)' : 'transparent')};
+  background: ${({ $active }) =>
+    $active ? 'var(--blue-50)' : 'var(--surface-50)'};
   border-radius: var(--radius-10);
   display: flex;
   align-items: center;

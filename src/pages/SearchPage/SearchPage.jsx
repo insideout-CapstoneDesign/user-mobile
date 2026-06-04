@@ -39,6 +39,7 @@ function getNowMs() {
 
 function mapPlaceToSearchItem(place, idx) {
   return {
+    placeId: place.placeId ?? null,
     id: place.externalApiId ?? `${place.name}-${idx}`,
     title: place.name,
     address: place.roadAddress || place.address || '주소 정보 없음',

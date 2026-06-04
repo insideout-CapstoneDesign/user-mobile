@@ -2,6 +2,7 @@ import { ERROR_MESSAGE, PLACE_ERROR_MESSAGE } from '../constants/errorMessages'
 import getErrorMessage from './utils/getErrorMessage'
 
 const NEAREST_PLACE_PATH = '/api/v1/places/nearest'
+const PLACE_DETAIL_PATH = '/api/v1/places/detail'
 const SEARCH_PLACES_PATH = '/api/v1/places/search'
 const SUGGEST_PLACES_PATH = '/api/v1/places/suggest'
 const REQUEST_TIMEOUT_MS = 10000
@@ -81,6 +82,24 @@ function buildSearchQuery({ keyword, lat, lng, radius, size }) {
   }
 
   return new URLSearchParams(queryParams).toString()
+}
+
+function buildPlaceDetailQuery({ placeId, externalApiId }) {
+  const queryParams = new URLSearchParams()
+
+  if (placeId) {
+    queryParams.set('placeId', String(placeId))
+  } else if (externalApiId) {
+    queryParams.set('externalApiId', String(externalApiId))
+  }
+
+  if (!queryParams.toString()) {
+    const error = new Error('장소 식별 정보가 없습니다.')
+    error.code = 'PLACE400_1'
+    throw error
+  }
+
+  return queryParams.toString()
 }
 
 function getPlaceCodeMap(fallbackType = 'search') {
@@ -190,6 +209,16 @@ export async function getNearestPlace({ lat, lng, radius = 30 }) {
   }
 
   return { place: data.result, code: data?.code }
+}
+
+export async function getPlaceDetail({ placeId, externalApiId }) {
+  const query = buildPlaceDetailQuery({ placeId, externalApiId })
+
+  const data = await getJson(`${PLACE_DETAIL_PATH}?${query}`, {
+    fallbackMessage: '장소 상세 정보를 불러오지 못했습니다.',
+  })
+
+  return data?.result ?? null
 }
 
 export async function searchPlaces({ keyword, lat, lng, radius, size }) {

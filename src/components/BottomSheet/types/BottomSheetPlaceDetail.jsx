@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import BottomSheetActionBar from '../BottomSheetActionBar'
 import { IoStar, IoStarOutline } from 'react-icons/io5'
 import {
@@ -65,6 +65,8 @@ export default function BottomSheetPlaceDetail({
   pois = [],
   showPOIs = false,
   onTogglePOIs,
+  selectedPoiId = null,
+  onSelectPoi,
   reviewSummary = { rating: 0, count: 0 },
   reviews = [],
   onWriteReview,
@@ -72,7 +74,10 @@ export default function BottomSheetPlaceDetail({
 }) {
   const [visibleReviewCount, setVisibleReviewCount] = useState(2)
   const [poiKeyword, setPoiKeyword] = useState('')
+  const poiItemRefs = useRef({})
+  const floorChipRefs = useRef({})
   const hasMoreReviews = reviews.length > visibleReviewCount
+  const sortedFloors = useMemo(() => sortFloors(building.floors), [building.floors])
   const filteredByFloorPois =
     selectedFloor === null
       ? pois
@@ -94,6 +99,27 @@ export default function BottomSheetPlaceDetail({
     setVisibleReviewCount((prev) => prev + 3)
     onMoreReviews?.()
   }
+
+  useEffect(() => {
+    if (!showPOIs || !selectedPoiId) return
+
+    const target = poiItemRefs.current[selectedPoiId]
+    target?.scrollIntoView?.({
+      behavior: 'smooth',
+      block: 'center',
+    })
+  }, [selectedPoiId, showPOIs, filteredPois])
+
+  useEffect(() => {
+    if (selectedFloor === null) return
+
+    const target = floorChipRefs.current[selectedFloor]
+    target?.scrollIntoView?.({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    })
+  }, [selectedFloor, sortedFloors])
 
   return (
     <TypeContainer>
@@ -121,9 +147,12 @@ export default function BottomSheetPlaceDetail({
         <SectionBlock>
           <SectionTitle>층 선택</SectionTitle>
           <FloorList>
-            {building.floors.map((floor) => (
+            {sortedFloors.map((floor) => (
               <FloorChip
                 key={floor}
+                ref={(node) => {
+                  floorChipRefs.current[floor] = node
+                }}
                 $active={selectedFloor === floor}
                 type="button"
                 onClick={() => onSelectFloor?.(floor)}
@@ -156,7 +185,17 @@ export default function BottomSheetPlaceDetail({
               ) : null}
               {filteredPois.length > 0 ? (
                 filteredPois.map((poi, idx) => (
-                  <PoiItem key={poi.id ?? `${poi.name}-${idx}`} type="button">
+                  <PoiItem
+                    key={poi.id ?? `${poi.name}-${idx}`}
+                    ref={(node) => {
+                      if (!poi.id) return
+                      poiItemRefs.current[poi.id] = node
+                    }}
+                    type="button"
+                    $active={selectedPoiId === poi.id}
+                    onClick={() => onSelectPoi?.(poi)}
+                    aria-pressed={selectedPoiId === poi.id}
+                  >
                     <PoiName>{poi.name}</PoiName>
                     <PoiFloor>{poi.floor}층</PoiFloor>
                   </PoiItem>
@@ -216,4 +255,31 @@ export default function BottomSheetPlaceDetail({
       </StickyActionSection>
     </TypeContainer>
   )
+}
+
+function sortFloors(floors = []) {
+  return [...floors].sort((a, b) => {
+    const normalizedA = Number(a)
+    const normalizedB = Number(b)
+
+    const aIsValid = Number.isFinite(normalizedA)
+    const bIsValid = Number.isFinite(normalizedB)
+
+    if (!aIsValid && !bIsValid) return 0
+    if (!aIsValid) return 1
+    if (!bIsValid) return -1
+
+    const aIsBasement = normalizedA < 0
+    const bIsBasement = normalizedB < 0
+
+    if (aIsBasement !== bIsBasement) {
+      return aIsBasement ? 1 : -1
+    }
+
+    if (aIsBasement && bIsBasement) {
+      return Math.abs(normalizedA) - Math.abs(normalizedB)
+    }
+
+    return normalizedA - normalizedB
+  })
 }

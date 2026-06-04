@@ -4,6 +4,7 @@ export function mapNearestPlaceToPoi(place) {
       place.externalApiId ??
       place.id ??
       `${place.name ?? place.placeName ?? 'place'}-${place.lat}-${place.lng}`,
+    placeId: place.placeId ?? null,
     name: place.name ?? place.placeName ?? place.title ?? '장소명',
     address: place.roadAddress || place.address || '주소 정보 없음',
     lat: place.lat,
@@ -13,11 +14,27 @@ export function mapNearestPlaceToPoi(place) {
   }
 }
 
+export function mapSearchPlaceToPoi(place) {
+  if (!place) return null
+
+  return {
+    id: place.externalApiId ?? place.id ?? `search-${place.title ?? place.name ?? 'place'}`,
+    placeId: place.placeId ?? null,
+    name: place.name ?? place.title ?? '장소명',
+    address: place.address ?? place.roadAddress ?? '주소 정보 없음',
+    lat: place.lat,
+    lng: place.lng,
+    isRegistered: Boolean(place.isRegistered),
+    externalApiId: place.externalApiId ?? null,
+  }
+}
+
 export function mapRoutePlaceToPoi(place) {
   if (!place) return null
 
   return {
     id: place.externalApiId ?? place.id ?? `route-${place.name ?? place.title ?? 'place'}`,
+    placeId: place.placeId ?? null,
     name: place.name ?? place.title ?? '장소명',
     address: place.address ?? place.roadAddress ?? '주소 정보 없음',
     lat: place.lat,
@@ -32,6 +49,7 @@ export function mapPoiToRoutingPlace(place) {
 
   return {
     ...place,
+    placeId: place.placeId ?? null,
     name: place.name ?? place.title ?? '장소',
     title: place.name ?? place.title ?? '장소',
     address: place.address ?? '주소 정보 없음',

@@ -93,9 +93,3 @@ export const ListItemTitle = styled.span`
   line-height: var(--line-20);
   overflow-wrap: anywhere;
 `
-
-export const ListItemMeta = styled.span`
-  color: var(--gray-500);
-  font-size: var(--text-12);
-  line-height: var(--line-16);
-`

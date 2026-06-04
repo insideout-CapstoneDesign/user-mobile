@@ -2,7 +2,6 @@ import NavigationStepIcon from './NavigationStepIcon'
 import {
   ListItem,
   ListItemContent,
-  ListItemMeta,
   ListItemTitle,
 } from './TurnByTurnList.styles'
 
@@ -13,9 +12,6 @@ export default function TurnByTurnStepItem({
   onSelect,
 }) {
   const safeStep = step && typeof step === 'object' ? step : {}
-  const meta = [safeStep.distanceText, safeStep.durationText, safeStep.floorName]
-    .filter(Boolean)
-    .join(' · ')
 
   return (
     <ListItem
@@ -29,7 +25,6 @@ export default function TurnByTurnStepItem({
       />
       <ListItemContent>
         <ListItemTitle>{safeStep.instruction || '안내 메시지'}</ListItemTitle>
-        {meta ? <ListItemMeta>{meta}</ListItemMeta> : null}
       </ListItemContent>
     </ListItem>
   )

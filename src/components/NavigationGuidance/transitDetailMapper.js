@@ -2,25 +2,32 @@ import { formatMinutes } from '../../utils/navigationFormatters'
 import { simplifyTransitLineName } from '../../utils/transitLineFormatter'
 import { getIntermediateStops } from '../../utils/transitStopMapper'
 
+const DEFAULT_ROUTE_ID = 'transit'
+
 export function buildTransitDetailLegs(routeOption, routeContext = {}) {
   const rawLegs = routeOption?.raw?.legs
+  const routeId = routeOption?.id ?? DEFAULT_ROUTE_ID
 
   if (Array.isArray(rawLegs) && rawLegs.length > 0) {
     const legs = rawLegs
-      .map((leg, index) => toRawTransitDetailLeg(leg, routeOption.id, index))
-      .filter((leg) => leg.title || leg.startName)
+      .map((leg, index) => toRawTransitDetailLeg(leg, routeId, index))
+      .filter(isDisplayableLeg)
 
-    return withEndpointLegs(legs, routeOption.id, routeContext)
+    return withEndpointLegs(legs, routeId, routeContext)
   }
 
-  const legs = (routeOption?.steps ?? []).map((step, index) =>
-    toSummaryTransitDetailLeg(step, routeOption.id, index),
-  )
+  const legs = (routeOption?.steps ?? [])
+    .map((step, index) => toSummaryTransitDetailLeg(step, routeId, index))
+    .filter(isDisplayableLeg)
 
-  return withEndpointLegs(legs, routeOption?.id ?? 'transit', routeContext)
+  return withEndpointLegs(legs, routeId, routeContext)
 }
 
 function toRawTransitDetailLeg(leg, routeId, index) {
+  if (!isObject(leg)) {
+    return null
+  }
+
   const type = getRawLegType(leg.mode)
   const isTransit = type === 'bus' || type === 'subway'
 
@@ -53,6 +60,10 @@ function toRawTransitDetailLeg(leg, routeId, index) {
 }
 
 function toSummaryTransitDetailLeg(step, routeId, index) {
+  if (!isObject(step)) {
+    return null
+  }
+
   const type = normalizeTransitType(step.type ?? 'walk')
   const isTransit = type === 'bus' || type === 'subway'
 
@@ -123,9 +134,13 @@ function getTransitStopCount(leg, stops) {
 }
 
 function toFiniteNumber(value) {
+  if (value === null || value === undefined || value === '') {
+    return null
+  }
+
   const number = Number(value)
 
-  return Number.isFinite(number) ? number : null
+  return Number.isFinite(number) && number >= 0 ? number : null
 }
 
 function withEndpointLegs(legs, routeId, routeContext) {
@@ -153,7 +168,9 @@ function buildEndpointLeg(tone, routeId, place, fallbackName) {
 }
 
 function getFirstLegStartName(legs) {
-  return legs.find((leg) => leg.startName || leg.title)?.startName ?? null
+  const firstLeg = legs.find((leg) => leg.startName || leg.title)
+
+  return firstLeg?.startName ?? firstLeg?.title ?? null
 }
 
 function getLastLegEndName(legs) {
@@ -164,4 +181,12 @@ function getLastLegEndName(legs) {
   }
 
   return null
+}
+
+function isDisplayableLeg(leg) {
+  return Boolean(leg?.title || leg?.startName)
+}
+
+function isObject(value) {
+  return Boolean(value && typeof value === 'object')
 }

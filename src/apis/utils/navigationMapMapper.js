@@ -65,11 +65,7 @@ function isRouteSegmentSummaryStep(step = {}) {
 
   const distancePattern = buildDistanceInstructionPattern(step.distanceText)
 
-  if (!distancePattern.test(instruction)) {
-    return false
-  }
-
-  return true
+  return distancePattern.test(instruction)
 }
 
 function normalizeInstructionText(value) {
@@ -92,7 +88,10 @@ function buildDistanceInstructionPattern(distanceText) {
     ? escapeRegExp(normalizedDistance)
     : '\\d+(?:\\.\\d+)?\\s*(?:m|km)'
 
-  return new RegExp(`^(?:.*?(?:,\\s*|\\s+))?${distanceSource}(?:\\s*\\([^)]*\\))?$`, 'i')
+  return new RegExp(
+    `^(?:.*?(?:,\\s*|\\s+))?${distanceSource}(?:\\s*\\([^)]*\\))?$`,
+    'i',
+  )
 }
 
 function escapeRegExp(value) {

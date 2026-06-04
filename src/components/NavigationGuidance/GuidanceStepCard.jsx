@@ -80,7 +80,6 @@ export default function GuidanceStepCard({
           {meta ? <CardMeta>{meta}</CardMeta> : null}
         </CardContent>
       </CardButton>
-
     </CardRoot>
   )
 }

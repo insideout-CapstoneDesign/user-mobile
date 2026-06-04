@@ -49,12 +49,19 @@ export function normalizeTurnByTurnSteps(legs, routeContext) {
   })
 }
 
-function shouldShowTurnByTurnStep(step) {
-  return !isRouteSegmentSummaryStep(step)
+function shouldShowTurnByTurnStep(step = {}) {
+  return !isMetaOnlyStep(step) && !isRouteSegmentSummaryStep(step)
 }
 
 function isRouteSegmentSummaryStep(step = {}) {
   return isDistanceSummaryInstruction(step.instruction)
+}
+
+function isMetaOnlyStep(step = {}) {
+  const instruction = String(step.instruction ?? '').trim()
+  const hasMeta = [step.distanceText, step.durationText, step.floorName].some(Boolean)
+
+  return !instruction && hasMeta
 }
 
 function normalizeStep(step, context) {

@@ -22,6 +22,8 @@ export default function TurnByTurnList({
   onClose,
   onSelectStep,
 }) {
+  const visibleSteps = steps.filter((step) => !hasStepMeta(step))
+
   return (
     <ListRoot>
       <CommonHeader
@@ -44,7 +46,7 @@ export default function TurnByTurnList({
 
         <Divider />
 
-        {steps.map((step, index) => (
+        {visibleSteps.map((step, index) => (
           <TurnByTurnStepItem
             key={step.id ?? `turn-step-${index}`}
             step={step}
@@ -56,4 +58,8 @@ export default function TurnByTurnList({
       </ListBody>
     </ListRoot>
   )
+}
+
+function hasStepMeta(step = {}) {
+  return [step.distanceText, step.durationText, step.floorName].some(Boolean)
 }

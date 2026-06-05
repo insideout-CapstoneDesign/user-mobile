@@ -3,6 +3,7 @@ import { getPlaceDetail } from '../../apis/placeApi'
 import BottomSheetBase from '../BottomSheet/BottomSheetBase'
 import BottomSheetCompactInfo from '../BottomSheet/types/BottomSheetCompactInfo'
 import BottomSheetPlaceDetail from '../BottomSheet/types/BottomSheetPlaceDetail'
+import { AUTH_STORAGE_KEY } from '../../constants/auth'
 
 export default function MapPoiSheet({
   isOpen,
@@ -17,6 +18,8 @@ export default function MapPoiSheet({
   const [selectedPoiId, setSelectedPoiId] = useState(null)
   const [placeDetail, setPlaceDetail] = useState(null)
   const [isDetailLoading, setIsDetailLoading] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const selectedPoiKeyFromPlace =
     place?.poiId ?? place?.destinationPoiId ?? place?.startPoiId ?? place?.publicId ?? null
   const resolvedIsRegistered = placeDetail?.isRegistered ?? isRegistered ?? false
@@ -35,6 +38,7 @@ export default function MapPoiSheet({
       setShowPOIs(false)
       setSelectedFloor(null)
       setSelectedPoiId(null)
+      setIsFavorite(false)
       return
     }
 
@@ -44,6 +48,7 @@ export default function MapPoiSheet({
     setShowPOIs(false)
     setSelectedFloor(null)
     setSelectedPoiId(null)
+    setIsFavorite(false)
 
     getPlaceDetail({
       placeId: place.placeId ?? place.destinationBuildingId ?? null,
@@ -75,6 +80,19 @@ export default function MapPoiSheet({
     place?.id,
     place?.placeId,
   ])
+
+  useEffect(() => {
+    const updateLoginState = () => {
+      setIsLoggedIn(Boolean(localStorage.getItem(AUTH_STORAGE_KEY.ACCESS_TOKEN)))
+    }
+
+    updateLoginState()
+
+    window.addEventListener('storage', updateLoginState)
+    return () => {
+      window.removeEventListener('storage', updateLoginState)
+    }
+  }, [isOpen, placeDetail])
 
   const selectedPoiFromPlace = useMemo(() => {
     if (!placeDetail || !place || !resolvedIsRegistered) return null
@@ -210,8 +228,11 @@ export default function MapPoiSheet({
     <BottomSheetBase isOpen={isOpen} onClose={handleClose}>
       {isDetailLoading || resolvedIsRegistered ? (
         <BottomSheetPlaceDetail
-          isLoggedIn={false}
+          isLoggedIn={isLoggedIn}
+          showReviewSection={false}
           building={building}
+          isFavorite={isFavorite}
+          onToggleFavorite={() => setIsFavorite((prev) => !prev)}
           onSelectFloor={setSelectedFloor}
           selectedFloor={selectedFloor}
           onDeparture={() => {

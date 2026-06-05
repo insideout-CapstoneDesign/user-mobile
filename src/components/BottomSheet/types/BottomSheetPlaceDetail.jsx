@@ -50,6 +50,7 @@ function renderStarIcons(rating = 0) {
 
 export default function BottomSheetPlaceDetail({
   isLoggedIn = false,
+  showReviewSection = true,
   building = {
     name: '장소명',
     address: '주소 정보',
@@ -210,7 +211,7 @@ export default function BottomSheetPlaceDetail({
         </SectionBlock>
       ) : null}
 
-      {isLoggedIn ? (
+      {isLoggedIn && showReviewSection ? (
         <SectionBlock>
           <ReviewHeader>
             <SectionTitle style={{ marginBottom: 0 }}>리뷰</SectionTitle>

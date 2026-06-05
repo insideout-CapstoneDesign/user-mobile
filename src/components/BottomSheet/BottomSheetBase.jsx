@@ -14,6 +14,7 @@ export default function BottomSheetBase({
   snapPoints,
   initialSnap,
   showBackdrop = true,
+  scrollableContent = true,
 }) {
   return (
     <Sheet
@@ -25,8 +26,8 @@ export default function BottomSheetBase({
     >
       <StyledSheetContainer>
         <Sheet.Header />
-        <StyledSheetContent>
-          <SheetBody>{children}</SheetBody>
+        <StyledSheetContent $scrollable={scrollableContent}>
+          <SheetBody $scrollable={scrollableContent}>{children}</SheetBody>
         </StyledSheetContent>
       </StyledSheetContainer>
       {showBackdrop ? <StyledSheetBackdrop onTap={onClose} /> : null}

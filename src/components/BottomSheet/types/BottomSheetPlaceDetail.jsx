@@ -26,6 +26,7 @@ import {
   ReviewSummary,
   ReviewText,
   ReviewWriteButton,
+  DetailScrollArea,
   SectionBlock,
   SectionTitle,
   StickyActionSection,
@@ -50,7 +51,6 @@ function renderStarIcons(rating = 0) {
 
 export default function BottomSheetPlaceDetail({
   isLoggedIn = false,
-  showReviewSection = true,
   building = {
     name: '장소명',
     address: '주소 정보',
@@ -123,127 +123,129 @@ export default function BottomSheetPlaceDetail({
   }, [selectedFloor, sortedFloors])
 
   return (
-    <TypeContainer>
-      <PlaceHead>
-        <PlaceHeadLeft>
-          <TypeTitle>{building.name}</TypeTitle>
-          {building.isRegistered ? <PlaceBadge>등록됨</PlaceBadge> : null}
-        </PlaceHeadLeft>
+    <TypeContainer $scrollLayout>
+      <DetailScrollArea>
+        <PlaceHead>
+          <PlaceHeadLeft>
+            <TypeTitle>{building.name}</TypeTitle>
+            {building.isRegistered ? <PlaceBadge>등록됨</PlaceBadge> : null}
+          </PlaceHeadLeft>
+
+          {isLoggedIn ? (
+            <FavoriteButton
+              type="button"
+              onClick={onToggleFavorite}
+              $active={isFavorite}
+              aria-label="즐겨찾기"
+            >
+              {isFavorite ? <IoStar size={22} /> : <IoStarOutline size={22} />}
+            </FavoriteButton>
+          ) : null}
+        </PlaceHead>
+
+        <AddressText>{building.address}</AddressText>
+
+        {building.hasIndoorMap && building.floors?.length ? (
+          <SectionBlock>
+            <SectionTitle>층 선택</SectionTitle>
+            <FloorList>
+              {sortedFloors.map((floor) => (
+                <FloorChip
+                  key={floor}
+                  ref={(node) => {
+                    floorChipRefs.current[floor] = node
+                  }}
+                  $active={selectedFloor === floor}
+                  type="button"
+                  onClick={() => onSelectFloor?.(floor)}
+                >
+                  {floor < 0 ? `B${Math.abs(floor)}` : `${floor}`}층
+                </FloorChip>
+              ))}
+            </FloorList>
+          </SectionBlock>
+        ) : null}
+
+        {building.hasIndoorMap && pois.length > 0 ? (
+          <SectionBlock>
+            <PoiToggleButton type="button" onClick={onTogglePOIs}>
+              <PoiTitle>
+                POI 목록 ({filteredByFloorPois.length}개)
+              </PoiTitle>
+              <span>{showPOIs ? '▲' : '▼'}</span>
+            </PoiToggleButton>
+            {showPOIs ? (
+              <PoiList>
+                {shouldShowPoiSearch ? (
+                  <PoiSearchInput
+                    type="text"
+                    value={poiKeyword}
+                    onChange={(event) => setPoiKeyword(event.target.value)}
+                    placeholder="POI 검색"
+                    aria-label="POI 검색"
+                  />
+                ) : null}
+                {filteredPois.length > 0 ? (
+                  filteredPois.map((poi, idx) => (
+                    <PoiItem
+                      key={poi.id ?? `${poi.name}-${idx}`}
+                      ref={(node) => {
+                        if (!poi.id) return
+                        poiItemRefs.current[poi.id] = node
+                      }}
+                      type="button"
+                      $active={selectedPoiId === poi.id}
+                      onClick={() => onSelectPoi?.(poi)}
+                      aria-pressed={selectedPoiId === poi.id}
+                    >
+                      <PoiName>{poi.name}</PoiName>
+                      <PoiFloor>{poi.floor}층</PoiFloor>
+                    </PoiItem>
+                  ))
+                ) : (
+                  <PoiItem type="button" disabled>
+                    <PoiName>{poiEmptyMessage}</PoiName>
+                  </PoiItem>
+                )}
+              </PoiList>
+            ) : null}
+          </SectionBlock>
+        ) : null}
 
         {isLoggedIn ? (
-          <FavoriteButton
-            type="button"
-            onClick={onToggleFavorite}
-            $active={isFavorite}
-            aria-label="즐겨찾기"
-          >
-            {isFavorite ? <IoStar size={22} /> : <IoStarOutline size={22} />}
-          </FavoriteButton>
-        ) : null}
-      </PlaceHead>
-
-      <AddressText>{building.address}</AddressText>
-
-      {building.hasIndoorMap && building.floors?.length ? (
-        <SectionBlock>
-          <SectionTitle>층 선택</SectionTitle>
-          <FloorList>
-            {sortedFloors.map((floor) => (
-              <FloorChip
-                key={floor}
-                ref={(node) => {
-                  floorChipRefs.current[floor] = node
-                }}
-                $active={selectedFloor === floor}
-                type="button"
-                onClick={() => onSelectFloor?.(floor)}
-              >
-                {floor < 0 ? `B${Math.abs(floor)}` : `${floor}`}층
-              </FloorChip>
-            ))}
-          </FloorList>
-        </SectionBlock>
-      ) : null}
-
-      {building.hasIndoorMap && pois.length > 0 ? (
-        <SectionBlock>
-          <PoiToggleButton type="button" onClick={onTogglePOIs}>
-            <PoiTitle>
-              POI 목록 ({filteredByFloorPois.length}개)
-            </PoiTitle>
-            <span>{showPOIs ? '▲' : '▼'}</span>
-          </PoiToggleButton>
-          {showPOIs ? (
-            <PoiList>
-              {shouldShowPoiSearch ? (
-                <PoiSearchInput
-                  type="text"
-                  value={poiKeyword}
-                  onChange={(event) => setPoiKeyword(event.target.value)}
-                  placeholder="POI 검색"
-                  aria-label="POI 검색"
-                />
+          <SectionBlock>
+            <ReviewHeader>
+              <SectionTitle style={{ marginBottom: 0 }}>리뷰</SectionTitle>
+              <ReviewSummary>
+                <IoStar size={14} color="var(--yellow-500)" />
+                <span>{reviewSummary.rating}</span>
+                <span>({reviewSummary.count})</span>
+              </ReviewSummary>
+            </ReviewHeader>
+            <ReviewWriteButton type="button" onClick={onWriteReview}>
+              리뷰 작성하기
+            </ReviewWriteButton>
+            <ReviewCardList>
+              {reviews.slice(0, visibleReviewCount).map((review, index) => (
+                <ReviewCard key={review.id ?? `${review.user}-${index}`}>
+                  <ReviewMeta>
+                    <ReviewStars>{renderStarIcons(review.rating)}</ReviewStars>
+                    <span>{review.user}</span>
+                  </ReviewMeta>
+                  <ReviewText>{review.content ?? review.text}</ReviewText>
+                </ReviewCard>
+              ))}
+              {hasMoreReviews ? (
+                <ReviewMoreButton type="button" onClick={handleMoreReviews}>
+                  리뷰 더보기
+                </ReviewMoreButton>
               ) : null}
-              {filteredPois.length > 0 ? (
-                filteredPois.map((poi, idx) => (
-                  <PoiItem
-                    key={poi.id ?? `${poi.name}-${idx}`}
-                    ref={(node) => {
-                      if (!poi.id) return
-                      poiItemRefs.current[poi.id] = node
-                    }}
-                    type="button"
-                    $active={selectedPoiId === poi.id}
-                    onClick={() => onSelectPoi?.(poi)}
-                    aria-pressed={selectedPoiId === poi.id}
-                  >
-                    <PoiName>{poi.name}</PoiName>
-                    <PoiFloor>{poi.floor}층</PoiFloor>
-                  </PoiItem>
-                ))
-              ) : (
-                <PoiItem type="button" disabled>
-                  <PoiName>{poiEmptyMessage}</PoiName>
-                </PoiItem>
-              )}
-            </PoiList>
-          ) : null}
-        </SectionBlock>
-      ) : null}
+            </ReviewCardList>
+          </SectionBlock>
+        ) : null}
+      </DetailScrollArea>
 
-      {isLoggedIn && showReviewSection ? (
-        <SectionBlock>
-          <ReviewHeader>
-            <SectionTitle style={{ marginBottom: 0 }}>리뷰</SectionTitle>
-            <ReviewSummary>
-              <IoStar size={14} color="var(--yellow-500)" />
-              <span>{reviewSummary.rating}</span>
-              <span>({reviewSummary.count})</span>
-            </ReviewSummary>
-          </ReviewHeader>
-          <ReviewWriteButton type="button" onClick={onWriteReview}>
-            리뷰 작성하기
-          </ReviewWriteButton>
-          <ReviewCardList>
-            {reviews.slice(0, visibleReviewCount).map((review, index) => (
-              <ReviewCard key={review.id ?? `${review.user}-${index}`}>
-                <ReviewMeta>
-                  <ReviewStars>{renderStarIcons(review.rating)}</ReviewStars>
-                  <span>{review.user}</span>
-                </ReviewMeta>
-                <ReviewText>{review.content ?? review.text}</ReviewText>
-              </ReviewCard>
-            ))}
-            {hasMoreReviews ? (
-              <ReviewMoreButton type="button" onClick={handleMoreReviews}>
-                리뷰 더보기
-              </ReviewMoreButton>
-            ) : null}
-          </ReviewCardList>
-        </SectionBlock>
-      ) : null}
-
-      <StickyActionSection>
+      <StickyActionSection $sticky={false}>
         <ActionTitle>건물 입구로 가기</ActionTitle>
         <BottomSheetActionBar
           leftLabel="출발"

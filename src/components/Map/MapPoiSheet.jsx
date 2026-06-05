@@ -4,6 +4,7 @@ import BottomSheetBase from '../BottomSheet/BottomSheetBase'
 import BottomSheetCompactInfo from '../BottomSheet/types/BottomSheetCompactInfo'
 import BottomSheetPlaceDetail from '../BottomSheet/types/BottomSheetPlaceDetail'
 import { AUTH_STORAGE_KEY } from '../../constants/auth'
+import { demoReviewSummary, demoReviews } from '../../mocks/review.mock'
 
 export default function MapPoiSheet({
   isOpen,
@@ -92,7 +93,7 @@ export default function MapPoiSheet({
     return () => {
       window.removeEventListener('storage', updateLoginState)
     }
-  }, [isOpen, placeDetail])
+  }, [isOpen])
 
   const selectedPoiFromPlace = useMemo(() => {
     if (!placeDetail || !place || !resolvedIsRegistered) return null
@@ -225,11 +226,14 @@ export default function MapPoiSheet({
   }
 
   return (
-    <BottomSheetBase isOpen={isOpen} onClose={handleClose}>
+    <BottomSheetBase
+      isOpen={isOpen}
+      onClose={handleClose}
+      scrollableContent={false}
+    >
       {isDetailLoading || resolvedIsRegistered ? (
         <BottomSheetPlaceDetail
           isLoggedIn={isLoggedIn}
-          showReviewSection={false}
           building={building}
           isFavorite={isFavorite}
           onToggleFavorite={() => setIsFavorite((prev) => !prev)}
@@ -248,8 +252,8 @@ export default function MapPoiSheet({
           onTogglePOIs={() => setShowPOIs((prev) => !prev)}
           selectedPoiId={selectedPoiId}
           onSelectPoi={handleSelectPoi}
-          reviewSummary={{ rating: 0, count: 0 }}
-          reviews={[]}
+          reviewSummary={demoReviewSummary}
+          reviews={demoReviews}
         />
       ) : (
         <BottomSheetCompactInfo

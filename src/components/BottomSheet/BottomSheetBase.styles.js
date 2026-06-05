@@ -29,6 +29,11 @@ export const StyledSheetContent = styled(Sheet.Content)`
   overflow-x: hidden;
   overscroll-behavior: contain;
   padding-bottom: calc(var(--space-20) + env(safe-area-inset-bottom));
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `
 
 export const SheetBody = styled.div`

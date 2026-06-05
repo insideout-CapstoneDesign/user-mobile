@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import {
   buildNavigationRequest,
   findNavigationRoutes,
+  findTransitNavigationRoutes,
 } from '../apis/navigationApi'
 
 const EMPTY_ARRAY = []
@@ -61,7 +62,8 @@ export default function useNavigationRoute({
 
     try {
       const request = buildNavigationRequest(requestInput)
-      const nextData = await findNavigationRoutes(request)
+      const findRoutes = getFindRoutes(requestInput?.transportMode)
+      const nextData = await findRoutes(request)
 
       if (!isLatestRequest(requestSequenceRef, requestSequence)) {
         return null
@@ -193,6 +195,12 @@ function startRequest(requestSequenceRef) {
 
 function isLatestRequest(requestSequenceRef, requestSequence) {
   return requestSequence === requestSequenceRef.current
+}
+
+function getFindRoutes(transportMode) {
+  return transportMode === 'transit'
+    ? findTransitNavigationRoutes
+    : findNavigationRoutes
 }
 
 function getMapFloorKey(mapLeg) {

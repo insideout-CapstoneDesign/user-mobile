@@ -52,8 +52,12 @@ export default function useRoutingController({
     navigationRoute.selectedRouteOption?.mode === 'transit' ||
     navigationRoute.selectedRouteOption?.routeType === 'TRANSIT'
   const transitDetailLegs = useMemo(
-    () => buildTransitDetailLegs(navigationRoute.selectedRouteOption),
-    [navigationRoute.selectedRouteOption],
+    () =>
+      buildTransitDetailLegs(navigationRoute.selectedRouteOption, {
+        origin: routeOrigin,
+        destination: routeDestination,
+      }),
+    [navigationRoute.selectedRouteOption, routeDestination, routeOrigin],
   )
 
   const requestRoute = async ({

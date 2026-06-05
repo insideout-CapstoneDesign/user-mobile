@@ -1,10 +1,3 @@
-export const mockMyProfile = {
-  email: 'user@example.com',
-  roleLabel: '일반 회원',
-  name: '홍길동',
-  phone: '010-1234-5678',
-}
-
 export const mockFavorites = [
   {
     id: 'fav-eng',

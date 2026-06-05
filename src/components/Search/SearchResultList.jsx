@@ -7,7 +7,9 @@ export default function SearchResultList({ items = [], onSelect }) {
       {items.map((item) => (
         <SearchResultItem
           key={item.id}
-          title={item.title}
+          name={item.name ?? item.title}
+          displayName={item.displayName}
+          parentBuildingName={item.parentBuildingName}
           address={item.address}
           isRegistered={item.isRegistered}
           distanceMeters={item.distanceMeters}

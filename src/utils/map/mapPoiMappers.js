@@ -1,26 +1,74 @@
+function getCanonicalPlaceId(place) {
+  return (
+    place?.placeId ??
+    place?.destinationBuildingId ??
+    place?.buildingPlaceId ??
+    place?.buildingId ??
+    null
+  )
+}
+
+function getCanonicalPoiId(place) {
+  return place?.poiId ?? place?.destinationPoiId ?? place?.startPoiId ?? null
+}
+
+function getBasePlaceName(place) {
+  return place?.name ?? place?.placeName ?? place?.title ?? '장소명'
+}
+
+function getDisplayName(place, baseName) {
+  return (
+    place?.displayName ??
+    (place?.parentBuildingName ? `${place.parentBuildingName} · ${baseName}` : null)
+  )
+}
+
 export function mapNearestPlaceToPoi(place) {
+  const baseName = getBasePlaceName(place)
+  const placeId = getCanonicalPlaceId(place)
+  const poiId = getCanonicalPoiId(place)
+  const displayName = getDisplayName(place, baseName)
+
   return {
-    id:
-      place.externalApiId ??
-      place.id ??
-      `${place.name ?? place.placeName ?? 'place'}-${place.lat}-${place.lng}`,
-    placeId: place.placeId ?? null,
-    name: place.name ?? place.placeName ?? place.title ?? '장소명',
+    id: place.externalApiId ?? poiId ?? placeId ?? `${baseName}-${place.lat}-${place.lng}`,
+    placeId,
+    poiId,
+    publicId: poiId ?? place.externalApiId ?? placeId ?? null,
+    startPoiId: place.startPoiId ?? poiId,
+    destinationPoiId: place.destinationPoiId ?? poiId,
+    destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
+    name: baseName,
+    title: baseName,
+    displayName,
+    parentBuildingName: place.parentBuildingName ?? null,
     address: place.roadAddress || place.address || '주소 정보 없음',
     lat: place.lat,
     lng: place.lng,
     isRegistered: Boolean(place.isRegistered),
-    externalApiId: place.externalApiId,
+    externalApiId: place.externalApiId ?? null,
   }
 }
 
 export function mapSearchPlaceToPoi(place) {
   if (!place) return null
 
+  const baseName = getBasePlaceName(place)
+  const placeId = getCanonicalPlaceId(place)
+  const poiId = getCanonicalPoiId(place)
+  const displayName = getDisplayName(place, baseName)
+
   return {
-    id: place.externalApiId ?? place.id ?? `search-${place.title ?? place.name ?? 'place'}`,
-    placeId: place.placeId ?? null,
-    name: place.name ?? place.title ?? '장소명',
+    id: place.externalApiId ?? poiId ?? placeId ?? `search-${baseName}`,
+    placeId,
+    poiId,
+    publicId: poiId ?? place.externalApiId ?? placeId ?? null,
+    startPoiId: place.startPoiId ?? poiId,
+    destinationPoiId: place.destinationPoiId ?? poiId,
+    destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
+    name: baseName,
+    title: baseName,
+    displayName,
+    parentBuildingName: place.parentBuildingName ?? null,
     address: place.address ?? place.roadAddress ?? '주소 정보 없음',
     lat: place.lat,
     lng: place.lng,
@@ -32,10 +80,23 @@ export function mapSearchPlaceToPoi(place) {
 export function mapRoutePlaceToPoi(place) {
   if (!place) return null
 
+  const baseName = getBasePlaceName(place)
+  const placeId = getCanonicalPlaceId(place)
+  const poiId = getCanonicalPoiId(place)
+  const displayName = getDisplayName(place, baseName)
+
   return {
-    id: place.externalApiId ?? place.id ?? `route-${place.name ?? place.title ?? 'place'}`,
-    placeId: place.placeId ?? null,
-    name: place.name ?? place.title ?? '장소명',
+    id: place.externalApiId ?? poiId ?? placeId ?? `route-${baseName}`,
+    placeId,
+    poiId,
+    publicId: poiId ?? place.externalApiId ?? placeId ?? null,
+    startPoiId: place.startPoiId ?? poiId,
+    destinationPoiId: place.destinationPoiId ?? poiId,
+    destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
+    name: baseName,
+    title: baseName,
+    displayName,
+    parentBuildingName: place.parentBuildingName ?? null,
     address: place.address ?? place.roadAddress ?? '주소 정보 없음',
     lat: place.lat,
     lng: place.lng,
@@ -47,16 +108,28 @@ export function mapRoutePlaceToPoi(place) {
 export function mapPoiToRoutingPlace(place) {
   if (!place) return null
 
+  const baseName = getBasePlaceName(place)
+  const placeId = getCanonicalPlaceId(place)
+  const poiId = getCanonicalPoiId(place)
+  const displayName = getDisplayName(place, baseName)
+
   return {
     ...place,
-    placeId: place.placeId ?? null,
-    name: place.name ?? place.title ?? '장소',
-    title: place.name ?? place.title ?? '장소',
+    placeId,
+    poiId,
+    name: baseName,
+    title: baseName,
+    displayName,
+    parentBuildingName: place.parentBuildingName ?? null,
     address: place.address ?? '주소 정보 없음',
     lat: place.lat,
     lng: place.lng,
     externalApiId: place.externalApiId ?? place.id ?? null,
     isRegistered: Boolean(place.isRegistered),
+    publicId: poiId ?? place.externalApiId ?? placeId ?? null,
+    startPoiId: place.startPoiId ?? poiId ?? null,
+    destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
+    destinationPoiId: place.destinationPoiId ?? poiId ?? null,
   }
 }
 

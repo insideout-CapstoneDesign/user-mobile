@@ -52,6 +52,13 @@ export const Badge = styled.span`
   border-radius: var(--radius-4);
 `
 
+export const SubText = styled.span`
+  font-family: var(--font-sans);
+  font-size: var(--text-13);
+  color: var(--gray-500);
+  line-height: var(--line-18);
+`
+
 export const Address = styled.span`
   font-family: var(--font-sans);
   font-size: var(--text-14);

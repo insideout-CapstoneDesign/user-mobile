@@ -4,6 +4,7 @@ import {
   TitleRow,
   Title,
   Badge,
+  SubText,
   Address,
   Distance,
   ArrowIcon
@@ -17,21 +18,25 @@ function formatDistance(distanceMeters) {
 }
 
 export default function SearchResultItem({
-  title,
+  name,
+  displayName,
+  parentBuildingName,
   address,
   isRegistered,
   distanceMeters,
   onClick,
 }) {
   const distanceText = formatDistance(distanceMeters)
+  const subText = displayName ?? parentBuildingName ?? ''
 
   return (
     <Container type="button" onClick={onClick}>
       <InfoWrapper>
         <TitleRow>
-          <Title>{title}</Title>
+          <Title>{name}</Title>
           {isRegistered && <Badge>등록됨</Badge>}
         </TitleRow>
+        {subText ? <SubText>{subText}</SubText> : null}
         <Address>{address}</Address>
         {distanceText ? <Distance>{distanceText}</Distance> : null}
       </InfoWrapper>

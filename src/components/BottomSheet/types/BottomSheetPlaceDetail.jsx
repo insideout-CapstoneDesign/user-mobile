@@ -126,7 +126,7 @@ export default function BottomSheetPlaceDetail({
       <PlaceHead>
         <PlaceHeadLeft>
           <TypeTitle>{building.name}</TypeTitle>
-          {building.hasIndoorMap ? <PlaceBadge>등록됨</PlaceBadge> : null}
+          {building.isRegistered ? <PlaceBadge>등록됨</PlaceBadge> : null}
         </PlaceHeadLeft>
 
         {isLoggedIn ? (

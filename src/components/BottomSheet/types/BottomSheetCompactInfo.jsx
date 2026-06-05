@@ -11,7 +11,12 @@ export default function BottomSheetCompactInfo({
   onDeparture,
   onArrival,
 }) {
-  const placeName = place?.name ?? '장소명'
+  const placeName =
+    place?.parentBuildingName ??
+    place?.displayName ??
+    place?.title ??
+    place?.name ??
+    '장소명'
   const placeAddress = place?.address ?? '주소 정보 없음'
 
   return (

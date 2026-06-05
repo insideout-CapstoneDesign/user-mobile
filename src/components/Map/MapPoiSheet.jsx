@@ -4,8 +4,6 @@ import BottomSheetBase from '../BottomSheet/BottomSheetBase'
 import BottomSheetCompactInfo from '../BottomSheet/types/BottomSheetCompactInfo'
 import BottomSheetPlaceDetail from '../BottomSheet/types/BottomSheetPlaceDetail'
 
-const normalizeText = (value = '') => value.trim().toLowerCase()
-
 export default function MapPoiSheet({
   isOpen,
   place,
@@ -18,10 +16,22 @@ export default function MapPoiSheet({
   const [selectedFloor, setSelectedFloor] = useState(null)
   const [selectedPoiId, setSelectedPoiId] = useState(null)
   const [placeDetail, setPlaceDetail] = useState(null)
+  const [isDetailLoading, setIsDetailLoading] = useState(false)
+  const selectedPoiKeyFromPlace =
+    place?.poiId ?? place?.destinationPoiId ?? place?.startPoiId ?? place?.publicId ?? null
+  const resolvedIsRegistered = placeDetail?.isRegistered ?? isRegistered ?? false
+  const sheetTitle =
+    place?.parentBuildingName ??
+    place?.displayName ??
+    place?.title ??
+    place?.name ??
+    placeDetail?.name ??
+    '장소명'
 
   useEffect(() => {
-    if (!isOpen || !place || !isRegistered) {
+    if (!isOpen || !place) {
       setPlaceDetail(null)
+      setIsDetailLoading(false)
       setShowPOIs(false)
       setSelectedFloor(null)
       setSelectedPoiId(null)
@@ -30,12 +40,13 @@ export default function MapPoiSheet({
 
     let isActive = true
     setPlaceDetail(null)
+    setIsDetailLoading(true)
     setShowPOIs(false)
     setSelectedFloor(null)
     setSelectedPoiId(null)
 
     getPlaceDetail({
-      placeId: place.placeId ?? null,
+      placeId: place.placeId ?? place.destinationBuildingId ?? null,
       externalApiId: place.externalApiId ?? null,
     })
       .then((detail) => {
@@ -48,17 +59,27 @@ export default function MapPoiSheet({
           setPlaceDetail(null)
         }
       })
+      .finally(() => {
+        if (isActive) {
+          setIsDetailLoading(false)
+        }
+      })
 
     return () => {
       isActive = false
     }
-  }, [isOpen, isRegistered, place?.externalApiId, place?.id, place?.placeId])
+  }, [
+    isOpen,
+    place?.destinationBuildingId,
+    place?.externalApiId,
+    place?.id,
+    place?.placeId,
+  ])
 
   const selectedPoiFromPlace = useMemo(() => {
-    if (!placeDetail || !place || !isRegistered) return null
+    if (!placeDetail || !place || !resolvedIsRegistered) return null
 
-    const selectedPlaceName = normalizeText(place.name ?? place.title ?? '')
-    const selectedPlaceIds = [place.placeId, place.externalApiId, place.id]
+    const selectedPlaceIds = [selectedPoiKeyFromPlace]
       .filter(Boolean)
       .map((value) => String(value))
 
@@ -69,7 +90,11 @@ export default function MapPoiSheet({
       const floorLevel = Number.isFinite(Number(floor?.level)) ? Number(floor.level) : null
 
       return floor.pois.map((poi, index) => ({
-        id: poi.id ?? poi.externalApiId ?? `${floor.floorId ?? floorLevel ?? 'floor'}-${index}`,
+        id:
+          poi.poiId ??
+          poi.id ??
+          poi.externalApiId ??
+          `${floor.floorId ?? floorLevel ?? 'floor'}-${index}`,
         name: poi.name ?? 'POI',
         floor: Number.isFinite(Number(poi.floor))
           ? Number(poi.floor)
@@ -81,12 +106,9 @@ export default function MapPoiSheet({
     return normalizedPois.find((poi) => {
       const poiIds = [poi.id, poi.externalApiId].filter(Boolean).map((value) => String(value))
 
-      return (
-        poiIds.some((value) => selectedPlaceIds.includes(value)) ||
-        normalizeText(poi.name) === selectedPlaceName
-      )
+      return poiIds.some((value) => selectedPlaceIds.includes(value))
     })
-  }, [isRegistered, place, placeDetail])
+  }, [place, placeDetail, resolvedIsRegistered, selectedPoiKeyFromPlace])
 
   const { building, pois } = useMemo(() => {
     const detailFloors = Array.isArray(placeDetail?.floors) ? placeDetail.floors : []
@@ -118,14 +140,15 @@ export default function MapPoiSheet({
 
     return {
       building: {
-        name: placeDetail?.name ?? place?.name ?? '장소명',
+        name: sheetTitle,
         address: placeDetail?.address ?? place?.address ?? '주소 정보 없음',
+        isRegistered: resolvedIsRegistered,
         hasIndoorMap: Boolean(placeDetail?.hasIndoorMap),
         floors: normalizedFloors,
       },
       pois: normalizedPois,
     }
-  }, [place, placeDetail])
+  }, [place, placeDetail, sheetTitle])
 
   const selectedPoi = useMemo(() => {
     if (!selectedPoiId) return selectedPoiFromPlace
@@ -140,15 +163,19 @@ export default function MapPoiSheet({
       return place
     }
 
-    const selectedPoiIdentifier = selectedPoi.externalApiId ?? selectedPoi.id ?? null
+    const selectedPoiIdentifier = selectedPoi.id ?? selectedPoi.externalApiId ?? null
+    const buildingPlaceId = place.placeId ?? place.destinationBuildingId ?? null
 
     return {
       ...place,
+      placeId: buildingPlaceId,
+      poiId: selectedPoiIdentifier,
       name: selectedPoi.name ?? place.name,
       title: selectedPoi.name ?? place.title ?? place.name,
-      publicId: selectedPoiIdentifier,
+      publicId: selectedPoiIdentifier ?? buildingPlaceId,
       startPoiId: selectedPoiIdentifier,
       destinationPoiId: selectedPoiIdentifier,
+      destinationBuildingId: buildingPlaceId,
     }
   }, [place, selectedPoi])
 
@@ -181,7 +208,7 @@ export default function MapPoiSheet({
 
   return (
     <BottomSheetBase isOpen={isOpen} onClose={handleClose}>
-      {isRegistered ? (
+      {isDetailLoading || resolvedIsRegistered ? (
         <BottomSheetPlaceDetail
           isLoggedIn={false}
           building={building}

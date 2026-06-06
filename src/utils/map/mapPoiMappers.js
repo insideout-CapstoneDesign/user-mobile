@@ -16,6 +16,17 @@ function getBasePlaceName(place) {
   return place?.name ?? place?.placeName ?? place?.title ?? '장소명'
 }
 
+function toFiniteNumber(value) {
+  const normalized =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && value.trim() !== ''
+        ? Number(value)
+        : NaN
+
+  return Number.isFinite(normalized) ? normalized : null
+}
+
 function getDisplayName(place, baseName) {
   return (
     place?.displayName ??
@@ -42,8 +53,8 @@ export function mapNearestPlaceToPoi(place) {
     displayName,
     parentBuildingName: place.parentBuildingName ?? null,
     address: place.roadAddress || place.address || '주소 정보 없음',
-    lat: place.lat,
-    lng: place.lng,
+    lat: toFiniteNumber(place.lat),
+    lng: toFiniteNumber(place.lng),
     isRegistered: Boolean(place.isRegistered),
     externalApiId: place.externalApiId ?? null,
   }
@@ -70,8 +81,8 @@ export function mapSearchPlaceToPoi(place) {
     displayName,
     parentBuildingName: place.parentBuildingName ?? null,
     address: place.address ?? place.roadAddress ?? '주소 정보 없음',
-    lat: place.lat,
-    lng: place.lng,
+    lat: toFiniteNumber(place.lat),
+    lng: toFiniteNumber(place.lng),
     isRegistered: Boolean(place.isRegistered),
     externalApiId: place.externalApiId ?? null,
   }
@@ -98,8 +109,8 @@ export function mapRoutePlaceToPoi(place) {
     displayName,
     parentBuildingName: place.parentBuildingName ?? null,
     address: place.address ?? place.roadAddress ?? '주소 정보 없음',
-    lat: place.lat,
-    lng: place.lng,
+    lat: toFiniteNumber(place.lat),
+    lng: toFiniteNumber(place.lng),
     isRegistered: Boolean(place.isRegistered),
     externalApiId: place.externalApiId ?? null,
   }
@@ -122,8 +133,8 @@ export function mapPoiToRoutingPlace(place) {
     displayName,
     parentBuildingName: place.parentBuildingName ?? null,
     address: place.address ?? '주소 정보 없음',
-    lat: place.lat,
-    lng: place.lng,
+    lat: toFiniteNumber(place.lat),
+    lng: toFiniteNumber(place.lng),
     externalApiId: place.externalApiId ?? place.id ?? null,
     isRegistered: Boolean(place.isRegistered),
     publicId: poiId ?? place.externalApiId ?? placeId ?? null,

@@ -37,6 +37,17 @@ function getNowMs() {
   return typeof performance !== 'undefined' ? performance.now() : Date.now()
 }
 
+function toFiniteNumber(value) {
+  const normalized =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && value.trim() !== ''
+        ? Number(value)
+        : NaN
+
+  return Number.isFinite(normalized) ? normalized : null
+}
+
 function mapPlaceToSearchItem(place, idx) {
   const baseName = place.name ?? place.title ?? '장소명'
   const displayName =
@@ -59,16 +70,16 @@ function mapPlaceToSearchItem(place, idx) {
     parentBuildingName: place.parentBuildingName ?? null,
     address: place.roadAddress || place.address || '주소 정보 없음',
     isRegistered: Boolean(place.isRegistered),
-    lat: place.lat,
-    lng: place.lng,
+    lat: toFiniteNumber(place.lat),
+    lng: toFiniteNumber(place.lng),
     externalApiId: place.externalApiId,
     distanceMeters: place.distanceMeters ?? null,
   }
 }
 
 function getPlaceCenter(place, fallbackCenter = null) {
-  const lat = place?.lat
-  const lng = place?.lng
+  const lat = toFiniteNumber(place?.lat)
+  const lng = toFiniteNumber(place?.lng)
 
   if (
     typeof lat === 'number' &&

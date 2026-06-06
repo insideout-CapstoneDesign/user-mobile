@@ -35,6 +35,8 @@ function getDisplayName(place, baseName) {
 }
 
 export function mapNearestPlaceToPoi(place) {
+  if (!place) return null
+
   const baseName = getBasePlaceName(place)
   const placeId = getCanonicalPlaceId(place)
   const poiId = getCanonicalPoiId(place)

@@ -174,29 +174,29 @@ export default function BottomSheetPlaceDetail({
               </PoiTitle>
               <span>{showPOIs ? '▲' : '▼'}</span>
             </PoiToggleButton>
-            {showPOIs ? (
-              <PoiList>
-                {shouldShowPoiSearch ? (
-                  <PoiSearchInput
-                    type="text"
+                {showPOIs ? (
+                  <PoiList>
+                    {shouldShowPoiSearch ? (
+                      <PoiSearchInput
+                        type="text"
                     value={poiKeyword}
                     onChange={(event) => setPoiKeyword(event.target.value)}
                     placeholder="POI 검색"
                     aria-label="POI 검색"
                   />
-                ) : null}
-                {filteredPois.length > 0 ? (
-                  filteredPois.map((poi, idx) => (
-                    <PoiItem
-                      key={poi.id ?? `${poi.name}-${idx}`}
-                      ref={(node) => {
-                        if (!poi.id) return
+                    ) : null}
+                    {filteredPois.length > 0 ? (
+                      filteredPois.map((poi, idx) => (
+                        <PoiItem
+                          key={poi.id ?? `${poi.name}-${idx}`}
+                          ref={(node) => {
+                        if (poi.id == null) return
                         poiItemRefs.current[poi.id] = node
-                      }}
-                      type="button"
-                      $active={selectedPoiId === poi.id}
-                      onClick={() => onSelectPoi?.(poi)}
-                      aria-pressed={selectedPoiId === poi.id}
+                          }}
+                          type="button"
+                          $active={selectedPoiId === poi.id}
+                          onClick={() => onSelectPoi?.(poi)}
+                          aria-pressed={selectedPoiId === poi.id}
                     >
                       <PoiName>{poi.name}</PoiName>
                       <PoiFloor>{poi.floor}층</PoiFloor>

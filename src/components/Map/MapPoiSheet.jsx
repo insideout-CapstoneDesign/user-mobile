@@ -148,7 +148,11 @@ export default function MapPoiSheet({
       const floorLevel = Number.isFinite(Number(floor?.level)) ? Number(floor.level) : null
 
       return floor.pois.map((poi, index) => ({
-        id: poi.id ?? poi.externalApiId ?? `${floor.floorId ?? floorLevel ?? 'floor'}-${index}`,
+        id:
+          poi.poiId ??
+          poi.id ??
+          poi.externalApiId ??
+          `${floor.floorId ?? floorLevel ?? 'floor'}-${index}`,
         name: poi.name ?? 'POI',
         floor: Number.isFinite(Number(poi.floor))
           ? Number(poi.floor)
@@ -167,7 +171,7 @@ export default function MapPoiSheet({
       },
       pois: normalizedPois,
     }
-  }, [place, placeDetail, sheetTitle])
+  }, [place, placeDetail, resolvedIsRegistered, sheetTitle])
 
   const selectedPoi = useMemo(() => {
     if (!selectedPoiId) return selectedPoiFromPlace

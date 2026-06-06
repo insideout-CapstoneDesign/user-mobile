@@ -31,6 +31,11 @@ export const StyledSheetContent = styled(Sheet.Content)`
   padding-bottom: calc(var(--space-20) + env(safe-area-inset-bottom));
   min-height: 0;
   flex: 1 1 auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `
 
 export const SheetBody = styled.div`

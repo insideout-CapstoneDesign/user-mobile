@@ -242,16 +242,6 @@ export default function SearchPage() {
       return
     }
 
-    if (!searchCenter) {
-      invalidatePendingSearch()
-      setIsResultMode(true)
-      setIsLoading(false)
-      setHasSearchError(true)
-      setSearchStateMessage(GEOLOCATION_REQUIRED_MESSAGE)
-      setResultItems([])
-      return
-    }
-
     setIsResultMode(true)
     setIsLoading(true)
     setHasSearchError(false)

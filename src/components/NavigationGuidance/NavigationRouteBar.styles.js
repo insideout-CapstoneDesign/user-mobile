@@ -21,6 +21,7 @@ export const RouteBarSegment = styled.div`
   font-weight: 700;
   line-height: var(--line-16);
   white-space: nowrap;
+  overflow: hidden;
 `
 
 export const RouteBarWalkText = styled.span`
@@ -30,6 +31,10 @@ export const RouteBarWalkText = styled.span`
 `
 
 export const RouteLineBadge = styled.span`
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   border: var(--size-1) solid var(--text-inverse);
   border-radius: var(--space-3);
   padding: 0 var(--space-2);

@@ -6,8 +6,6 @@ import {
   CardMeta,
   CardRoot,
   CardTitle,
-  ProgressDot,
-  ProgressRow,
 } from './GuidanceStepCard.styles'
 
 const SWIPE_THRESHOLD = 42
@@ -15,7 +13,6 @@ const SWIPE_THRESHOLD = 42
 export default function GuidanceStepCard({
   step,
   activeIndex = 0,
-  total = 0,
   onPrevious,
   onNext,
   onClick,
@@ -83,17 +80,6 @@ export default function GuidanceStepCard({
           {meta ? <CardMeta>{meta}</CardMeta> : null}
         </CardContent>
       </CardButton>
-
-      {total > 1 ? (
-        <ProgressRow aria-hidden="true">
-          {Array.from({ length: total }).map((_, index) => (
-            <ProgressDot
-              key={`step-progress-${index}`}
-              $active={index === activeIndex}
-            />
-          ))}
-        </ProgressRow>
-      ) : null}
     </CardRoot>
   )
 }

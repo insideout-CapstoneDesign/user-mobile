@@ -1,5 +1,6 @@
 import { UI_TYPE_BY_LEG_MODE } from '../../constants/navigation'
 import { formatDistance, formatDuration } from '../../utils/navigationFormatters'
+import { isDistanceSummaryInstruction } from '../../utils/navigationStepFilters'
 
 export function normalizeMapLegs(legs, routeContext) {
   return legs.flatMap((leg, legIndex) => {
@@ -33,21 +34,63 @@ export function normalizeTurnByTurnSteps(legs, routeContext) {
   return legs.flatMap((leg, legIndex) => {
     const steps = Array.isArray(leg.steps) ? leg.steps : []
 
-    return steps.map((step, stepIndex) =>
-      normalizeStep(step, {
-        ...routeContext,
-        legIndex,
-        stepIndex,
-        leg,
-        floorId: leg.floorId ?? null,
-        floorName: leg.floorName ?? null,
-      }),
-    )
+    return steps
+      .map((step, stepIndex) =>
+        normalizeStep(step, {
+          ...routeContext,
+          legIndex,
+          stepIndex,
+          leg,
+          floorId: leg.floorId ?? null,
+          floorName: leg.floorName ?? null,
+        }),
+      )
+      .filter(shouldShowTurnByTurnStep)
   })
 }
 
-export function modeToUiType(mode) {
-  return UI_TYPE_BY_LEG_MODE[String(mode ?? '').toUpperCase()] ?? 'point'
+function shouldShowTurnByTurnStep(step = {}) {
+  return !isMetaOnlyStep(step) && !isRouteSegmentSummaryStep(step)
+}
+
+function isRouteSegmentSummaryStep(step = {}) {
+  return isDistanceSummaryInstruction(step.instruction)
+}
+
+function isMetaOnlyStep(step = {}) {
+  const instruction = String(step.instruction ?? '').trim()
+  const hasMeta = [step.distanceText, step.durationText, step.floorName].some(Boolean)
+
+  return !instruction && hasMeta
+}
+
+function normalizeStep(step, context) {
+  const mode = step.mode ?? context.leg?.mode
+  const segmentPart =
+    context.segmentIndex === undefined ? '' : `-segment-${context.segmentIndex}`
+
+  return {
+    id: `${context.routeId}-leg-${context.legIndex}${segmentPart}-step-${context.stepIndex}`,
+    routeId: context.routeId,
+    routeType: context.routeType,
+    routeOption: context.routeOption,
+    legIndex: context.legIndex,
+    stepIndex: context.stepIndex,
+    type: modeToUiType(mode),
+    instruction: step.instruction ?? '',
+    distanceMeters: step.distanceMeters ?? null,
+    durationSeconds: step.durationSeconds ?? null,
+    distanceText: formatDistance(step.distanceMeters),
+    durationText: formatDuration(step.durationSeconds),
+    x: step.x ?? null,
+    y: step.y ?? null,
+    turnType: step.turnType ?? null,
+    mode,
+    streetName: step.streetName ?? null,
+    floorId: context.floorId,
+    floorName: context.floorName,
+    raw: step,
+  }
 }
 
 function normalizeMapSegment(segment, leg, context) {
@@ -84,31 +127,6 @@ function normalizeMapSegment(segment, leg, context) {
   }
 }
 
-function normalizeStep(step, context) {
-  const mode = step.mode ?? context.leg?.mode
-  const segmentPart =
-    context.segmentIndex === undefined ? '' : `-segment-${context.segmentIndex}`
-
-  return {
-    id: `${context.routeId}-leg-${context.legIndex}${segmentPart}-step-${context.stepIndex}`,
-    routeId: context.routeId,
-    routeType: context.routeType,
-    routeOption: context.routeOption,
-    legIndex: context.legIndex,
-    stepIndex: context.stepIndex,
-    type: modeToUiType(mode),
-    instruction: step.instruction ?? '',
-    distanceMeters: step.distanceMeters ?? null,
-    durationSeconds: step.durationSeconds ?? null,
-    distanceText: formatDistance(step.distanceMeters),
-    durationText: formatDuration(step.durationSeconds),
-    x: step.x ?? null,
-    y: step.y ?? null,
-    turnType: step.turnType ?? null,
-    mode,
-    streetName: step.streetName ?? null,
-    floorId: context.floorId,
-    floorName: context.floorName,
-    raw: step,
-  }
+export function modeToUiType(mode) {
+  return UI_TYPE_BY_LEG_MODE[String(mode ?? '').toUpperCase()] ?? 'point'
 }

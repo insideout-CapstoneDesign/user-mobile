@@ -10,7 +10,6 @@ export default function NavigationMapOverlay({
   destination = '목적지',
   step,
   activeIndex,
-  total,
   onBack,
   onClose,
   onRouteClick,
@@ -32,7 +31,6 @@ export default function NavigationMapOverlay({
         <GuidanceStepCard
           step={step}
           activeIndex={activeIndex}
-          total={total}
           onPrevious={onPrevious}
           onNext={onNext}
           onClick={onRouteClick}

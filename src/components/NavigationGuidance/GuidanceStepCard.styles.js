@@ -47,21 +47,3 @@ export const CardMeta = styled.span`
   font-size: var(--text-12);
   line-height: var(--line-16);
 `
-
-export const ProgressRow = styled.div`
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  max-width: 100%;
-  padding: 0 var(--space-8);
-  overflow: hidden;
-`
-
-export const ProgressDot = styled.span`
-  width: ${({ $active }) => ($active ? '1.125rem' : 'var(--space-6)')};
-  height: var(--space-6);
-  border-radius: var(--radius-pill);
-  background: ${({ $active }) => ($active ? 'var(--blue-600)' : 'rgba(54, 65, 83, 0.22)')};
-  transition: width 0.16s ease, background 0.16s ease;
-`

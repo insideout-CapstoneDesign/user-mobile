@@ -17,7 +17,6 @@ import {
   RoutePointDot,
   RouteListViewport,
   RouteSectionTitle,
-  RouteStepConnector,
   RouteStepContent,
   RouteStepIconColumn,
   RouteStepItem,
@@ -28,6 +27,13 @@ import {
   StickyActionSection,
   TypeContainer,
 } from './BottomSheetTypes.styles'
+
+const STEP_COLOR_BY_TYPE = {
+  bus: 'var(--green-500)',
+  subway: 'var(--blue-900)',
+  car: 'var(--blue-500)',
+  walk: 'var(--gray-600)',
+}
 
 export default function BottomSheetRouteOptions({
   options = [],
@@ -44,19 +50,9 @@ export default function BottomSheetRouteOptions({
   const selectedOption =
     options.find((option) => option.id === selectedOptionId) ?? defaultOption
 
-  const renderStepIcon = (step) => {
-    if (step.type === 'bus') return <FaBus size={12} />
-    if (step.type === 'subway') return <FaSubway size={12} />
-    if (step.type === 'car') return <FaCarAlt size={12} />
-    return <RoutePointDot />
-  }
-
-  const stepColorByType = (type) => {
-    if (type === 'bus') return 'var(--green-500)'
-    if (type === 'subway') return 'var(--blue-900)'
-    if (type === 'car') return 'var(--blue-500)'
-    if (type === 'walk') return 'var(--gray-600)'
-    return 'var(--gray-400)'
+  const handleSelectOption = (option) => {
+    setInternalSelectedOptionId(option.id)
+    onSelectOption?.(option)
   }
 
   return (
@@ -71,55 +67,12 @@ export default function BottomSheetRouteOptions({
                 key={option.id}
                 type="button"
                 $active={selectedOption?.id === option.id}
-                onClick={() => {
-                  setInternalSelectedOptionId(option.id)
-                  onSelectOption?.(option)
-                }}
+                onClick={() => handleSelectOption(option)}
               >
                 {mode === 'transit' ? (
-                  <>
-                    <RouteCardHead>
-                      <RouteTimeText>{option.totalTime}</RouteTimeText>
-                      <FaChevronRight color="var(--gray-400)" size={14} />
-                    </RouteCardHead>
-
-                    <RouteBarSlot>
-                      <NavigationRouteBar segments={option.segments} />
-                    </RouteBarSlot>
-
-                    <RouteSteps>
-                      {option.steps.map((step, index) => (
-                        <RouteStepItem key={`${option.id}-step-${index}`}>
-                          <RouteStepIconColumn $color={stepColorByType(step.type)}>
-                            {renderStepIcon(step)}
-                            {index < option.steps.length - 1 ? <RouteStepConnector /> : null}
-                          </RouteStepIconColumn>
-                          <RouteStepContent>
-                            <RouteStepTitle>{step.name}</RouteStepTitle>
-                            {step.sub ? <RouteStepSub>{step.sub}</RouteStepSub> : null}
-                          </RouteStepContent>
-                        </RouteStepItem>
-                      ))}
-                    </RouteSteps>
-                  </>
+                  <TransitRouteOption option={option} />
                 ) : (
-                  <>
-                    <RouteCardHead>
-                      <div>
-                        <RouteOptionName>{option.name}</RouteOptionName>
-                        <RouteOptionMetaRow>
-                          {option.time ? <RouteOptionTime>{option.time}</RouteOptionTime> : null}
-                          {option.distance ? (
-                            <RouteOptionDistance>{option.distance}</RouteOptionDistance>
-                          ) : null}
-                        </RouteOptionMetaRow>
-                        {option.extraInfo ? (
-                          <RouteOptionExtra>{option.extraInfo}</RouteOptionExtra>
-                        ) : null}
-                      </div>
-                      <FaChevronRight color="var(--gray-400)" size={14} />
-                    </RouteCardHead>
-                  </>
+                  <StandardRouteOption option={option} />
                 )}
               </RouteCard>
             ))}
@@ -142,4 +95,77 @@ export default function BottomSheetRouteOptions({
       </RouteOptionsBody>
     </TypeContainer>
   )
+}
+
+function TransitRouteOption({ option }) {
+  return (
+    <>
+      <RouteCardHead>
+        <RouteTimeText>{option.totalTime}</RouteTimeText>
+        <RouteChevron />
+      </RouteCardHead>
+
+      <RouteBarSlot>
+        <NavigationRouteBar segments={option.segments} />
+      </RouteBarSlot>
+
+      <RouteSteps>
+        {option.steps.map((step, index) => (
+          <RouteStep
+            key={`${option.id}-step-${index}`}
+            step={step}
+          />
+        ))}
+      </RouteSteps>
+    </>
+  )
+}
+
+function StandardRouteOption({ option }) {
+  return (
+    <RouteCardHead>
+      <div>
+        <RouteOptionName>{option.name}</RouteOptionName>
+        <RouteOptionMetaRow>
+          {option.time ? <RouteOptionTime>{option.time}</RouteOptionTime> : null}
+          {option.distance ? (
+            <RouteOptionDistance>{option.distance}</RouteOptionDistance>
+          ) : null}
+        </RouteOptionMetaRow>
+        {option.extraInfo ? (
+          <RouteOptionExtra>{option.extraInfo}</RouteOptionExtra>
+        ) : null}
+      </div>
+      <RouteChevron />
+    </RouteCardHead>
+  )
+}
+
+function RouteStep({ step }) {
+  return (
+    <RouteStepItem>
+      <RouteStepIconColumn $color={getStepColor(step.type)}>
+        <RouteStepIcon type={step.type} />
+      </RouteStepIconColumn>
+      <RouteStepContent>
+        <RouteStepTitle>{step.name}</RouteStepTitle>
+        {step.sub ? <RouteStepSub>{step.sub}</RouteStepSub> : null}
+      </RouteStepContent>
+    </RouteStepItem>
+  )
+}
+
+function RouteStepIcon({ type }) {
+  if (type === 'bus') return <FaBus size={12} />
+  if (type === 'subway') return <FaSubway size={12} />
+  if (type === 'car') return <FaCarAlt size={12} />
+  return <RoutePointDot />
+}
+
+function RouteChevron() {
+  return <FaChevronRight color="var(--gray-400)" size={14} />
+}
+
+function getStepColor(type) {
+  return STEP_COLOR_BY_TYPE[type] ?? 'var(--gray-400)'
 }

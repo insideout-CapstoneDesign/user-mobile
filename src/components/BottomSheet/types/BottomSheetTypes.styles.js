@@ -271,22 +271,31 @@ export const RouteOptionsBody = styled.div`
   gap: var(--space-12);
   min-height: 0;
   max-height: min(58dvh, 31rem);
+  width: 100%;
 `
 
 export const RouteListViewport = styled.div`
+  width: 100%;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  padding-right: var(--space-2);
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `
 
 export const RouteList = styled.div`
+  width: 100%;
   display: grid;
   gap: var(--space-10);
 `
 
 export const RouteCard = styled.button`
+  box-sizing: border-box;
+  width: 100%;
   border: var(--size-1) solid
     ${({ $active }) => ($active ? 'var(--blue-600)' : 'var(--gray-200)')};
   background: ${({ $active }) => ($active ? 'var(--blue-50)' : 'var(--surface-0)')};
@@ -303,78 +312,51 @@ export const RouteCardHead = styled.div`
 `
 
 export const RouteTimeText = styled.strong`
-  color: var(--black-900);
-  font-size: var(--text-16);
-`
-
-export const RouteBar = styled.div`
-  margin-top: var(--space-10);
-  display: flex;
-  gap: var(--space-3);
+  color: var(--blue-600);
+  font-size: var(--text-20);
+  font-weight: 600;
+  line-height: var(--line-20);
+  letter-spacing: -0.01em;
 `
 
 export const RouteBarSlot = styled.div`
   margin-top: var(--space-10);
 `
 
-export const RouteBarSegment = styled.div`
-  flex: ${({ $weight }) => Math.max($weight, 1)};
-  min-width: var(--size-36);
-  border-radius: var(--radius-5);
-  background: ${({ $bg }) => $bg || 'var(--gray-500)'};
-  color: var(--text-inverse);
-  min-height: var(--size-26);
-  padding: var(--space-4) var(--space-6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  font-size: var(--text-11);
-  font-weight: 600;
-`
-
-export const RouteBarWalkText = styled.span`
-  color: var(--gray-700);
-  font-size: var(--text-11);
-  font-weight: 600;
-`
-
-export const RouteLineBadge = styled.span`
-  border: var(--size-1) solid var(--text-inverse);
-  border-radius: var(--radius-4);
-  padding: 0 var(--space-4);
-  line-height: 1.2;
-`
-
 export const RouteSteps = styled.div`
   margin-top: var(--space-10);
   display: grid;
-  gap: var(--space-8);
+  gap: var(--space-10);
 `
 
 export const RouteStepItem = styled.div`
+  position: relative;
   display: grid;
   grid-template-columns: var(--size-18) 1fr;
   gap: var(--space-8);
   align-items: start;
+
+  &:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    top: var(--space-20);
+    bottom: calc(-1 * var(--space-20));
+    left: calc(var(--size-18) / 2);
+    width: var(--space-3);
+    background-image: radial-gradient(circle, var(--gray-200) 1.25px, transparent 1.25px);
+    background-size: var(--space-3) var(--space-10);
+    background-repeat: repeat-y;
+    transform: translateX(-50%);
+  }
 `
 
 export const RouteStepIconColumn = styled.div`
   position: relative;
+  z-index: 1;
   display: flex;
   justify-content: center;
   padding-top: var(--space-2);
   color: ${({ $color }) => $color || 'var(--gray-400)'};
-`
-
-export const RouteStepConnector = styled.span`
-  position: absolute;
-  top: var(--size-18);
-  left: 50%;
-  width: var(--size-1);
-  height: var(--space-14);
-  transform: translateX(-50%);
-  background: var(--gray-200);
 `
 
 export const RoutePointDot = styled.span`
@@ -394,11 +376,14 @@ export const RouteStepTitle = styled.span`
   color: var(--black-900);
   font-size: var(--text-13);
   font-weight: 600;
+  line-height: var(--line-16);
+  overflow-wrap: anywhere;
 `
 
 export const RouteStepSub = styled.span`
   color: var(--gray-500);
-  font-size: var(--text-12);
+  font-size: var(--text-13);
+  line-height: var(--line-16);
 `
 
 export const RouteEmptyText = styled.p`

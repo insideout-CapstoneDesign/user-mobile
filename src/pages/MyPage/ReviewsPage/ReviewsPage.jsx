@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import BottomNav from '../../../components/BottomNav/BottomNav'
 import CommonHeader from '../../../components/CommonHeader/CommonHeader'
 import RatingStars from '../../../components/My/RatingStars'
-import { mockMyReviews } from '../../../mocks/my/myPage.mock'
+import { mockMyReviews } from '../../../mocks/review.mock'
 import getBottomNavRoute from '../../../utils/navigation/bottomNavRoute'
 import './ReviewsPage.css'
 

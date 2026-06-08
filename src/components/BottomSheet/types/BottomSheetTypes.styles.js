@@ -1,10 +1,24 @@
 import styled from 'styled-components'
 
 export const TypeContainer = styled.div`
-  display: grid;
+  display: ${({ $scrollLayout }) => ($scrollLayout ? 'flex' : 'grid')};
+  flex-direction: ${({ $scrollLayout }) => ($scrollLayout ? 'column' : 'initial')};
   gap: ${({ $compact }) => ($compact ? 'var(--space-6)' : 'var(--space-12)')};
   min-width: 0;
   overflow-x: hidden;
+  min-height: ${({ $scrollLayout }) => ($scrollLayout ? '0' : 'auto')};
+  height: ${({ $scrollLayout }) => ($scrollLayout ? '100%' : 'auto')};
+`
+
+export const DetailScrollArea = styled.div`
+  display: grid;
+  gap: var(--space-12);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding-right: var(--space-2);
 `
 
 export const TypeTitle = styled.h3`
@@ -133,8 +147,10 @@ export const PoiList = styled.div`
 `
 
 export const PoiItem = styled.button`
-  border: none;
-  background: var(--surface-50);
+  border: var(--size-1) solid
+    ${({ $active }) => ($active ? 'var(--blue-600)' : 'transparent')};
+  background: ${({ $active }) =>
+    $active ? 'var(--blue-50)' : 'var(--surface-50)'};
   border-radius: var(--radius-10);
   display: flex;
   align-items: center;
@@ -232,8 +248,8 @@ export const ActionTitle = styled.p`
 `
 
 export const StickyActionSection = styled.div`
-  position: sticky;
-  bottom: calc(-1 * var(--space-20));
+  position: ${({ $sticky = true }) => ($sticky ? 'sticky' : 'static')};
+  bottom: ${({ $sticky = true }) => ($sticky ? 'calc(-1 * var(--space-20))' : 'auto')};
   margin: 0 calc(-1 * var(--space-16));
   padding: var(--space-12) var(--space-16)
     calc(var(--space-12) + env(safe-area-inset-bottom));

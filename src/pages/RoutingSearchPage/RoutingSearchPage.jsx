@@ -83,6 +83,11 @@ export default function RoutingSearchPage() {
           mapLevel,
         },
       })
+      return
+    }
+
+    if (key === 'my') {
+      navigate('/my')
     }
   }
 

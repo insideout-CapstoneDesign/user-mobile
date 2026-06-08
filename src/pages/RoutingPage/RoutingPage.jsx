@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
@@ -9,9 +9,7 @@ import MapPoiSheet from '../../components/Map/MapPoiSheet'
 import SearchInput from '../../components/SearchInput/SearchInput'
 import { ROUTES } from '../../constants/routes'
 import { mockMapPois } from '../../mocks/map/poi.mock'
-import { mockSearchPlaces } from '../../mocks/search/searchPage.mock'
-import isRegisteredPlace from '../../utils/map/isRegisteredPlace'
-import { resolvePoiFromSearch } from '../../utils/map/searchPoiResolver'
+import { mapSearchPlaceToPoi } from '../../utils/map/mapPoiMappers'
 import { getRoutingGuidanceState } from '../../utils/routing/routingGuidanceState'
 import RoutingGuidanceLayer from './components/RoutingGuidanceLayer'
 import RoutingOptionLayer from './components/RoutingOptionLayer'
@@ -21,10 +19,11 @@ import './RoutingPage.css'
 export default function RoutingPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const selectedSearchPlace = location.state?.selectedSearchPlace
+  const selectedSearchPlace = location.state?.selectedSearchPlace ?? null
+  const selectedMapPlace = location.state?.selectedMapPlace ?? null
   const routingGuidanceState = getRoutingGuidanceState(location.state)
   const [selectedPoi, setSelectedPoi] = useState(() =>
-    resolvePoiFromSearch(selectedSearchPlace, mockMapPois),
+    mapSearchPlaceToPoi(selectedSearchPlace ?? selectedMapPlace),
   )
   const routing = useRoutingController(
     routingGuidanceState
@@ -50,14 +49,11 @@ export default function RoutingPage() {
     routeSheetOpen,
     transportMode,
   } = routing
-  const registeredPlaces = useMemo(
-    () => mockSearchPlaces.filter((place) => place.isRegistered),
-    [],
-  )
-  const isSelectedPoiRegistered = useMemo(
-    () => isRegisteredPlace(selectedPoi, registeredPlaces),
-    [registeredPlaces, selectedPoi],
-  )
+  const isSelectedPoiRegistered = Boolean(selectedPoi?.isRegistered)
+
+  useEffect(() => {
+    setSelectedPoi(mapSearchPlaceToPoi(selectedSearchPlace ?? selectedMapPlace))
+  }, [selectedMapPlace, selectedSearchPlace])
 
   const closePoiSheet = () => {
     setSelectedPoi(null)

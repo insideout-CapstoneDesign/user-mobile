@@ -25,10 +25,12 @@ export const StyledSheetContent = styled(Sheet.Content)`
   flex-direction: column;
   padding: 0 var(--space-16) var(--space-20);
   max-height: calc(100dvh - var(--sheet-handle-offset));
-  overflow-y: auto;
+  overflow-y: ${({ $scrollable = true }) => ($scrollable ? 'auto' : 'hidden')};
   overflow-x: hidden;
   overscroll-behavior: contain;
   padding-bottom: calc(var(--space-20) + env(safe-area-inset-bottom));
+  min-height: 0;
+  flex: 1 1 auto;
   scrollbar-width: none;
 
   &::-webkit-scrollbar {
@@ -37,10 +39,13 @@ export const StyledSheetContent = styled(Sheet.Content)`
 `
 
 export const SheetBody = styled.div`
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-8);
   color: var(--gray-700);
   width: 100%;
   min-width: 0;
   overflow-x: hidden;
+  min-height: 0;
+  height: ${({ $scrollable = true }) => ($scrollable ? 'auto' : '100%')};
 `

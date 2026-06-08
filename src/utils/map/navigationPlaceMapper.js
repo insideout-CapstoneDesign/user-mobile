@@ -12,6 +12,9 @@ export function toNavigationPlace(place, role = 'destination') {
 
   const x = firstNumber(place.x, place.lng, place.longitude)
   const y = firstNumber(place.y, place.lat, place.latitude)
+  const poiId = place.poiId ?? place.destinationPoiId ?? place.startPoiId ?? place.publicId ?? null
+  const buildingId =
+    place.destinationBuildingId ?? place.placeId ?? place.buildingPlaceId ?? place.buildingId ?? null
 
   if (x === null || y === null) {
     return null
@@ -23,9 +26,11 @@ export function toNavigationPlace(place, role = 'destination') {
     name: place.name ?? place.title ?? '장소',
     role,
     source: place,
-    startPoiId: place.startPoiId ?? place.publicId ?? place.destinationPoiId,
-    destinationBuildingId: place.destinationBuildingId ?? place.buildingId,
-    destinationPoiId: place.destinationPoiId ?? place.publicId,
+    placeId: buildingId,
+    poiId,
+    startPoiId: place.startPoiId ?? poiId,
+    destinationBuildingId: buildingId,
+    destinationPoiId: place.destinationPoiId ?? poiId,
   }
 }
 

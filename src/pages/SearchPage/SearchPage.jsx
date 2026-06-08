@@ -37,17 +37,60 @@ function getNowMs() {
   return typeof performance !== 'undefined' ? performance.now() : Date.now()
 }
 
+function toFiniteNumber(value) {
+  const normalized =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && value.trim() !== ''
+        ? Number(value)
+        : NaN
+
+  return Number.isFinite(normalized) ? normalized : null
+}
+
 function mapPlaceToSearchItem(place, idx) {
+  const baseName = place.name ?? place.title ?? '장소명'
+  const displayName =
+    place.displayName ??
+    (place.parentBuildingName ? `${place.parentBuildingName} · ${baseName}` : null)
+  const placeId = place.placeId ?? place.destinationBuildingId ?? place.buildingPlaceId ?? null
+  const poiId = place.poiId ?? place.destinationPoiId ?? place.startPoiId ?? null
+
   return {
-    id: place.externalApiId ?? `${place.name}-${idx}`,
-    title: place.name,
+    placeId,
+    poiId,
+    publicId: place.publicId ?? place.externalApiId ?? poiId ?? placeId ?? null,
+    startPoiId: place.startPoiId ?? poiId,
+    destinationPoiId: place.destinationPoiId ?? poiId,
+    destinationBuildingId: place.destinationBuildingId ?? place.placeId ?? null,
+    id: place.externalApiId ?? poiId ?? placeId ?? `${baseName}-${idx}`,
+    name: baseName,
+    title: baseName,
+    displayName,
+    parentBuildingName: place.parentBuildingName ?? null,
     address: place.roadAddress || place.address || '주소 정보 없음',
     isRegistered: Boolean(place.isRegistered),
-    lat: place.lat,
-    lng: place.lng,
+    lat: toFiniteNumber(place.lat),
+    lng: toFiniteNumber(place.lng),
     externalApiId: place.externalApiId,
     distanceMeters: place.distanceMeters ?? null,
   }
+}
+
+function getPlaceCenter(place, fallbackCenter = null) {
+  const lat = toFiniteNumber(place?.lat)
+  const lng = toFiniteNumber(place?.lng)
+
+  if (
+    typeof lat === 'number' &&
+    Number.isFinite(lat) &&
+    typeof lng === 'number' &&
+    Number.isFinite(lng)
+  ) {
+    return { lat, lng }
+  }
+
+  return fallbackCenter
 }
 
 export default function SearchPage() {
@@ -261,6 +304,8 @@ export default function SearchPage() {
   }
 
   const handleSelectResult = (selectedPlace) => {
+    const selectedMapCenter = getPlaceCenter(selectedPlace, mapCenter)
+
     if (searchMode === SEARCH_MODES.ROUTE) {
       const nextOrigin = routeField === 'origin' ? selectedPlace : routeOrigin
       const nextDestination =
@@ -274,7 +319,7 @@ export default function SearchPage() {
           routeOrigin: nextOrigin,
           routeDestination: nextDestination,
           selectedMapPlace,
-          mapCenter,
+          mapCenter: selectedMapCenter,
           mapLevel,
           selectedRouteField: routeField,
         },
@@ -283,16 +328,16 @@ export default function SearchPage() {
     }
 
     navigate(ROUTES.MAP, {
-      state: {
-        selectedSearchPlace: selectedPlace,
-        openSheetFrom: 'search-result',
-        routeOrigin,
-        routeDestination,
-        mapCenter,
-        mapLevel,
-        selectedMapPlace,
-      },
-    })
+        state: {
+          selectedSearchPlace: selectedPlace,
+          openSheetFrom: 'search-result',
+          routeOrigin,
+          routeDestination,
+          mapCenter: selectedMapCenter,
+          mapLevel,
+          selectedMapPlace,
+        },
+      })
   }
 
   return (

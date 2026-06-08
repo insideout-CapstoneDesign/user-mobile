@@ -1,27 +1,118 @@
+function getCanonicalPlaceId(place) {
+  return (
+    place?.placeId ??
+    place?.destinationBuildingId ??
+    place?.buildingPlaceId ??
+    place?.buildingId ??
+    null
+  )
+}
+
+function getCanonicalPoiId(place) {
+  return place?.poiId ?? place?.destinationPoiId ?? place?.startPoiId ?? null
+}
+
+function getBasePlaceName(place) {
+  return place?.name ?? place?.placeName ?? place?.title ?? '장소명'
+}
+
+function toFiniteNumber(value) {
+  const normalized =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && value.trim() !== ''
+        ? Number(value)
+        : NaN
+
+  return Number.isFinite(normalized) ? normalized : null
+}
+
+function getDisplayName(place, baseName) {
+  return (
+    place?.displayName ??
+    (place?.parentBuildingName ? `${place.parentBuildingName} · ${baseName}` : null)
+  )
+}
+
 export function mapNearestPlaceToPoi(place) {
+  if (!place) return null
+
+  const baseName = getBasePlaceName(place)
+  const placeId = getCanonicalPlaceId(place)
+  const poiId = getCanonicalPoiId(place)
+  const displayName = getDisplayName(place, baseName)
+
   return {
-    id:
-      place.externalApiId ??
-      place.id ??
-      `${place.name ?? place.placeName ?? 'place'}-${place.lat}-${place.lng}`,
-    name: place.name ?? place.placeName ?? place.title ?? '장소명',
+    id: place.externalApiId ?? poiId ?? placeId ?? `${baseName}-${place.lat}-${place.lng}`,
+    placeId,
+    poiId,
+    publicId: poiId ?? place.externalApiId ?? placeId ?? null,
+    startPoiId: place.startPoiId ?? poiId,
+    destinationPoiId: place.destinationPoiId ?? poiId,
+    destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
+    name: baseName,
+    title: baseName,
+    displayName,
+    parentBuildingName: place.parentBuildingName ?? null,
     address: place.roadAddress || place.address || '주소 정보 없음',
-    lat: place.lat,
-    lng: place.lng,
+    lat: toFiniteNumber(place.lat),
+    lng: toFiniteNumber(place.lng),
     isRegistered: Boolean(place.isRegistered),
-    externalApiId: place.externalApiId,
+    externalApiId: place.externalApiId ?? null,
+  }
+}
+
+export function mapSearchPlaceToPoi(place) {
+  if (!place) return null
+
+  const baseName = getBasePlaceName(place)
+  const placeId = getCanonicalPlaceId(place)
+  const poiId = getCanonicalPoiId(place)
+  const displayName = getDisplayName(place, baseName)
+
+  return {
+    id: place.externalApiId ?? poiId ?? placeId ?? `search-${baseName}`,
+    placeId,
+    poiId,
+    publicId: poiId ?? place.externalApiId ?? placeId ?? null,
+    startPoiId: place.startPoiId ?? poiId,
+    destinationPoiId: place.destinationPoiId ?? poiId,
+    destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
+    name: baseName,
+    title: baseName,
+    displayName,
+    parentBuildingName: place.parentBuildingName ?? null,
+    address: place.address ?? place.roadAddress ?? '주소 정보 없음',
+    lat: toFiniteNumber(place.lat),
+    lng: toFiniteNumber(place.lng),
+    isRegistered: Boolean(place.isRegistered),
+    externalApiId: place.externalApiId ?? null,
   }
 }
 
 export function mapRoutePlaceToPoi(place) {
   if (!place) return null
 
+  const baseName = getBasePlaceName(place)
+  const placeId = getCanonicalPlaceId(place)
+  const poiId = getCanonicalPoiId(place)
+  const displayName = getDisplayName(place, baseName)
+
   return {
-    id: place.externalApiId ?? place.id ?? `route-${place.name ?? place.title ?? 'place'}`,
-    name: place.name ?? place.title ?? '장소명',
+    id: place.externalApiId ?? poiId ?? placeId ?? `route-${baseName}`,
+    placeId,
+    poiId,
+    publicId: poiId ?? place.externalApiId ?? placeId ?? null,
+    startPoiId: place.startPoiId ?? poiId,
+    destinationPoiId: place.destinationPoiId ?? poiId,
+    destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
+    name: baseName,
+    title: baseName,
+    displayName,
+    parentBuildingName: place.parentBuildingName ?? null,
     address: place.address ?? place.roadAddress ?? '주소 정보 없음',
-    lat: place.lat,
-    lng: place.lng,
+    lat: toFiniteNumber(place.lat),
+    lng: toFiniteNumber(place.lng),
     isRegistered: Boolean(place.isRegistered),
     externalApiId: place.externalApiId ?? null,
   }
@@ -30,15 +121,28 @@ export function mapRoutePlaceToPoi(place) {
 export function mapPoiToRoutingPlace(place) {
   if (!place) return null
 
+  const baseName = getBasePlaceName(place)
+  const placeId = getCanonicalPlaceId(place)
+  const poiId = getCanonicalPoiId(place)
+  const displayName = getDisplayName(place, baseName)
+
   return {
     ...place,
-    name: place.name ?? place.title ?? '장소',
-    title: place.name ?? place.title ?? '장소',
+    placeId,
+    poiId,
+    name: baseName,
+    title: baseName,
+    displayName,
+    parentBuildingName: place.parentBuildingName ?? null,
     address: place.address ?? '주소 정보 없음',
-    lat: place.lat,
-    lng: place.lng,
+    lat: toFiniteNumber(place.lat),
+    lng: toFiniteNumber(place.lng),
     externalApiId: place.externalApiId ?? place.id ?? null,
     isRegistered: Boolean(place.isRegistered),
+    publicId: poiId ?? place.externalApiId ?? placeId ?? null,
+    startPoiId: place.startPoiId ?? poiId ?? null,
+    destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
+    destinationPoiId: place.destinationPoiId ?? poiId ?? null,
   }
 }
 

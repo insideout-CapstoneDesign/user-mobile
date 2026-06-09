@@ -133,6 +133,15 @@ function normalizeLegPath(leg) {
     return leg.path
   }
 
+  const stops = Array.isArray(leg?.stops) ? leg.stops : []
+  const stopPath = stops
+    .map((stop) => ({ x: stop?.x, y: stop?.y, name: stop?.name ?? null }))
+    .filter(isValidGeographicPoint)
+
+  if (stopPath.length >= 2) {
+    return stopPath
+  }
+
   const steps = Array.isArray(leg?.steps) ? leg.steps : []
   return steps
     .map((step) => ({ x: step?.x, y: step?.y, name: step?.instruction ?? null }))

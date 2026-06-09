@@ -1,12 +1,5 @@
 import { useEffect, useRef } from 'react'
-
-const ROUTE_STYLE_BY_MODE = {
-  bus: '#2563eb',
-  car: '#2563eb',
-  campus: '#0f766e',
-  subway: '#7c3aed',
-  walk: '#16a34a',
-}
+import { getRouteDisplayColor } from '../../components/NavigationGuidance/routeColor'
 
 export default function useKakaoRouteOverlays({
   map,
@@ -48,7 +41,7 @@ export default function useKakaoRouteOverlays({
       const routeLine = new kakaoMaps.Polyline({
         map,
         path,
-        strokeWeight: 6,
+        strokeWeight: resolveStrokeWeight(leg),
         strokeColor: resolveRouteColor(leg),
         strokeOpacity: 0.92,
         strokeStyle: 'solid',
@@ -87,16 +80,36 @@ function isValidGeographicPoint(point) {
 }
 
 function resolveRouteColor(leg) {
-  if (typeof leg?.routeColor === 'string' && leg.routeColor.trim()) {
-    return normalizeHexColor(leg.routeColor)
+  if (String(leg?.mode ?? '').toLowerCase() === 'walk') {
+    return resolveCssColor('var(--gray-600)')
   }
 
-  return ROUTE_STYLE_BY_MODE[String(leg?.mode ?? '').toLowerCase()] ?? '#2563eb'
+  return resolveCssColor(getRouteDisplayColor(
+    String(leg?.mode ?? '').toLowerCase(),
+    leg?.routeColor ?? leg?.color,
+  ))
 }
 
-function normalizeHexColor(color) {
-  const trimmed = color.trim()
-  return trimmed.startsWith('#') ? trimmed : `#${trimmed}`
+function resolveStrokeWeight(leg) {
+  return String(leg?.mode ?? '').toLowerCase() === 'walk' ? 5 : 6
+}
+
+function resolveCssColor(color) {
+  if (typeof color !== 'string') {
+    return '#2563eb'
+  }
+
+  const variableMatch = color.match(/^var\((--[^),]+)\)$/)
+  if (!variableMatch) {
+    return color
+  }
+
+  const resolvedColor = window
+    .getComputedStyle(document.documentElement)
+    .getPropertyValue(variableMatch[1])
+    .trim()
+
+  return resolvedColor || color
 }
 
 function clearOverlays(overlaysRef) {

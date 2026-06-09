@@ -17,6 +17,9 @@ import RoutingOptionLayer from './components/RoutingOptionLayer'
 import useRoutingController from './useRoutingController'
 import './RoutingPage.css'
 
+const ROUTE_OPTION_SNAP_POINTS = [0, 96, 0.58, 1]
+const ROUTE_OPTION_INITIAL_SNAP = 2
+
 export default function RoutingPage() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -169,7 +172,14 @@ export default function RoutingPage() {
         onArrival={routing.selectArrival}
       />
 
-      <BottomSheetBase isOpen={routeSheetOpen} onClose={routing.closeRouteSheet}>
+      <BottomSheetBase
+        isOpen={routeSheetOpen}
+        onClose={routing.closeRouteSheet}
+        showBackdrop={false}
+        snapPoints={ROUTE_OPTION_SNAP_POINTS}
+        initialSnap={ROUTE_OPTION_INITIAL_SNAP}
+        dismissible={false}
+      >
         <BottomSheetRouteOptions
           mode={transportMode}
           options={navigationRoute.routeOptions}

@@ -15,6 +15,7 @@ export default function BottomSheetBase({
   initialSnap,
   showBackdrop = true,
   scrollableContent = true,
+  dismissible = true,
 }) {
   return (
     <Sheet
@@ -23,6 +24,7 @@ export default function BottomSheetBase({
       detent={detent}
       snapPoints={snapPoints}
       initialSnap={initialSnap}
+      disableDismiss={!dismissible}
     >
       <StyledSheetContainer>
         <Sheet.Header />

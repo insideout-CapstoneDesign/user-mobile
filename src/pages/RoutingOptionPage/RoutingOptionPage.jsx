@@ -21,7 +21,7 @@ import { createRoutingGuidanceState } from '../../utils/routing/routingGuidanceS
 import FloorplanRouteView from '../../components/Map/FloorplanRouteView'
 import './RoutingOptionPage.css'
 
-const ROUTE_OPTION_SNAP_POINTS = [0, 96, 0.58, 1]
+const ROUTE_OPTION_SNAP_POINTS = [0, 96, 0.9, 1]
 const ROUTE_OPTION_INITIAL_SNAP = 2
 
 export default function RoutingOptionPage() {
@@ -193,6 +193,7 @@ export default function RoutingOptionPage() {
         snapPoints={ROUTE_OPTION_SNAP_POINTS}
         initialSnap={ROUTE_OPTION_INITIAL_SNAP}
         dismissible={false}
+        scrollableContent={false}
       >
         <BottomSheetRouteOptions
           mode={transportMode}

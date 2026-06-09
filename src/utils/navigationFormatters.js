@@ -8,7 +8,7 @@ export function formatTotalDuration(totalDuration, totalTimeSeconds) {
 
   if (formattedTotalDuration) {
     return formattedTotalDuration
-      .replace(/\s*\+\s*/g, '+')
+      .replace(/\s*\+\s*/g, ' +')
       .replace(/\s*실내\s*이동/g, '실내이동')
   }
 

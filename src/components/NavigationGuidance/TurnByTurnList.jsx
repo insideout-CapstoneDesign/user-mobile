@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import CommonHeader from '../CommonHeader/CommonHeader'
 import { isDistanceSummaryInstruction } from '../../utils/navigationStepFilters'
+import DurationWithIndoorSuffix from './DurationWithIndoorSuffix'
 import TurnByTurnStepItem from './TurnByTurnStepItem'
 import {
   DestinationText,
@@ -55,7 +56,9 @@ export default function TurnByTurnList({
         <RouteMetric>
           <RouteMetricLabel>최단거리</RouteMetricLabel>
           <RouteMetricRow>
-            <RouteMetricTime>{route?.time ?? route?.totalTime ?? '20분'}</RouteMetricTime>
+            <RouteMetricTime>
+              <DurationWithIndoorSuffix value={route?.time ?? route?.totalTime ?? '20분'} />
+            </RouteMetricTime>
             {route?.distance ? <DestinationText>{route.distance}</DestinationText> : null}
           </RouteMetricRow>
           {route?.extraInfo ? <RouteMetricSub>{route.extraInfo}</RouteMetricSub> : null}

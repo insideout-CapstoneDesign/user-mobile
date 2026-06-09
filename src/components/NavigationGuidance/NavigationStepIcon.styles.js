@@ -6,8 +6,8 @@ const toneStyles = {
     color: var(--text-inverse);
   `,
   destination: css`
-    background: transparent;
-    color: var(--red-500);
+    background: var(--red-500);
+    color: var(--text-inverse);
   `,
   default: css`
     background: transparent;
@@ -16,9 +16,9 @@ const toneStyles = {
 }
 
 export const IconBubble = styled.span`
-  width: ${({ $tone }) => ($tone === 'destination' ? '2.125rem' : '2rem')};
-  height: ${({ $tone }) => ($tone === 'destination' ? '2.125rem' : '2rem')};
-  flex: 0 0 ${({ $tone }) => ($tone === 'destination' ? '2.125rem' : '2rem')};
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
   border-radius: var(--radius-pill);
   display: inline-flex;
   align-items: center;
@@ -26,19 +26,16 @@ export const IconBubble = styled.span`
   ${({ $tone }) => toneStyles[$tone] ?? toneStyles.default}
 
   img {
-    filter: ${({ $tone }) =>
-      $tone === 'destination'
-        ? 'invert(30%) sepia(93%) saturate(3105%) hue-rotate(337deg) brightness(103%) contrast(97%)'
-        : 'brightness(0) invert(1)'};
-    width: ${({ $tone }) => ($tone === 'destination' ? '1.75rem' : '1.15rem')};
-    height: ${({ $tone }) => ($tone === 'destination' ? '1.75rem' : '1.15rem')};
+    filter: brightness(0) invert(1);
+    width: 1.15rem;
+    height: 1.15rem;
   }
 `
 
 export const PlainStepIcon = styled.span`
-  width: ${({ $tone }) => ($tone === 'origin' ? '1.875rem' : '2.125rem')};
-  height: ${({ $tone }) => ($tone === 'origin' ? '1.875rem' : '2.125rem')};
-  flex: 0 0 ${({ $tone }) => ($tone === 'origin' ? '1.875rem' : '2.125rem')};
+  width: ${({ $tone }) => ($tone === 'default' ? '2.125rem' : '1.875rem')};
+  height: ${({ $tone }) => ($tone === 'default' ? '2.125rem' : '1.875rem')};
+  flex: 0 0 ${({ $tone }) => ($tone === 'default' ? '2.125rem' : '1.875rem')};
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -46,15 +43,9 @@ export const PlainStepIcon = styled.span`
   border-radius: ${({ $tone }) => ($tone === 'default' ? '0' : 'var(--radius-pill)')};
 
   img {
-    filter: ${({ $tone }) => {
-      if ($tone === 'default') return 'none'
-      if ($tone === 'destination') {
-        return 'invert(30%) sepia(93%) saturate(3105%) hue-rotate(337deg) brightness(103%) contrast(97%)'
-      }
-      return 'brightness(0) invert(1)'
-    }};
-    width: ${({ $tone }) => ($tone === 'origin' ? '1.1rem' : '1.75rem')};
-    height: ${({ $tone }) => ($tone === 'origin' ? '1.1rem' : '1.75rem')};
+    filter: ${({ $tone }) => ($tone === 'default' ? 'none' : 'brightness(0) invert(1)')};
+    width: ${({ $tone }) => ($tone === 'default' ? '1.75rem' : '1.1rem')};
+    height: ${({ $tone }) => ($tone === 'default' ? '1.75rem' : '1.1rem')};
   }
 `
 

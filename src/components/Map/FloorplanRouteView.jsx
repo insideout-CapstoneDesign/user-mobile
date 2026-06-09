@@ -39,6 +39,7 @@ export default function FloorplanRouteView({
     () => normalizeFloorplanViewModel(floorplan, mapLeg, activeStep),
     [activeStep, floorplan, mapLeg],
   )
+  const activeStepIsArrival = isArrivalStep(activeStep)
   const imageSize =
     imageState.src === viewModel.mapImageUrl && !imageState.hasError
       ? imageState.size
@@ -59,7 +60,7 @@ export default function FloorplanRouteView({
   )
   const activeCamera = useMemo(
     () =>
-      imageSize && stageSize && baseCamera
+      imageSize && stageSize && baseCamera && !activeStepIsArrival
         ? resolveActiveCamera({
             activePoint: viewModel.activeMarker,
             baseCamera,
@@ -69,7 +70,7 @@ export default function FloorplanRouteView({
             userMovedCamera,
           })
         : null,
-    [baseCamera, camera?.scale, imageSize, stageSize, userMovedCamera, viewModel.activeMarker],
+    [activeStepIsArrival, baseCamera, camera?.scale, imageSize, stageSize, userMovedCamera, viewModel.activeMarker],
   )
   const transform = camera ?? baseCamera
 
@@ -112,12 +113,12 @@ export default function FloorplanRouteView({
   }, [camera?.scale])
 
   useEffect(() => {
-    if (!baseCamera || userMovedCamera) {
+    if (!baseCamera || userMovedCamera || activeStepIsArrival) {
       return
     }
 
     return animateCamera(setCamera, baseCamera)
-  }, [baseCamera, userMovedCamera])
+  }, [activeStepIsArrival, baseCamera, userMovedCamera])
 
   useEffect(() => {
     if (!activeCamera || isInteractingRef.current) {
@@ -597,7 +598,7 @@ function easeOutCubic(value) {
 }
 
 function findActiveMarker(mapLegs, activeStep) {
-  if (!activeStep) {
+  if (!activeStep || isArrivalStep(activeStep)) {
     return null
   }
 
@@ -625,6 +626,10 @@ function findActiveMarker(mapLegs, activeStep) {
     x: point.x,
     y: point.y,
   }
+}
+
+function isArrivalStep(step = {}) {
+  return String(step.instruction ?? '').includes('도착')
 }
 
 function toPolylinePoints(path) {

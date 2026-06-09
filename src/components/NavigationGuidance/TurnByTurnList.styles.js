@@ -66,8 +66,9 @@ export const Divider = styled.div`
 
 export const IndoorEntryDivider = styled.div`
   min-height: 2.5rem;
-  border-bottom: var(--size-1) solid var(--gray-100);
-  background: var(--gray-50);
+  border-top: var(--size-1) solid var(--gray-200);
+  border-bottom: var(--size-1) solid var(--gray-200);
+  background: var(--gray-100);
   display: flex;
   align-items: center;
   padding: 0 var(--space-12);

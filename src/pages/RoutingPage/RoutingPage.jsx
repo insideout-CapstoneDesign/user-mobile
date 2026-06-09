@@ -17,7 +17,7 @@ import RoutingOptionLayer from './components/RoutingOptionLayer'
 import useRoutingController from './useRoutingController'
 import './RoutingPage.css'
 
-const ROUTE_OPTION_SNAP_POINTS = [0, 96, 0.58, 1]
+const ROUTE_OPTION_SNAP_POINTS = [0, 96, 0.76, 1]
 const ROUTE_OPTION_INITIAL_SNAP = 2
 
 export default function RoutingPage() {
@@ -181,6 +181,7 @@ export default function RoutingPage() {
         snapPoints={ROUTE_OPTION_SNAP_POINTS}
         initialSnap={ROUTE_OPTION_INITIAL_SNAP}
         dismissible={false}
+        scrollableContent={false}
       >
         <BottomSheetRouteOptions
           mode={transportMode}

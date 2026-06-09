@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import CommonHeader from '../CommonHeader/CommonHeader'
 import NavigationRouteBar from './NavigationRouteBar'
+import DurationWithIndoorSuffix from './DurationWithIndoorSuffix'
 import TransitLegItem from './TransitLegItem'
 import {
   DestinationText,
@@ -56,7 +57,9 @@ export default function TransitTurnByTurnList({
         <RouteMetric>
           <RouteMetricLabel>{route?.name ?? '최단거리'}</RouteMetricLabel>
           <RouteMetricRow>
-            <RouteMetricTime>{route?.time ?? route?.totalTime ?? '35분'}</RouteMetricTime>
+            <RouteMetricTime>
+              <DurationWithIndoorSuffix value={route?.time ?? route?.totalTime ?? '35분'} />
+            </RouteMetricTime>
             {route?.distance ? <DestinationText>{route.distance}</DestinationText> : null}
           </RouteMetricRow>
           {route?.extraInfo ? <RouteMetricSub>{route.extraInfo}</RouteMetricSub> : null}

@@ -188,7 +188,7 @@ function findActiveRouteLeg(routeLegs, activeStep) {
 }
 
 function sliceActivePath(path, activeStep) {
-  if (!Array.isArray(path) || !activeStep) {
+  if (!Array.isArray(path) || !activeStep || isArrivalStep(activeStep)) {
     return []
   }
 
@@ -206,6 +206,10 @@ function sliceActivePath(path, activeStep) {
   const from = Math.max(Math.min(start, end), 0)
   const to = Math.min(Math.max(start, end), path.length - 1)
   return path.slice(from, to + 1)
+}
+
+function isArrivalStep(step = {}) {
+  return String(step.instruction ?? '').includes('도착')
 }
 
 function getRouteKey(routeLegs) {

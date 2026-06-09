@@ -6,8 +6,8 @@ export const TypeContainer = styled.div`
   gap: ${({ $compact }) => ($compact ? 'var(--space-6)' : 'var(--space-12)')};
   min-width: 0;
   overflow-x: hidden;
-  min-height: ${({ $scrollLayout }) => ($scrollLayout ? '0' : 'auto')};
-  height: ${({ $scrollLayout }) => ($scrollLayout ? '100%' : 'auto')};
+  min-height: 0;
+  height: 100%;
 `
 
 export const DetailScrollArea = styled.div`
@@ -248,8 +248,8 @@ export const ActionTitle = styled.p`
 `
 
 export const StickyActionSection = styled.div`
-  position: ${({ $sticky = true }) => ($sticky ? 'sticky' : 'static')};
-  bottom: ${({ $sticky = true }) => ($sticky ? 'calc(-1 * var(--space-20))' : 'auto')};
+  position: static;
+  box-sizing: border-box;
   margin: 0 calc(-1 * var(--space-16));
   padding: var(--space-12) var(--space-16)
     calc(var(--space-12) + env(safe-area-inset-bottom));
@@ -270,7 +270,7 @@ export const RouteOptionsBody = styled.div`
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: var(--space-12);
   min-height: 0;
-  max-height: min(58dvh, 31rem);
+  height: 100%;
   width: 100%;
 `
 

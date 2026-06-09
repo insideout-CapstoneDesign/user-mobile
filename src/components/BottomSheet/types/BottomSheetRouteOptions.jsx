@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FaBus, FaCarAlt, FaChevronRight, FaSubway } from 'react-icons/fa'
 import Button from '../../Button/Button'
+import DurationWithIndoorSuffix from '../../NavigationGuidance/DurationWithIndoorSuffix'
 import NavigationRouteBar from '../../NavigationGuidance/NavigationRouteBar'
 import {
   RouteCard,
@@ -101,7 +102,9 @@ function TransitRouteOption({ option }) {
   return (
     <>
       <RouteCardHead>
-        <RouteTimeText>{option.totalTime}</RouteTimeText>
+        <RouteTimeText>
+          <DurationWithIndoorSuffix value={option.totalTime} />
+        </RouteTimeText>
         <RouteChevron />
       </RouteCardHead>
 
@@ -127,7 +130,11 @@ function StandardRouteOption({ option }) {
       <div>
         <RouteOptionName>{option.name}</RouteOptionName>
         <RouteOptionMetaRow>
-          {option.time ? <RouteOptionTime>{option.time}</RouteOptionTime> : null}
+          {option.time ? (
+            <RouteOptionTime>
+              <DurationWithIndoorSuffix value={option.time} />
+            </RouteOptionTime>
+          ) : null}
           {option.distance ? (
             <RouteOptionDistance>{option.distance}</RouteOptionDistance>
           ) : null}

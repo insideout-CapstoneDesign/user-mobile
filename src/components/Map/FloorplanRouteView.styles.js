@@ -6,24 +6,36 @@ export const FloorplanRoot = styled.div`
   height: 100%;
   overflow: hidden;
   background: var(--surface-50);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 `
 
 export const FloorplanStage = styled.div`
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  padding: var(--space-12);
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  overscroll-behavior: none;
+
+  &:active {
+    cursor: grabbing;
+  }
 `
 
 export const FloorplanCanvas = styled.div`
-  position: relative;
-  width: min(100%, calc((100dvh - var(--space-24)) * ${({ $ratio }) => $ratio || 1}));
-  max-height: calc(100dvh - var(--space-24));
-  aspect-ratio: ${({ $ratio }) => $ratio || 1};
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   background: var(--surface-0);
-  box-shadow: var(--shadow-bottom-sheet);
-  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 `
 
 export const FloorplanImage = styled.img`
@@ -32,7 +44,11 @@ export const FloorplanImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: contain;
+  opacity: 0;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
 `
 
 export const FloorplanSvg = styled.svg`
@@ -41,6 +57,9 @@ export const FloorplanSvg = styled.svg`
   width: 100%;
   height: 100%;
   pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 `
 
 export const FloorplanState = styled.div`

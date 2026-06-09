@@ -12,7 +12,7 @@ import {
 const MIN_SCALE_FALLBACK = 0.35
 const MAX_SCALE = 5
 const ROUTE_FIT_PADDING = 1.1
-const DEFAULT_ROUTE_ZOOM = 1.85
+const DEFAULT_ROUTE_ZOOM = 2
 
 export default function FloorplanRouteView({
   floorplan,
@@ -26,6 +26,7 @@ export default function FloorplanRouteView({
   const gestureStartRef = useRef(null)
   const cameraFrameRef = useRef(null)
   const pendingCameraRef = useRef(null)
+  const preferredScaleRef = useRef(null)
   const [stageSize, setStageSize] = useState(null)
   const [imageState, setImageState] = useState({
     src: null,
@@ -47,7 +48,12 @@ export default function FloorplanRouteView({
   const baseCamera = useMemo(
     () =>
       imageSize && stageSize
-        ? resolveBaseCamera(viewModel, imageSize, stageSize)
+        ? resolveBaseCamera(
+            viewModel,
+            imageSize,
+            stageSize,
+            preferredScaleRef.current,
+          )
         : null,
     [imageSize, stageSize, viewModel],
   )
@@ -98,6 +104,12 @@ export default function FloorplanRouteView({
     setUserMovedCamera(false)
     setCamera(null)
   }, [viewModel.key])
+
+  useEffect(() => {
+    if (camera?.scale) {
+      preferredScaleRef.current = camera.scale
+    }
+  }, [camera?.scale])
 
   useEffect(() => {
     if (!baseCamera || userMovedCamera) {
@@ -425,7 +437,7 @@ function normalizeFloorplanViewModel(floorplan, mapLeg, activeStep) {
   }
 }
 
-function resolveBaseCamera(viewModel, imageSize, stageSize) {
+function resolveBaseCamera(viewModel, imageSize, stageSize, preferredScale = null) {
   const containScale = Math.min(
     stageSize.width / imageSize.width,
     stageSize.height / imageSize.height,
@@ -434,8 +446,12 @@ function resolveBaseCamera(viewModel, imageSize, stageSize) {
   const routeScale = routeBounds
     ? resolveRouteFitScale(routeBounds, stageSize)
     : containScale * DEFAULT_ROUTE_ZOOM
+  const routeZoomScale = Math.max(
+    containScale,
+    Math.min(routeScale, containScale * DEFAULT_ROUTE_ZOOM),
+  )
   const scale = clamp(
-    Math.max(containScale, Math.min(routeScale, containScale * DEFAULT_ROUTE_ZOOM)),
+    preferredScale ?? routeZoomScale,
     getMinScale(imageSize, stageSize),
     MAX_SCALE,
   )

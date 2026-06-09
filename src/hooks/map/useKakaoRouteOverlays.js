@@ -4,9 +4,12 @@ import { getRouteDisplayColor } from '../../components/NavigationGuidance/routeC
 export default function useKakaoRouteOverlays({
   map,
   routeLegs = [],
+  activeStep = null,
   fitBounds = false,
 }) {
   const overlaysRef = useRef([])
+  const fittedRouteKeyRef = useRef(null)
+  const routeKey = getRouteKey(routeLegs)
 
   useEffect(() => {
     clearOverlays(overlaysRef)
@@ -50,12 +53,91 @@ export default function useKakaoRouteOverlays({
       overlaysRef.current.push(outline, routeLine)
     })
 
-    if (fitBounds && hasBounds) {
+    const activeRouteLeg = findActiveRouteLeg(routeLegs, activeStep)
+    const activePathPoints = sliceActivePath(activeRouteLeg?.path, activeStep)
+    const activePath = toLatLngPath(kakaoMaps, activePathPoints)
+    if (activePath.length >= 2) {
+      const activeMarker = createActiveNodeOverlay(
+        kakaoMaps,
+        activePath[0],
+        resolveRouteColor(activeRouteLeg),
+      )
+      activeMarker.setMap(map)
+      overlaysRef.current.push(activeMarker)
+      panToActivePathCenter(map, kakaoMaps, activePath)
+    }
+
+    if (fitBounds && hasBounds && fittedRouteKeyRef.current !== routeKey) {
       map.setBounds(bounds, 36, 80, 36, 36)
+      zoomInAfterFit(map)
+      fittedRouteKeyRef.current = routeKey
     }
 
     return () => clearOverlays(overlaysRef)
-  }, [fitBounds, map, routeLegs])
+  }, [activeStep, fitBounds, map, routeKey, routeLegs])
+}
+
+function createActiveNodeOverlay(kakaoMaps, position, color) {
+  const marker = document.createElement('div')
+  marker.style.width = '22px'
+  marker.style.height = '22px'
+  marker.style.borderRadius = '999px'
+  marker.style.background = color
+  marker.style.border = '4px solid #fff'
+  marker.style.boxShadow = '0 0 0 8px rgba(37, 99, 235, 0.18), 0 4px 12px rgba(15, 23, 42, 0.24)'
+  marker.style.boxSizing = 'border-box'
+
+  return new kakaoMaps.CustomOverlay({
+    position,
+    content: marker,
+    xAnchor: 0.5,
+    yAnchor: 0.5,
+    zIndex: 20,
+  })
+}
+
+function panToActivePathCenter(map, kakaoMaps, path) {
+  if (!map || !kakaoMaps || !Array.isArray(path) || path.length === 0) {
+    return
+  }
+
+  const center = getPathCenter(path)
+  if (!center) {
+    return
+  }
+
+  map.panTo(new kakaoMaps.LatLng(center.lat, center.lng))
+}
+
+function getPathCenter(path) {
+  const positions = path
+    .map((position) => ({
+      lat: position.getLat?.(),
+      lng: position.getLng?.(),
+    }))
+    .filter((point) =>
+      typeof point.lat === 'number' &&
+      Number.isFinite(point.lat) &&
+      typeof point.lng === 'number' &&
+      Number.isFinite(point.lng),
+    )
+
+  if (positions.length === 0) {
+    return null
+  }
+
+  const total = positions.reduce(
+    (acc, point) => ({
+      lat: acc.lat + point.lat,
+      lng: acc.lng + point.lng,
+    }),
+    { lat: 0, lng: 0 },
+  )
+
+  return {
+    lat: total.lat / positions.length,
+    lng: total.lng / positions.length,
+  }
 }
 
 function toLatLngPath(kakaoMaps, path) {
@@ -92,6 +174,72 @@ function resolveRouteColor(leg) {
 
 function resolveStrokeWeight(leg) {
   return String(leg?.mode ?? '').toLowerCase() === 'walk' ? 5 : 6
+}
+
+function findActiveRouteLeg(routeLegs, activeStep) {
+  if (!activeStep || !Array.isArray(routeLegs)) {
+    return null
+  }
+
+  const activeSegmentId = activeStep.segmentId ?? activeStep.mapLegId
+  return routeLegs.find((leg) =>
+    [leg?.id, leg?.segmentId, leg?.mapLegId].filter(Boolean).includes(activeSegmentId),
+  ) ?? null
+}
+
+function sliceActivePath(path, activeStep) {
+  if (!Array.isArray(path) || !activeStep) {
+    return []
+  }
+
+  const start = Number.isInteger(activeStep.pathStartIndex)
+    ? activeStep.pathStartIndex
+    : null
+  const end = Number.isInteger(activeStep.pathEndIndex)
+    ? activeStep.pathEndIndex
+    : null
+
+  if (start === null || end === null || start === end) {
+    return []
+  }
+
+  const from = Math.max(Math.min(start, end), 0)
+  const to = Math.min(Math.max(start, end), path.length - 1)
+  return path.slice(from, to + 1)
+}
+
+function getRouteKey(routeLegs) {
+  if (!Array.isArray(routeLegs) || routeLegs.length === 0) {
+    return 'empty'
+  }
+
+  return routeLegs
+    .map((leg) => {
+      const path = Array.isArray(leg?.path) ? leg.path : []
+      const first = path[0]
+      const last = path[path.length - 1]
+
+      return [
+        leg?.id,
+        path.length,
+        first ? `${first.x},${first.y}` : '',
+        last ? `${last.x},${last.y}` : '',
+      ].join(':')
+    })
+    .join('|')
+}
+
+function zoomInAfterFit(map) {
+  if (!map || typeof map.getLevel !== 'function' || typeof map.setLevel !== 'function') {
+    return
+  }
+
+  const currentLevel = map.getLevel()
+  if (typeof currentLevel !== 'number' || !Number.isFinite(currentLevel)) {
+    return
+  }
+
+  map.setLevel(Math.max(currentLevel - 1, 1), { animate: false })
 }
 
 function resolveCssColor(color) {

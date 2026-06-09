@@ -72,6 +72,8 @@ function normalizeOutdoorRouteLeg(leg, index) {
 
   return {
     id: leg.id ?? `route-leg-${index}`,
+    mapLegId: leg.mapLegId ?? leg.id ?? `route-leg-${index}`,
+    segmentId: leg.segmentId ?? leg.id ?? `route-leg-${index}`,
     mode: leg.mode,
     routeType: leg.routeType,
     routeOption: leg.routeOption,

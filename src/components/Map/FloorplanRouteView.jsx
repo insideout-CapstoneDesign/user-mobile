@@ -12,6 +12,7 @@ import {
 export default function FloorplanRouteView({
   floorplan,
   mapLeg,
+  activeStep = null,
   showInstructionBadge = true,
 }) {
   const [imageState, setImageState] = useState({
@@ -20,8 +21,8 @@ export default function FloorplanRouteView({
     hasError: false,
   })
   const viewModel = useMemo(
-    () => normalizeFloorplanViewModel(floorplan, mapLeg),
-    [floorplan, mapLeg],
+    () => normalizeFloorplanViewModel(floorplan, mapLeg, activeStep),
+    [activeStep, floorplan, mapLeg],
   )
   const imageSize =
     imageState.src === viewModel.mapImageUrl && !imageState.hasError
@@ -92,6 +93,24 @@ export default function FloorplanRouteView({
                   />
                 </g>
               ))}
+              {viewModel.activeMarker ? (
+                <g>
+                  <circle
+                    cx={viewModel.activeMarker.x}
+                    cy={viewModel.activeMarker.y}
+                    r="17"
+                    fill="rgba(37, 99, 235, 0.2)"
+                  />
+                  <circle
+                    cx={viewModel.activeMarker.x}
+                    cy={viewModel.activeMarker.y}
+                    r="9"
+                    fill="var(--blue-700)"
+                    stroke="var(--surface-0)"
+                    strokeWidth="4"
+                  />
+                </g>
+              ) : null}
               {viewModel.markers.map((marker) => (
                 <circle
                   key={marker.id}
@@ -119,9 +138,10 @@ export default function FloorplanRouteView({
   )
 }
 
-function normalizeFloorplanViewModel(floorplan, mapLeg) {
+function normalizeFloorplanViewModel(floorplan, mapLeg, activeStep) {
   if (floorplan) {
     const mapLegs = Array.isArray(floorplan.mapLegs) ? floorplan.mapLegs : []
+    const activeMarker = findActiveMarker(mapLegs, activeStep)
 
     return {
       mapImageUrl: floorplan.mapImageUrl,
@@ -135,9 +155,13 @@ function normalizeFloorplanViewModel(floorplan, mapLeg) {
       markers: mapLegs.flatMap((leg, legIndex) =>
         toMarkers(leg.path, `${floorplan.key}-${legIndex}`),
       ),
-      activeInstruction: floorplan.steps?.[0]?.instruction ?? null,
+      activeMarker,
+      activeInstruction:
+        activeStep?.instruction ?? floorplan.steps?.[0]?.instruction ?? null,
     }
   }
+
+  const activeMarker = findActiveMarker(mapLeg ? [mapLeg] : [], activeStep)
 
   return {
     mapImageUrl: mapLeg?.mapImageUrl,
@@ -149,7 +173,43 @@ function normalizeFloorplanViewModel(floorplan, mapLeg) {
       },
     ].filter((polyline) => polyline.points),
     markers: toMarkers(mapLeg?.path, mapLeg?.id ?? 'path'),
-    activeInstruction: mapLeg?.steps?.[0]?.instruction ?? null,
+    activeMarker,
+    activeInstruction: activeStep?.instruction ?? mapLeg?.steps?.[0]?.instruction ?? null,
+  }
+}
+
+function findActiveMarker(mapLegs, activeStep) {
+  if (!activeStep) {
+    return null
+  }
+
+  const leg = mapLegs.find((item) =>
+    [item?.id, item?.segmentId, item?.mapLegId]
+      .filter(Boolean)
+      .includes(activeStep.segmentId ?? activeStep.mapLegId),
+  )
+
+  if (!leg) {
+    return null
+  }
+
+  if (!Array.isArray(leg.path) || leg.path.length === 0) {
+    return null
+  }
+
+  const startIndex = Number.isInteger(activeStep.pathStartIndex)
+    ? activeStep.pathStartIndex
+    : activeStep.pathIndex
+  const point = leg.path[Math.max(Math.min(startIndex ?? 0, leg.path.length - 1), 0)]
+
+  if (!isValidMapPoint(point)) {
+    return null
+  }
+
+  return {
+    id: `${activeStep.id ?? leg.id}-active-marker`,
+    x: point.x,
+    y: point.y,
   }
 }
 

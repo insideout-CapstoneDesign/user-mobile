@@ -23,7 +23,9 @@ export default function TurnByTurnList({
   onClose,
   onSelectStep,
 }) {
-  const visibleSteps = steps.filter(shouldShowStep)
+  const visibleSteps = steps
+    .map((step, index) => ({ step, originalIndex: index }))
+    .filter(({ step }) => shouldShowStep(step))
 
   return (
     <ListRoot>
@@ -47,11 +49,11 @@ export default function TurnByTurnList({
 
         <Divider />
 
-        {visibleSteps.map((step, index) => (
+        {visibleSteps.map(({ step, originalIndex }, index) => (
           <TurnByTurnStepItem
             key={step.id ?? `turn-step-${index}`}
             step={step}
-            index={index}
+            index={originalIndex}
             active={activeStepId === step.id}
             onSelect={onSelectStep}
           />

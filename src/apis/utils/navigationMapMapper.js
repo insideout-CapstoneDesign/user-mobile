@@ -33,20 +33,52 @@ export function normalizeMapLegs(legs, routeContext) {
 
 export function normalizeTurnByTurnSteps(legs, routeContext) {
   return legs.flatMap((leg, legIndex) => {
-    const steps = Array.isArray(leg.steps) ? leg.steps : []
+    const floorSegments = Array.isArray(leg.floorSegments) ? leg.floorSegments : []
+    if (floorSegments.length > 0) {
+      return floorSegments.flatMap((segment, segmentIndex) => {
+        const path = normalizeLegPath(segment)
+        const steps = Array.isArray(segment.steps) ? segment.steps : []
+        const floorId = segment.floorId ?? leg.floorId ?? null
+        const floorName = segment.floorName ?? leg.floorName ?? null
 
-    return steps
+        const visibleSteps = steps
+          .map((step, stepIndex) =>
+            normalizeStep(step, {
+              ...routeContext,
+              legIndex,
+              stepIndex,
+              segmentIndex,
+              leg,
+              path,
+              floorId,
+              floorName,
+            }),
+          )
+          .filter(shouldShowTurnByTurnStep)
+
+        return assignStepPathRanges(visibleSteps, path)
+      })
+    }
+
+    const steps = Array.isArray(leg.steps) ? leg.steps : []
+    const path = normalizeLegPath(leg)
+
+    const visibleSteps = steps
       .map((step, stepIndex) =>
         normalizeStep(step, {
           ...routeContext,
           legIndex,
           stepIndex,
+          segmentIndex: 0,
           leg,
+          path,
           floorId: leg.floorId ?? null,
           floorName: leg.floorName ?? null,
         }),
       )
       .filter(shouldShowTurnByTurnStep)
+
+    return assignStepPathRanges(visibleSteps, path)
   })
 }
 
@@ -69,6 +101,8 @@ function normalizeStep(step, context) {
   const mode = step.mode ?? context.leg?.mode
   const segmentPart =
     context.segmentIndex === undefined ? '' : `-segment-${context.segmentIndex}`
+  const mapLegId = `${context.routeId}-leg-${context.legIndex}-segment-${context.segmentIndex ?? 0}`
+  const pathIndex = findNearestPathIndex(step, context.path)
 
   return {
     id: `${context.routeId}-leg-${context.legIndex}${segmentPart}-step-${context.stepIndex}`,
@@ -76,7 +110,13 @@ function normalizeStep(step, context) {
     routeType: context.routeType,
     routeOption: context.routeOption,
     legIndex: context.legIndex,
+    mapLegId,
+    segmentId: mapLegId,
+    segmentIndex: context.segmentIndex ?? 0,
     stepIndex: context.stepIndex,
+    pathIndex,
+    pathStartIndex: null,
+    pathEndIndex: null,
     type: modeToUiType(mode),
     instruction: step.instruction ?? '',
     distanceMeters: step.distanceMeters ?? null,
@@ -92,6 +132,28 @@ function normalizeStep(step, context) {
     floorName: context.floorName,
     raw: step,
   }
+}
+
+function assignStepPathRanges(steps, path) {
+  if (!Array.isArray(steps) || steps.length === 0) {
+    return []
+  }
+
+  let previousPathIndex = 0
+
+  return steps.map((step) => {
+    const pathRange = resolveStepPathRange(previousPathIndex, step.pathIndex, path)
+
+    if (Number.isInteger(step.pathIndex)) {
+      previousPathIndex = step.pathIndex
+    }
+
+    return {
+      ...step,
+      pathStartIndex: pathRange.start,
+      pathEndIndex: pathRange.end,
+    }
+  })
 }
 
 function normalizeMapSegment(segment, leg, context) {
@@ -119,13 +181,68 @@ function normalizeMapSegment(segment, leg, context) {
         ...context,
         legIndex: context.legIndex,
         stepIndex,
+        segmentIndex: context.segmentIndex,
         leg,
+        path,
         floorId,
         floorName,
       }),
     ),
     raw: segment,
   }
+}
+
+function findNearestPathIndex(step, path) {
+  if (!Array.isArray(path) || path.length === 0) {
+    return null
+  }
+  if (typeof step?.x !== 'number' || typeof step?.y !== 'number') {
+    return null
+  }
+
+  let nearestIndex = null
+  let nearestDistance = Infinity
+
+  path.forEach((point, index) => {
+    if (typeof point?.x !== 'number' || typeof point?.y !== 'number') {
+      return
+    }
+
+    const dx = point.x - step.x
+    const dy = point.y - step.y
+    const distance = dx * dx + dy * dy
+
+    if (distance < nearestDistance) {
+      nearestDistance = distance
+      nearestIndex = index
+    }
+  })
+
+  return nearestIndex
+}
+
+function resolveStepPathRange(startIndex, endIndex, path) {
+  if (!Array.isArray(path) || path.length < 2) {
+    return { start: null, end: null }
+  }
+
+  const fallbackEnd = Math.min(1, path.length - 1)
+  if (!Number.isInteger(endIndex)) {
+    return { start: 0, end: fallbackEnd }
+  }
+
+  const safeStart = Number.isInteger(startIndex) ? startIndex : 0
+  const from = Math.max(Math.min(safeStart, endIndex), 0)
+  const to = Math.min(Math.max(safeStart, endIndex), path.length - 1)
+
+  if (from === to) {
+    return {
+      start: Math.max(from - 1, 0),
+      end: Math.min(from + 1, path.length - 1),
+    }
+  }
+
+  return { start: from, end: to }
 }
 
 function normalizeLegPath(leg) {

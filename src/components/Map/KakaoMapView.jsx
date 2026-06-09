@@ -20,6 +20,7 @@ export default function KakaoMapView({
   onCenterChange,
   onLevelChange,
   routeLegs = [],
+  activeRouteStep = null,
   fitRouteBounds = false,
 }) {
   const appKey = import.meta.env.VITE_KAKAO_MAP_APP_KEY
@@ -39,7 +40,12 @@ export default function KakaoMapView({
     onMapClick,
   })
   useSingleMarkerOnMap({ map, markerPosition, markerOffsetY })
-  useKakaoRouteOverlays({ map, routeLegs, fitBounds: fitRouteBounds })
+  useKakaoRouteOverlays({
+    map,
+    routeLegs,
+    activeStep: activeRouteStep,
+    fitBounds: fitRouteBounds,
+  })
 
   useEffect(() => {
     if (!map || (!onCenterChange && !onLevelChange) || !window.kakao?.maps?.event) {

@@ -96,6 +96,7 @@ export default function RoutingPage() {
         {shouldShowIndoorRoute ? (
           <FloorplanRouteView
             floorplan={navigationRoute.selectedFloorplan}
+            activeStep={routing.activeGuidanceStep}
             showInstructionBadge={false}
           />
         ) : (
@@ -103,6 +104,7 @@ export default function RoutingPage() {
             pois={mockMapPois}
             onPoiSelect={setSelectedPoi}
             routeLegs={outdoorRouteLegs}
+            activeRouteStep={routing.activeGuidanceStep}
             fitRouteBounds={outdoorRouteLegs.length > 0}
           />
         )}

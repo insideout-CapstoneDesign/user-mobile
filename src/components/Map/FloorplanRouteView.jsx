@@ -365,18 +365,6 @@ export default function FloorplanRouteView({
                   />
                 </g>
               ) : null}
-              {viewModel.markers.map((marker) => (
-                <circle
-                  key={marker.id}
-                  cx={marker.x}
-                  cy={marker.y}
-                  r={marker.variant === 'endpoint' ? 9 : 5}
-                  fill={marker.variant === 'start' ? 'var(--blue-600)' : 'var(--surface-0)'}
-                  stroke="var(--blue-600)"
-                  strokeWidth="4"
-                  vectorEffect="non-scaling-stroke"
-                />
-              ))}
             </FloorplanSvg>
           ) : null}
         </FloorplanCanvas>
@@ -409,9 +397,6 @@ function normalizeFloorplanViewModel(floorplan, mapLeg, activeStep) {
           points: toPolylinePoints(leg.path),
         }))
         .filter((polyline) => polyline.points),
-      markers: mapLegs.flatMap((leg, legIndex) =>
-        toMarkers(leg.path, `${floorplan.key}-${legIndex}`),
-      ),
       activeMarker,
       activeInstruction:
         activeStep?.instruction ?? floorplan.steps?.[0]?.instruction ?? null,
@@ -431,7 +416,6 @@ function normalizeFloorplanViewModel(floorplan, mapLeg, activeStep) {
         points: toPolylinePoints(mapLeg?.path),
       },
     ].filter((polyline) => polyline.points),
-    markers: toMarkers(mapLeg?.path, mapLeg?.id ?? 'path'),
     activeMarker,
     activeInstruction: activeStep?.instruction ?? mapLeg?.steps?.[0]?.instruction ?? null,
   }
@@ -651,18 +635,6 @@ function toPolylinePoints(path) {
   }
 
   return points.map((point) => `${point.x},${point.y}`).join(' ')
-}
-
-function toMarkers(path, keyPrefix) {
-  const points = toValidMapPoints(path)
-
-  return points.map((point, index) => ({
-    id: `${keyPrefix}-marker-${index}`,
-    x: point.x,
-    y: point.y,
-    variant:
-      index === 0 ? 'start' : index === points.length - 1 ? 'endpoint' : 'waypoint',
-  }))
 }
 
 function getPointBounds(points) {

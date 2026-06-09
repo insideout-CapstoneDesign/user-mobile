@@ -103,6 +103,8 @@ function normalizeStep(step, context) {
     context.segmentIndex === undefined ? '' : `-segment-${context.segmentIndex}`
   const mapLegId = `${context.routeId}-leg-${context.legIndex}-segment-${context.segmentIndex ?? 0}`
   const pathIndex = findNearestPathIndex(step, context.path)
+  const explicitPathStartIndex = toSafePathIndex(step.pathStartIndex, context.path)
+  const explicitPathEndIndex = toSafePathIndex(step.pathEndIndex, context.path)
 
   return {
     id: `${context.routeId}-leg-${context.legIndex}${segmentPart}-step-${context.stepIndex}`,
@@ -115,8 +117,8 @@ function normalizeStep(step, context) {
     segmentIndex: context.segmentIndex ?? 0,
     stepIndex: context.stepIndex,
     pathIndex,
-    pathStartIndex: null,
-    pathEndIndex: null,
+    pathStartIndex: explicitPathStartIndex,
+    pathEndIndex: explicitPathEndIndex,
     type: modeToUiType(mode),
     instruction: step.instruction ?? '',
     distanceMeters: step.distanceMeters ?? null,
@@ -142,6 +144,14 @@ function assignStepPathRanges(steps, path) {
   let previousPathIndex = 0
 
   return steps.map((step) => {
+    if (
+      Number.isInteger(step.pathStartIndex) &&
+      Number.isInteger(step.pathEndIndex)
+    ) {
+      previousPathIndex = step.pathEndIndex
+      return step
+    }
+
     const pathRange = resolveStepPathRange(previousPathIndex, step.pathIndex, path)
 
     if (Number.isInteger(step.pathIndex)) {
@@ -154,6 +164,14 @@ function assignStepPathRanges(steps, path) {
       pathEndIndex: pathRange.end,
     }
   })
+}
+
+function toSafePathIndex(value, path) {
+  if (!Number.isInteger(value) || !Array.isArray(path) || path.length === 0) {
+    return null
+  }
+
+  return Math.max(Math.min(value, path.length - 1), 0)
 }
 
 function normalizeMapSegment(segment, leg, context) {

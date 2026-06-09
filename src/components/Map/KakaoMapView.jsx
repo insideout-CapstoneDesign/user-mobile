@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import useCurrentLocationOnKakaoMap from '../../hooks/map/useCurrentLocationOnKakaoMap'
 import useKakaoMapInstance from '../../hooks/map/useKakaoMapInstance'
 import usePoiSelectionOnMap from '../../hooks/map/usePoiSelectionOnMap'
+import useKakaoRouteOverlays from '../../hooks/map/useKakaoRouteOverlays'
 import useSingleMarkerOnMap from '../../hooks/map/useSingleMarkerOnMap'
 import CurrentLocationControl from './CurrentLocationControl'
 import { MapRoot, MapState, MapViewport } from './KakaoMapView.styles'
@@ -18,6 +19,8 @@ export default function KakaoMapView({
   onCurrentLocationSelect,
   onCenterChange,
   onLevelChange,
+  routeLegs = [],
+  fitRouteBounds = false,
 }) {
   const appKey = import.meta.env.VITE_KAKAO_MAP_APP_KEY
   const mapRef = useRef(null)
@@ -36,6 +39,7 @@ export default function KakaoMapView({
     onMapClick,
   })
   useSingleMarkerOnMap({ map, markerPosition, markerOffsetY })
+  useKakaoRouteOverlays({ map, routeLegs, fitBounds: fitRouteBounds })
 
   useEffect(() => {
     if (!map || (!onCenterChange && !onLevelChange) || !window.kakao?.maps?.event) {

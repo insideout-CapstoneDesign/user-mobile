@@ -12,7 +12,12 @@ export function toNavigationPlace(place, role = 'destination') {
 
   const x = firstNumber(place.x, place.lng, place.longitude)
   const y = firstNumber(place.y, place.lat, place.latitude)
-  const poiId = place.poiId ?? place.destinationPoiId ?? place.startPoiId ?? place.publicId ?? null
+  const poiId = firstIntegerId(
+    place.poiId,
+    place.poiPublicId,
+    place.destinationPoiId,
+    place.startPoiId,
+  )
   const buildingId =
     place.destinationBuildingId ?? place.placeId ?? place.buildingPlaceId ?? place.buildingId ?? null
 
@@ -62,6 +67,23 @@ function firstNumber(...values) {
     if (typeof value === 'string' && value.trim()) {
       const parsed = Number(value)
       if (Number.isFinite(parsed)) {
+        return parsed
+      }
+    }
+  }
+
+  return null
+}
+
+function firstIntegerId(...values) {
+  for (const value of values) {
+    if (typeof value === 'number' && Number.isSafeInteger(value)) {
+      return value
+    }
+
+    if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
+      const parsed = Number(value)
+      if (Number.isSafeInteger(parsed)) {
         return parsed
       }
     }

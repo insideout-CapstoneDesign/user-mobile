@@ -48,13 +48,35 @@ function toFiniteNumber(value) {
   return Number.isFinite(normalized) ? normalized : null
 }
 
+function firstIntegerId(...values) {
+  for (const value of values) {
+    if (typeof value === 'number' && Number.isSafeInteger(value)) {
+      return value
+    }
+
+    if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
+      const parsed = Number(value)
+      if (Number.isSafeInteger(parsed)) {
+        return parsed
+      }
+    }
+  }
+
+  return null
+}
+
 function mapPlaceToSearchItem(place, idx) {
   const baseName = place.name ?? place.title ?? '장소명'
   const displayName =
     place.displayName ??
     (place.parentBuildingName ? `${place.parentBuildingName} · ${baseName}` : null)
   const placeId = place.placeId ?? place.destinationBuildingId ?? place.buildingPlaceId ?? null
-  const poiId = place.poiId ?? place.destinationPoiId ?? place.startPoiId ?? null
+  const poiId = firstIntegerId(
+    place.poiId,
+    place.poiPublicId,
+    place.destinationPoiId,
+    place.startPoiId,
+  )
 
   return {
     placeId,

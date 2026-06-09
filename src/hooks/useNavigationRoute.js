@@ -4,6 +4,7 @@ import {
   findNavigationRoutes,
   findTransitNavigationRoutes,
 } from '../apis/navigationApi'
+import { isIndoorRouteLeg } from '../utils/map/routeOverlayMappers'
 
 const EMPTY_ARRAY = []
 
@@ -162,6 +163,9 @@ function collectFloorplans(mapLegs) {
 
   mapLegs.forEach((leg) => {
     if (!leg || typeof leg !== 'object') {
+      return
+    }
+    if (!isIndoorRouteLeg(leg)) {
       return
     }
 

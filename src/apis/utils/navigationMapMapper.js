@@ -5,6 +5,7 @@ import { isDistanceSummaryInstruction } from '../../utils/navigationStepFilters'
 export function normalizeMapLegs(legs, routeContext) {
   return legs.flatMap((leg, legIndex) => {
     const floorSegments = Array.isArray(leg.floorSegments) ? leg.floorSegments : []
+    const legPath = normalizeLegPath(leg)
 
     if (floorSegments.length > 0) {
       return floorSegments.map((segment, segmentIndex) =>
@@ -16,12 +17,12 @@ export function normalizeMapLegs(legs, routeContext) {
       )
     }
 
-    if (!leg.mapImageUrl && !Array.isArray(leg.path)) {
+    if (!leg.mapImageUrl && legPath.length < 2) {
       return []
     }
 
     return [
-      normalizeMapSegment(leg, leg, {
+      normalizeMapSegment({ ...leg, path: legPath }, leg, {
         ...routeContext,
         legIndex,
         segmentIndex: 0,
@@ -94,7 +95,7 @@ function normalizeStep(step, context) {
 }
 
 function normalizeMapSegment(segment, leg, context) {
-  const path = Array.isArray(segment.path) ? segment.path : []
+  const path = normalizeLegPath(segment)
   const steps = Array.isArray(segment.steps) ? segment.steps : []
   const floorId = segment.floorId ?? leg.floorId ?? null
   const floorName = segment.floorName ?? leg.floorName ?? null
@@ -125,6 +126,28 @@ function normalizeMapSegment(segment, leg, context) {
     ),
     raw: segment,
   }
+}
+
+function normalizeLegPath(leg) {
+  if (Array.isArray(leg?.path) && leg.path.length > 0) {
+    return leg.path
+  }
+
+  const steps = Array.isArray(leg?.steps) ? leg.steps : []
+  return steps
+    .map((step) => ({ x: step?.x, y: step?.y, name: step?.instruction ?? null }))
+    .filter(isValidGeographicPoint)
+}
+
+function isValidGeographicPoint(point) {
+  return (
+    typeof point?.x === 'number' &&
+    typeof point?.y === 'number' &&
+    point.x >= -180 &&
+    point.x <= 180 &&
+    point.y >= -90 &&
+    point.y <= 90
+  )
 }
 
 export function modeToUiType(mode) {

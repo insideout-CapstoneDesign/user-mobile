@@ -13,7 +13,12 @@ import {
   toNavigationPlace,
   toNavigationRequestInput,
 } from '../../utils/map/navigationPlaceMapper'
+import {
+  getIndoorFloorplan,
+  getOutdoorRouteLegs,
+} from '../../utils/map/routeOverlayMappers'
 import { createRoutingGuidanceState } from '../../utils/routing/routingGuidanceState'
+import FloorplanRouteView from '../../components/Map/FloorplanRouteView'
 import './RoutingOptionPage.css'
 
 export default function RoutingOptionPage() {
@@ -39,6 +44,17 @@ export default function RoutingOptionPage() {
   }
   const mapLevel = location.state?.mapLevel ?? 3
   const hasRoutePlaces = Boolean(routeOrigin && routeDestination)
+  const selectedRouteOption = navigationRoute.selectedRouteOption
+  const outdoorRouteLegs = useMemo(
+    () => getOutdoorRouteLegs(selectedRouteOption),
+    [selectedRouteOption],
+  )
+  const selectedFloorplan = getIndoorFloorplan(
+    selectedRouteOption,
+    navigationRoute.selectedFloorplan,
+  )
+  const shouldShowFloorplanRoute =
+    outdoorRouteLegs.length === 0 && Boolean(selectedFloorplan?.mapImageUrl)
 
   useEffect(() => {
     if (!hasRoutePlaces) {
@@ -121,7 +137,20 @@ export default function RoutingOptionPage() {
   return (
     <main className="routing-option-page">
       <div className="routing-option-page__viewport">
-        <KakaoMapView center={mapCenter} level={mapLevel} pois={[]} />
+        {shouldShowFloorplanRoute ? (
+          <FloorplanRouteView
+            floorplan={selectedFloorplan}
+            showInstructionBadge={false}
+          />
+        ) : (
+          <KakaoMapView
+            center={mapCenter}
+            level={mapLevel}
+            pois={[]}
+            routeLegs={outdoorRouteLegs}
+            fitRouteBounds={outdoorRouteLegs.length > 0}
+          />
+        )}
       </div>
 
       <div className="routing-option-page__direction">

@@ -9,7 +9,12 @@ function getCanonicalPlaceId(place) {
 }
 
 function getCanonicalPoiId(place) {
-  return place?.poiId ?? place?.destinationPoiId ?? place?.startPoiId ?? null
+  return firstIntegerId(
+    place?.poiId,
+    place?.poiPublicId,
+    place?.destinationPoiId,
+    place?.startPoiId,
+  )
 }
 
 function getBasePlaceName(place) {
@@ -25,6 +30,23 @@ function toFiniteNumber(value) {
         : NaN
 
   return Number.isFinite(normalized) ? normalized : null
+}
+
+function firstIntegerId(...values) {
+  for (const value of values) {
+    if (typeof value === 'number' && Number.isSafeInteger(value)) {
+      return value
+    }
+
+    if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
+      const parsed = Number(value)
+      if (Number.isSafeInteger(parsed)) {
+        return parsed
+      }
+    }
+  }
+
+  return null
 }
 
 function getDisplayName(place, baseName) {

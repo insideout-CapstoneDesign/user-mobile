@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
@@ -10,6 +10,7 @@ import SearchInput from '../../components/SearchInput/SearchInput'
 import { ROUTES } from '../../constants/routes'
 import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mapSearchPlaceToPoi } from '../../utils/map/mapPoiMappers'
+import { getOutdoorRouteLegs } from '../../utils/map/routeOverlayMappers'
 import { getRoutingGuidanceState } from '../../utils/routing/routingGuidanceState'
 import RoutingGuidanceLayer from './components/RoutingGuidanceLayer'
 import RoutingOptionLayer from './components/RoutingOptionLayer'
@@ -50,6 +51,12 @@ export default function RoutingPage() {
     transportMode,
   } = routing
   const isSelectedPoiRegistered = Boolean(selectedPoi?.isRegistered)
+  const outdoorRouteLegs = useMemo(
+    () => getOutdoorRouteLegs(navigationRoute.selectedRouteOption),
+    [navigationRoute.selectedRouteOption],
+  )
+  const shouldShowIndoorRoute =
+    guidanceStarted && isIndoorGuidanceStep && navigationRoute.selectedFloorplan
 
   useEffect(() => {
     setSelectedPoi(mapSearchPlaceToPoi(selectedSearchPlace ?? selectedMapPlace))
@@ -83,13 +90,18 @@ export default function RoutingPage() {
   return (
     <main className="routing-page">
       <div className="routing-page__viewport">
-        {guidanceStarted && isIndoorGuidanceStep && navigationRoute.selectedFloorplan ? (
+        {shouldShowIndoorRoute ? (
           <FloorplanRouteView
             floorplan={navigationRoute.selectedFloorplan}
             showInstructionBadge={false}
           />
         ) : (
-          <KakaoMapView pois={mockMapPois} onPoiSelect={setSelectedPoi} />
+          <KakaoMapView
+            pois={mockMapPois}
+            onPoiSelect={setSelectedPoi}
+            routeLegs={outdoorRouteLegs}
+            fitRouteBounds={outdoorRouteLegs.length > 0}
+          />
         )}
       </div>
 

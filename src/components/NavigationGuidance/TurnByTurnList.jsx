@@ -1,9 +1,11 @@
+import { useEffect, useRef } from 'react'
 import CommonHeader from '../CommonHeader/CommonHeader'
 import { isDistanceSummaryInstruction } from '../../utils/navigationStepFilters'
 import TurnByTurnStepItem from './TurnByTurnStepItem'
 import {
   DestinationText,
   Divider,
+  IndoorEntryDivider,
   ListBody,
   ListRoot,
   RouteMetric,
@@ -23,9 +25,21 @@ export default function TurnByTurnList({
   onClose,
   onSelectStep,
 }) {
+  const activeItemRef = useRef(null)
   const visibleSteps = steps
     .map((step, index) => ({ step, originalIndex: index }))
     .filter(({ step }) => shouldShowStep(step))
+
+  useEffect(() => {
+    if (!activeStepId || !activeItemRef.current) {
+      return
+    }
+
+    activeItemRef.current.scrollIntoView({
+      block: 'center',
+      behavior: 'smooth',
+    })
+  }, [activeStepId])
 
   return (
     <ListRoot>
@@ -50,17 +64,52 @@ export default function TurnByTurnList({
         <Divider />
 
         {visibleSteps.map(({ step, originalIndex }, index) => (
-          <TurnByTurnStepItem
+          <FragmentWithIndoorDivider
             key={step.id ?? `turn-step-${index}`}
-            step={step}
-            index={originalIndex}
-            active={activeStepId === step.id}
-            onSelect={onSelectStep}
-          />
+            showDivider={shouldShowIndoorEntryDivider(visibleSteps, index)}
+          >
+            <TurnByTurnStepItem
+              ref={activeStepId === step.id ? activeItemRef : null}
+              step={step}
+              index={originalIndex}
+              active={activeStepId === step.id}
+              onSelect={onSelectStep}
+            />
+          </FragmentWithIndoorDivider>
         ))}
       </ListBody>
     </ListRoot>
   )
+}
+
+function FragmentWithIndoorDivider({ showDivider, children }) {
+  return (
+    <>
+      {showDivider ? <IndoorEntryDivider>실내 진입</IndoorEntryDivider> : null}
+      {children}
+    </>
+  )
+}
+
+function shouldShowIndoorEntryDivider(visibleSteps, index) {
+  if (index <= 0) {
+    return false
+  }
+
+  const currentStep = visibleSteps[index]?.step
+  const previousStep = visibleSteps[index - 1]?.step
+
+  return isIndoorEntryStep(currentStep) && !isIndoorStep(previousStep)
+}
+
+function isIndoorEntryStep(step = {}) {
+  const instruction = String(step.instruction ?? '')
+  return instruction.includes('입구 진입') || isIndoorStep(step)
+}
+
+function isIndoorStep(step = {}) {
+  const mode = String(step.mode ?? '').toUpperCase()
+  return step.type === 'indoor' || mode === 'INDOOR' || Boolean(step.floorId)
 }
 
 function shouldShowStep(step = {}) {

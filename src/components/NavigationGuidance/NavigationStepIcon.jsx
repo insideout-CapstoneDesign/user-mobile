@@ -1,11 +1,13 @@
+import buildingIcon from '../../assets/icons/building.svg'
 import crosswalkIcon from '../../assets/icons/D_crosswalk.svg'
-import doorIcon from '../../assets/icons/D_door.svg'
+import doorIcon from '../../assets/icons/door.svg'
 import hyphenIcon from '../../assets/icons/D_hyphen.svg'
-import leftIcon from '../../assets/icons/D_left.svg'
+import elevatorIcon from '../../assets/icons/elevator.svg'
+import leftIcon from '../../assets/icons/leftSign.svg'
 import locateIcon from '../../assets/icons/MyLocate.svg'
-import rightIcon from '../../assets/icons/D_right.svg'
-import stairIcon from '../../assets/icons/D_stair.svg'
-import straightIcon from '../../assets/icons/D_straight.svg'
+import rightIcon from '../../assets/icons/rightSign.svg'
+import stairIcon from '../../assets/icons/stairs.svg'
+import straightIcon from '../../assets/icons/straightSign.svg'
 import {
   IconBubble,
   IconImage,
@@ -27,12 +29,20 @@ function getStepIcon(step = {}) {
   const normalizedText = `${step.instruction ?? ''} ${step.turnType ?? ''}`.toLowerCase()
   let src = hyphenIcon
 
-  if (
+  if (isBuildingArrivalStep(step, normalizedText)) {
+    src = buildingIcon
+  } else if (
     normalizedText.includes('도착') ||
     normalizedText.includes('출발') ||
     normalizedText.includes('현재 위치')
   ) {
     src = locateIcon
+  } else if (
+    normalizedText.includes('엘리베이터') ||
+    normalizedText.includes('엘레베이터') ||
+    normalizedText.includes('elevator')
+  ) {
+    src = elevatorIcon
   } else if (normalizedText.includes('계단') || normalizedText.includes('stair')) {
     src = stairIcon
   } else if (normalizedText.includes('횡단보도') || normalizedText.includes('crosswalk')) {
@@ -41,6 +51,7 @@ function getStepIcon(step = {}) {
     isIndoorStep(step) &&
     (normalizedText.includes('출입구') ||
       normalizedText.includes('건물 입구') ||
+      normalizedText.includes('입구 진입') ||
       normalizedText.includes('door') ||
       normalizedText.includes('entrance'))
   ) {
@@ -64,6 +75,11 @@ function getStepIcon(step = {}) {
 function isIndoorStep(step = {}) {
   const mode = String(step.mode ?? '').toUpperCase()
   return step.type === 'indoor' || mode === 'INDOOR'
+}
+
+function isBuildingArrivalStep(step = {}, normalizedText = '') {
+  const mode = String(step.mode ?? '').toUpperCase()
+  return mode === 'BUILDING' || normalizedText.includes('건물 도착')
 }
 
 function getStepTone(step = {}) {

@@ -6,8 +6,8 @@ const toneStyles = {
     color: var(--text-inverse);
   `,
   destination: css`
-    background: var(--red-500);
-    color: var(--text-inverse);
+    background: transparent;
+    color: var(--red-500);
   `,
   default: css`
     background: transparent;
@@ -16,9 +16,9 @@ const toneStyles = {
 }
 
 export const IconBubble = styled.span`
-  width: var(--size-36);
-  height: var(--size-36);
-  flex: 0 0 var(--size-36);
+  width: ${({ $tone }) => ($tone === 'destination' ? '2.125rem' : '2rem')};
+  height: ${({ $tone }) => ($tone === 'destination' ? '2.125rem' : '2rem')};
+  flex: 0 0 ${({ $tone }) => ($tone === 'destination' ? '2.125rem' : '2rem')};
   border-radius: var(--radius-pill);
   display: inline-flex;
   align-items: center;
@@ -26,23 +26,40 @@ export const IconBubble = styled.span`
   ${({ $tone }) => toneStyles[$tone] ?? toneStyles.default}
 
   img {
-    filter: brightness(0) invert(1);
+    filter: ${({ $tone }) =>
+      $tone === 'destination'
+        ? 'invert(30%) sepia(93%) saturate(3105%) hue-rotate(337deg) brightness(103%) contrast(97%)'
+        : 'brightness(0) invert(1)'};
+    width: ${({ $tone }) => ($tone === 'destination' ? '1.75rem' : '1.15rem')};
+    height: ${({ $tone }) => ($tone === 'destination' ? '1.75rem' : '1.15rem')};
   }
 `
 
 export const PlainStepIcon = styled.span`
-  width: var(--size-26);
-  height: var(--size-26);
-  flex: 0 0 var(--size-26);
+  width: ${({ $tone }) => ($tone === 'origin' ? '1.875rem' : '2.125rem')};
+  height: ${({ $tone }) => ($tone === 'origin' ? '1.875rem' : '2.125rem')};
+  flex: 0 0 ${({ $tone }) => ($tone === 'origin' ? '1.875rem' : '2.125rem')};
   display: inline-flex;
   align-items: center;
   justify-content: center;
   ${({ $tone }) => toneStyles[$tone] ?? toneStyles.default}
   border-radius: ${({ $tone }) => ($tone === 'default' ? '0' : 'var(--radius-pill)')};
+
+  img {
+    filter: ${({ $tone }) => {
+      if ($tone === 'default') return 'none'
+      if ($tone === 'destination') {
+        return 'invert(30%) sepia(93%) saturate(3105%) hue-rotate(337deg) brightness(103%) contrast(97%)'
+      }
+      return 'brightness(0) invert(1)'
+    }};
+    width: ${({ $tone }) => ($tone === 'origin' ? '1.1rem' : '1.75rem')};
+    height: ${({ $tone }) => ($tone === 'origin' ? '1.1rem' : '1.75rem')};
+  }
 `
 
 export const IconImage = styled.img`
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.75rem;
+  height: 1.75rem;
   display: block;
 `

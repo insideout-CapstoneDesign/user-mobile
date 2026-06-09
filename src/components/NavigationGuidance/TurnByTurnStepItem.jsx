@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import NavigationStepIcon from './NavigationStepIcon'
 import {
   ListItem,
@@ -5,16 +6,17 @@ import {
   ListItemTitle,
 } from './TurnByTurnList.styles'
 
-export default function TurnByTurnStepItem({
+const TurnByTurnStepItem = forwardRef(function TurnByTurnStepItem({
   step,
   index,
   active,
   onSelect,
-}) {
+}, ref) {
   const safeStep = step && typeof step === 'object' ? step : {}
 
   return (
     <ListItem
+      ref={ref}
       type="button"
       $active={active}
       onClick={() => onSelect?.(safeStep, index)}
@@ -28,7 +30,9 @@ export default function TurnByTurnStepItem({
       </ListItemContent>
     </ListItem>
   )
-}
+})
+
+export default TurnByTurnStepItem
 
 function isEndpointStep(step = {}) {
   const text = String(step.instruction ?? '')

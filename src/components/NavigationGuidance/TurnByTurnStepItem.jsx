@@ -23,7 +23,7 @@ const TurnByTurnStepItem = forwardRef(function TurnByTurnStepItem({
     >
       <NavigationStepIcon
         step={safeStep}
-        variant={isEndpointStep(safeStep) ? 'bubble' : 'plain'}
+        variant={isBubbleStep(safeStep) ? 'bubble' : 'plain'}
       />
       <ListItemContent>
         <ListItemTitle>{safeStep.instruction || '안내 메시지'}</ListItemTitle>
@@ -34,8 +34,14 @@ const TurnByTurnStepItem = forwardRef(function TurnByTurnStepItem({
 
 export default TurnByTurnStepItem
 
-function isEndpointStep(step = {}) {
+function isBubbleStep(step = {}) {
   const text = String(step.instruction ?? '')
 
-  return text.includes('도착') || text.includes('출발') || text.includes('현재 위치')
+  return (
+    text.includes('도착') ||
+    text.includes('출발') ||
+    text.includes('현재 위치') ||
+    text.includes('출구') ||
+    text.includes('나가기')
+  )
 }

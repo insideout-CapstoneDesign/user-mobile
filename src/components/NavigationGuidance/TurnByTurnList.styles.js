@@ -64,7 +64,7 @@ export const Divider = styled.div`
   background: var(--gray-100);
 `
 
-export const IndoorEntryDivider = styled.div`
+export const RouteSectionDivider = styled.div`
   min-height: 2.5rem;
   border-top: var(--size-1) solid var(--gray-200);
   border-bottom: var(--size-1) solid var(--gray-200);

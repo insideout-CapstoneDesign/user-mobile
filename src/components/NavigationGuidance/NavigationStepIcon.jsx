@@ -29,7 +29,9 @@ function getStepIcon(step = {}) {
   const normalizedText = `${step.instruction ?? ''} ${step.turnType ?? ''}`.toLowerCase()
   let src = hyphenIcon
 
-  if (isBuildingArrivalStep(step, normalizedText)) {
+  if (isBuildingExitStep(step, normalizedText)) {
+    src = doorIcon
+  } else if (isBuildingArrivalStep(step, normalizedText)) {
     src = buildingIcon
   } else if (
     normalizedText.includes('도착') ||
@@ -82,9 +84,19 @@ function isBuildingArrivalStep(step = {}, normalizedText = '') {
   return mode === 'BUILDING' || normalizedText.includes('건물 도착')
 }
 
+function isBuildingExitStep(step = {}, normalizedText = '') {
+  const mode = String(step.mode ?? '').toUpperCase()
+  return (
+    normalizedText.includes('건물 출구') ||
+    normalizedText.includes('로 나가기') ||
+    (mode === 'INDOOR' && normalizedText.includes('나가기'))
+  )
+}
+
 function getStepTone(step = {}) {
   const text = String(step.instruction ?? '').toLowerCase()
 
+  if (isBuildingExitStep(step, text)) return 'destination'
   if (text.includes('도착')) return 'destination'
   if (text.includes('출발') || text.includes('현재 위치')) return 'origin'
 

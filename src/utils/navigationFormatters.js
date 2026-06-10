@@ -3,16 +3,33 @@ export function formatDuration(seconds) {
   return formatMinutes(minutes)
 }
 
-export function formatTotalDuration(totalDuration, totalTimeSeconds) {
+export function formatTotalDuration(totalDuration, totalTimeSeconds, options = {}) {
   const formattedTotalDuration = formatDurationText(totalDuration)
 
   if (formattedTotalDuration) {
-    return formattedTotalDuration
+    const normalizedDuration = formattedTotalDuration
       .replace(/\s*\+\s*/g, ' +')
       .replace(/\s*실내\s*이동/g, '실내이동')
+
+    return options.indoorPrefix
+      ? moveIndoorMarkerToPrefix(normalizedDuration)
+      : normalizedDuration
   }
 
   return formatDuration(totalTimeSeconds)
+}
+
+function moveIndoorMarkerToPrefix(durationText) {
+  const marker = '+실내이동'
+  const markerIndex = durationText.indexOf(marker)
+
+  if (markerIndex < 0) {
+    return durationText
+  }
+
+  const mainText = durationText.slice(0, markerIndex).trim()
+
+  return `실내이동+ ${mainText}`
 }
 
 export function formatDurationText(durationText) {

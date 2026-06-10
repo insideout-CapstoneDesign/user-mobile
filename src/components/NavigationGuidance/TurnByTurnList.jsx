@@ -6,7 +6,6 @@ import TurnByTurnStepItem from './TurnByTurnStepItem'
 import {
   DestinationText,
   Divider,
-  IndoorEntryDivider,
   ListBody,
   ListRoot,
   RouteMetric,
@@ -14,6 +13,7 @@ import {
   RouteMetricRow,
   RouteMetricSub,
   RouteMetricTime,
+  RouteSectionDivider,
 } from './TurnByTurnList.styles'
 
 export default function TurnByTurnList({
@@ -67,9 +67,9 @@ export default function TurnByTurnList({
         <Divider />
 
         {visibleSteps.map(({ step, originalIndex }, index) => (
-          <FragmentWithIndoorDivider
+          <FragmentWithRouteDivider
             key={step.id ?? `turn-step-${index}`}
-            showDivider={shouldShowIndoorEntryDivider(visibleSteps, index)}
+            dividerLabel={getRouteSectionDividerLabel(visibleSteps, index)}
           >
             <TurnByTurnStepItem
               ref={activeStepId === step.id ? activeItemRef : null}
@@ -78,36 +78,41 @@ export default function TurnByTurnList({
               active={activeStepId === step.id}
               onSelect={onSelectStep}
             />
-          </FragmentWithIndoorDivider>
+          </FragmentWithRouteDivider>
         ))}
       </ListBody>
     </ListRoot>
   )
 }
 
-function FragmentWithIndoorDivider({ showDivider, children }) {
+function FragmentWithRouteDivider({ dividerLabel, children }) {
   return (
     <>
-      {showDivider ? <IndoorEntryDivider>실내 진입</IndoorEntryDivider> : null}
+      {dividerLabel ? <RouteSectionDivider>{dividerLabel}</RouteSectionDivider> : null}
       {children}
     </>
   )
 }
 
-function shouldShowIndoorEntryDivider(visibleSteps, index) {
+function getRouteSectionDividerLabel(visibleSteps, index) {
   if (index <= 0) {
-    return false
+    return null
   }
 
   const currentStep = visibleSteps[index]?.step
   const previousStep = visibleSteps[index - 1]?.step
+  const currentIsIndoor = isIndoorStep(currentStep)
+  const previousIsIndoor = isIndoorStep(previousStep)
 
-  return isIndoorEntryStep(currentStep) && !isIndoorStep(previousStep)
-}
+  if (currentIsIndoor && !previousIsIndoor) {
+    return '실내 진입'
+  }
 
-function isIndoorEntryStep(step = {}) {
-  const instruction = String(step.instruction ?? '')
-  return instruction.includes('입구 진입') || isIndoorStep(step)
+  if (!currentIsIndoor && previousIsIndoor) {
+    return '실외로 이동'
+  }
+
+  return null
 }
 
 function isIndoorStep(step = {}) {

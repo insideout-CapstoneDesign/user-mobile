@@ -430,7 +430,7 @@ function resolveBaseCamera(viewModel, imageSize, stageSize, preferredScale = nul
   const routeBounds = getPointBounds(viewModel.routePoints)
   const routeScale = routeBounds
     ? resolveRouteFitScale(routeBounds, stageSize)
-    : containScale * DEFAULT_ROUTE_ZOOM
+    : containScale
   const routeZoomScale = Math.max(
     containScale,
     Math.min(routeScale, containScale * DEFAULT_ROUTE_ZOOM),

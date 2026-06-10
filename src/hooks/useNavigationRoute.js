@@ -37,9 +37,10 @@ export default function useNavigationRoute({
   )
 
   const selectedRouteMapLegs = selectedRouteOption?.mapLegs ?? EMPTY_ARRAY
+  const buildingFloorplans = data?.indoor?.floorplans ?? EMPTY_ARRAY
   const floorplans = useMemo(
-    () => collectFloorplans(selectedRouteMapLegs),
-    [selectedRouteMapLegs],
+    () => collectFloorplans(selectedRouteMapLegs, buildingFloorplans),
+    [buildingFloorplans, selectedRouteMapLegs],
   )
   const selectedFloorplan = useMemo(
     () =>
@@ -158,7 +159,7 @@ export default function useNavigationRoute({
   }
 }
 
-function collectFloorplans(mapLegs) {
+function collectFloorplans(mapLegs, buildingFloorplans = EMPTY_ARRAY) {
   const floorplanMap = new Map()
 
   mapLegs.forEach((leg) => {
@@ -188,6 +189,31 @@ function collectFloorplans(mapLegs) {
     })
   })
 
+  buildingFloorplans.forEach((floorplan) => {
+    if (!floorplan || typeof floorplan !== 'object' || !floorplan.mapImageUrl) {
+      return
+    }
+
+    const key = getBuildingFloorplanKey(floorplan)
+
+    if (floorplanMap.has(key)) {
+      return
+    }
+
+    floorplanMap.set(key, {
+      key,
+      id: floorplan.floorId ?? floorplan.id ?? null,
+      name: floorplan.floorName ?? floorplan.name ?? '도면',
+      label: floorplan.floorName ?? floorplan.name ?? '도면',
+      mapType: 'BUILDING',
+      mapImageUrl: floorplan.mapImageUrl,
+      coordinateType: floorplan.coordinateType ?? 'PIXEL',
+      mapLegs: [],
+      paths: [],
+      steps: [],
+    })
+  })
+
   return [...floorplanMap.values()]
 }
 
@@ -209,4 +235,8 @@ function getFindRoutes(transportMode) {
 
 function getMapFloorKey(mapLeg) {
   return mapLeg?.floorId ?? `${mapLeg?.mapType ?? 'MAP'}-${mapLeg?.floorName ?? 'default'}`
+}
+
+function getBuildingFloorplanKey(floorplan) {
+  return floorplan?.floorId ?? floorplan?.id ?? `${floorplan?.floorName ?? floorplan?.name ?? 'floor'}`
 }

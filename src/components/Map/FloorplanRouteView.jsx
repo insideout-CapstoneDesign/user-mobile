@@ -15,6 +15,7 @@ const MAX_SCALE = 5
 const ROUTE_FIT_PADDING = 0.9
 const DEFAULT_ROUTE_ZOOM = 3.2
 const DESTINATION_POI_SNAP_RADIUS_PX = 180
+const IMAGE_FALLBACK_DELAY_MS = 600
 
 export default function FloorplanRouteView({
   floorplan,
@@ -38,6 +39,9 @@ export default function FloorplanRouteView({
     floorId: null,
     data: null,
     hasError: false,
+  })
+  const [imageFallbackDelayState, setImageFallbackDelayState] = useState({
+    floorId: null,
   })
   const [cameraState, setCameraState] = useState({
     floorKey: null,
@@ -91,13 +95,26 @@ export default function FloorplanRouteView({
     }))
   }, [viewModel.key])
   const vectorSize = viewModel.vectorMap?.size ?? null
+  const isPublishedMapSettled =
+    !currentFloorId || publishedMapState.floorId === currentFloorId
+  const imageFallbackDelayElapsed =
+    imageFallbackDelayState.floorId === currentFloorId
+  const allowImageFallback =
+    !currentFloorId ||
+    imageFallbackDelayElapsed ||
+    (isPublishedMapSettled && !vectorSize)
   const imageSize =
     vectorSize ??
-    (imageState.src === viewModel.mapImageUrl && !imageState.hasError
+    (allowImageFallback &&
+    imageState.src === viewModel.mapImageUrl &&
+    !imageState.hasError
       ? imageState.size
       : null)
   const hasImageError =
-    !vectorSize && imageState.src === viewModel.mapImageUrl && imageState.hasError
+    allowImageFallback &&
+    !vectorSize &&
+    imageState.src === viewModel.mapImageUrl &&
+    imageState.hasError
   const baseCamera = useMemo(
     () =>
       imageSize && stageSize
@@ -181,6 +198,20 @@ export default function FloorplanRouteView({
 
     return () => {
       isActive = false
+    }
+  }, [currentFloorId])
+
+  useEffect(() => {
+    if (!currentFloorId) {
+      return undefined
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setImageFallbackDelayState({ floorId: currentFloorId })
+    }, IMAGE_FALLBACK_DELAY_MS)
+
+    return () => {
+      window.clearTimeout(timeoutId)
     }
   }, [currentFloorId])
 
@@ -349,7 +380,7 @@ export default function FloorplanRouteView({
         }}
       >
         <FloorplanCanvas>
-          {!vectorSize && viewModel.mapImageUrl ? (
+          {!vectorSize && allowImageFallback && viewModel.mapImageUrl ? (
             <FloorplanImage
               key={viewModel.mapImageUrl}
               src={viewModel.mapImageUrl}

@@ -25,6 +25,7 @@ export default function RoutingGuidanceLayer({ routing, onBackToRouteOptions }) 
         origin={originName}
         destination={destinationName}
         step={activeGuidanceStep}
+        steps={guidanceSteps}
         activeIndex={boundedGuidanceStepIndex}
         onBack={routing.openGuidanceList}
         onClose={routing.resetRouteView}

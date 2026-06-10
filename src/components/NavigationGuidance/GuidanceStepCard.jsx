@@ -12,6 +12,7 @@ const SWIPE_THRESHOLD = 42
 
 export default function GuidanceStepCard({
   step,
+  steps = [],
   activeIndex = 0,
   onPrevious,
   onNext,
@@ -30,6 +31,7 @@ export default function GuidanceStepCard({
   const meta = [safeStep.distanceText, safeStep.durationText, safeStep.floorName]
     .filter(Boolean)
     .join(' · ')
+  const bubbleTone = getGuidanceBubbleTone(steps, activeIndex)
 
   const handlePointerDown = (event) => {
     startXRef.current = event.clientX
@@ -122,7 +124,11 @@ export default function GuidanceStepCard({
         }}
         aria-label={`${activeIndex + 1}번째 안내 단계`}
       >
-        <NavigationStepIcon step={safeStep} variant="plain" />
+        <NavigationStepIcon
+          step={safeStep}
+          variant={bubbleTone ? 'bubble' : 'plain'}
+          tone={bubbleTone ?? 'default'}
+        />
         <CardContent>
           <CardTitle>{safeStep.instruction || '안내 메시지'}</CardTitle>
           {meta ? <CardMeta>{meta}</CardMeta> : null}
@@ -130,4 +136,43 @@ export default function GuidanceStepCard({
       </CardButton>
     </CardRoot>
   )
+}
+
+function getGuidanceBubbleTone(steps, activeIndex) {
+  const visibleSteps = Array.isArray(steps)
+    ? steps.filter((item) => item && typeof item === 'object')
+    : []
+
+  if (visibleSteps.length === 0) {
+    return null
+  }
+
+  const safeIndex = Math.max(
+    Math.min(Number.isInteger(activeIndex) ? activeIndex : 0, visibleSteps.length - 1),
+    0,
+  )
+
+  if (safeIndex === 0 && isOriginStep(visibleSteps[0])) {
+    return 'origin'
+  }
+
+  if (safeIndex === visibleSteps.length - 1) {
+    return 'destination'
+  }
+
+  const currentIsIndoor = isIndoorStep(visibleSteps[safeIndex])
+  const nextIsIndoor = isIndoorStep(visibleSteps[safeIndex + 1])
+
+  return currentIsIndoor !== nextIsIndoor ? 'destination' : null
+}
+
+function isOriginStep(step = {}) {
+  const text = String(step?.instruction ?? '')
+  return text.includes('출발') || text.includes('현재 위치')
+}
+
+function isIndoorStep(step = {}) {
+  const safeStep = step && typeof step === 'object' ? step : {}
+  const mode = String(safeStep.mode ?? '').toUpperCase()
+  return safeStep.type === 'indoor' || mode === 'INDOOR' || Boolean(safeStep.floorId)
 }

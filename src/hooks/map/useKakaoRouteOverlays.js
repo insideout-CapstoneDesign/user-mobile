@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { getRouteDisplayColor } from '../../components/NavigationGuidance/routeColor'
 
+const ACTIVE_GUIDANCE_MAX_LEVEL = 2
+const DESTINATION_EDGE_COLOR = '#dc2626'
+
 export default function useKakaoRouteOverlays({
   map,
   routeLegs = [],
@@ -54,17 +57,49 @@ export default function useKakaoRouteOverlays({
     })
 
     const activeRouteLeg = findActiveRouteLeg(routeLegs, activeStep)
-    const activePathPoints = sliceActivePath(activeRouteLeg?.path, activeStep)
+    const isDestinationEdge = shouldHighlightDestinationEdge(
+      activeRouteLeg?.path,
+      activeStep,
+    )
+    const activePathPoints = isDestinationEdge
+      ? sliceDestinationEdge(activeRouteLeg?.path, activeStep?.pathEndIndex)
+      : sliceActivePath(activeRouteLeg?.path, activeStep)
     const activePath = toLatLngPath(kakaoMaps, activePathPoints)
     if (activePath.length >= 2) {
+      const activeColor = isDestinationEdge
+        ? DESTINATION_EDGE_COLOR
+        : resolveRouteColor(activeRouteLeg)
+      if (isDestinationEdge) {
+        const destinationOutline = new kakaoMaps.Polyline({
+          map,
+          path: activePath,
+          strokeWeight: 15,
+          strokeColor: 'rgba(255, 255, 255, 0.96)',
+          strokeOpacity: 1,
+          strokeStyle: 'solid',
+          zIndex: 30,
+        })
+        const destinationLine = new kakaoMaps.Polyline({
+          map,
+          path: activePath,
+          strokeWeight: 8,
+          strokeColor: DESTINATION_EDGE_COLOR,
+          strokeOpacity: 0.96,
+          strokeStyle: 'solid',
+          zIndex: 31,
+        })
+        overlaysRef.current.push(destinationOutline, destinationLine)
+      }
       const activeMarker = createActiveNodeOverlay(
         kakaoMaps,
-        activePath[0],
-        resolveRouteColor(activeRouteLeg),
+        isDestinationEdge ? activePath[activePath.length - 1] : activePath[0],
+        activeColor,
+        isDestinationEdge,
       )
       activeMarker.setMap(map)
       overlaysRef.current.push(activeMarker)
       panToActivePathCenter(map, kakaoMaps, activePath)
+      zoomInForActiveGuidance(map)
     }
 
     if (fitBounds && hasBounds && fittedRouteKeyRef.current !== routeKey) {
@@ -77,14 +112,31 @@ export default function useKakaoRouteOverlays({
   }, [activeStep, fitBounds, map, routeKey, routeLegs])
 }
 
-function createActiveNodeOverlay(kakaoMaps, position, color) {
+function zoomInForActiveGuidance(map) {
+  if (!map || typeof map.getLevel !== 'function' || typeof map.setLevel !== 'function') {
+    return
+  }
+
+  const currentLevel = map.getLevel()
+  if (typeof currentLevel !== 'number' || !Number.isFinite(currentLevel)) {
+    return
+  }
+
+  if (currentLevel > ACTIVE_GUIDANCE_MAX_LEVEL) {
+    map.setLevel(ACTIVE_GUIDANCE_MAX_LEVEL, { animate: true })
+  }
+}
+
+function createActiveNodeOverlay(kakaoMaps, position, color, isDestination = false) {
   const marker = document.createElement('div')
   marker.style.width = '22px'
   marker.style.height = '22px'
   marker.style.borderRadius = '999px'
   marker.style.background = color
   marker.style.border = '4px solid #fff'
-  marker.style.boxShadow = '0 0 0 8px rgba(37, 99, 235, 0.18), 0 4px 12px rgba(15, 23, 42, 0.24)'
+  marker.style.boxShadow = isDestination
+    ? '0 0 0 8px rgba(220, 38, 38, 0.2), 0 4px 12px rgba(15, 23, 42, 0.24)'
+    : '0 0 0 8px rgba(37, 99, 235, 0.18), 0 4px 12px rgba(15, 23, 42, 0.24)'
   marker.style.boxSizing = 'border-box'
 
   return new kakaoMaps.CustomOverlay({
@@ -182,13 +234,23 @@ function findActiveRouteLeg(routeLegs, activeStep) {
   }
 
   const activeSegmentId = activeStep.segmentId ?? activeStep.mapLegId
-  return routeLegs.find((leg) =>
+  const matchedLeg = routeLegs.find((leg) =>
     [leg?.id, leg?.segmentId, leg?.mapLegId].filter(Boolean).includes(activeSegmentId),
-  ) ?? null
+  )
+
+  if (matchedLeg) {
+    return matchedLeg
+  }
+
+  if (isArrivalStep(activeStep)) {
+    return findLastRouteLegWithPath(routeLegs)
+  }
+
+  return null
 }
 
 function sliceActivePath(path, activeStep) {
-  if (!Array.isArray(path) || !activeStep || isArrivalStep(activeStep)) {
+  if (!Array.isArray(path) || !activeStep) {
     return []
   }
 
@@ -199,6 +261,10 @@ function sliceActivePath(path, activeStep) {
     ? activeStep.pathEndIndex
     : null
 
+  if (isArrivalStep(activeStep)) {
+    return sliceDestinationEdge(path, end)
+  }
+
   if (start === null || end === null || start === end) {
     return []
   }
@@ -206,6 +272,46 @@ function sliceActivePath(path, activeStep) {
   const from = Math.max(Math.min(start, end), 0)
   const to = Math.min(Math.max(start, end), path.length - 1)
   return path.slice(from, to + 1)
+}
+
+function sliceDestinationEdge(path, preferredEndIndex = null) {
+  if (!Array.isArray(path) || path.length < 2) {
+    return []
+  }
+
+  const endIndex = Number.isInteger(preferredEndIndex)
+    ? Math.max(Math.min(preferredEndIndex, path.length - 1), 1)
+    : path.length - 1
+
+  return path.slice(endIndex - 1, endIndex + 1)
+}
+
+function shouldHighlightDestinationEdge(path, activeStep) {
+  if (!Array.isArray(path) || path.length < 2 || !activeStep) {
+    return false
+  }
+
+  if (isArrivalStep(activeStep)) {
+    return true
+  }
+
+  return Number.isInteger(activeStep.pathEndIndex) &&
+    activeStep.pathEndIndex >= path.length - 1
+}
+
+function findLastRouteLegWithPath(routeLegs) {
+  if (!Array.isArray(routeLegs)) {
+    return null
+  }
+
+  for (let index = routeLegs.length - 1; index >= 0; index -= 1) {
+    const path = routeLegs[index]?.path
+    if (Array.isArray(path) && path.length >= 2) {
+      return routeLegs[index]
+    }
+  }
+
+  return null
 }
 
 function isArrivalStep(step = {}) {

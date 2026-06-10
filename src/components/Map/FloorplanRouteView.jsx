@@ -1271,7 +1271,12 @@ function findActiveFocusPoint(mapLegs, activeStep) {
   const startIndex = Number.isInteger(activeStep.pathStartIndex)
     ? activeStep.pathStartIndex
     : activeStep.pathIndex
-  const point = path[Math.max(Math.min(startIndex ?? 0, path.length - 1), 0)]
+  const endIndex = Number.isInteger(activeStep.pathEndIndex)
+    ? activeStep.pathEndIndex
+    : startIndex
+  const point =
+    getPathRangeCenter(path, startIndex, endIndex) ??
+    path[Math.max(Math.min(startIndex ?? 0, path.length - 1), 0)]
 
   return {
     id: `${activeStep.id ?? leg.id}-active-focus`,
@@ -1297,6 +1302,37 @@ function findActiveLeg(mapLegs, activeStep) {
   }
 
   return null
+}
+
+function getPathRangeCenter(path, startIndex, endIndex) {
+  if (!Array.isArray(path) || path.length === 0) {
+    return null
+  }
+
+  if (!Number.isInteger(startIndex) || !Number.isInteger(endIndex)) {
+    return null
+  }
+
+  const from = Math.max(Math.min(startIndex, endIndex), 0)
+  const to = Math.min(Math.max(startIndex, endIndex), path.length - 1)
+  const segmentPoints = path.slice(from, to + 1).filter(isValidMapPoint)
+
+  if (segmentPoints.length === 0) {
+    return null
+  }
+
+  const center = segmentPoints.reduce(
+    (acc, point) => ({
+      x: acc.x + point.x,
+      y: acc.y + point.y,
+    }),
+    { x: 0, y: 0 },
+  )
+
+  return {
+    x: center.x / segmentPoints.length,
+    y: center.y / segmentPoints.length,
+  }
 }
 
 function isArrivalStep(step = {}) {

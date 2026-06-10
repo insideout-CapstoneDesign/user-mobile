@@ -6,6 +6,7 @@ import SearchAutocompleteList from '../../components/Search/SearchAutocompleteLi
 import SearchResultList from '../../components/Search/SearchResultList'
 import { ROUTES } from '../../constants/routes'
 import { SEARCH_MODES } from '../../constants/search'
+import { firstIntegerId } from '../../utils/idHelpers'
 import './SearchPage.css'
 
 const SEARCH_DELAY_MS = 250
@@ -46,23 +47,6 @@ function toFiniteNumber(value) {
         : NaN
 
   return Number.isFinite(normalized) ? normalized : null
-}
-
-function firstIntegerId(...values) {
-  for (const value of values) {
-    if (typeof value === 'number' && Number.isSafeInteger(value)) {
-      return value
-    }
-
-    if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
-      const parsed = Number(value)
-      if (Number.isSafeInteger(parsed)) {
-        return parsed
-      }
-    }
-  }
-
-  return null
 }
 
 function mapPlaceToSearchItem(place, idx) {

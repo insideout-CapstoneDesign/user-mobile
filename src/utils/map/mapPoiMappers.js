@@ -1,3 +1,5 @@
+import { firstIntegerId } from '../idHelpers'
+
 function getCanonicalPlaceId(place) {
   return (
     place?.placeId ??
@@ -30,23 +32,6 @@ function toFiniteNumber(value) {
         : NaN
 
   return Number.isFinite(normalized) ? normalized : null
-}
-
-function firstIntegerId(...values) {
-  for (const value of values) {
-    if (typeof value === 'number' && Number.isSafeInteger(value)) {
-      return value
-    }
-
-    if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
-      const parsed = Number(value)
-      if (Number.isSafeInteger(parsed)) {
-        return parsed
-      }
-    }
-  }
-
-  return null
 }
 
 function getDisplayName(place, baseName) {

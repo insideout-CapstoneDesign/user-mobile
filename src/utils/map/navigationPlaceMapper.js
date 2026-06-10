@@ -1,3 +1,5 @@
+import { firstIntegerId } from '../idHelpers'
+
 export const DEFAULT_ROUTE_ORIGIN = {
   x: 126.951744,
   y: 37.478095,
@@ -71,23 +73,6 @@ function firstNumber(...values) {
     if (typeof value === 'string' && value.trim()) {
       const parsed = Number(value)
       if (Number.isFinite(parsed)) {
-        return parsed
-      }
-    }
-  }
-
-  return null
-}
-
-function firstIntegerId(...values) {
-  for (const value of values) {
-    if (typeof value === 'number' && Number.isSafeInteger(value)) {
-      return value
-    }
-
-    if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
-      const parsed = Number(value)
-      if (Number.isSafeInteger(parsed)) {
         return parsed
       }
     }

@@ -97,7 +97,9 @@ function getStepTone(step = {}) {
   const text = String(step.instruction ?? '').toLowerCase()
 
   if (isBuildingExitStep(step, text)) return 'destination'
-  if (text.includes('도착')) return 'destination'
+  if (text.includes('도착') || text.includes('출구') || text.includes('나가기')) {
+    return 'destination'
+  }
   if (text.includes('출발') || text.includes('현재 위치')) return 'origin'
 
   return 'default'

@@ -18,10 +18,16 @@ export default function BottomSheetBase({
   dismissible = true,
   contentMaxHeight,
 }) {
+  const handleClose = () => {
+    if (dismissible) {
+      onClose?.()
+    }
+  }
+
   return (
     <Sheet
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       detent={detent}
       snapPoints={snapPoints}
       initialSnap={initialSnap}
@@ -43,7 +49,7 @@ export default function BottomSheetBase({
           </SheetBody>
         </StyledSheetContent>
       </StyledSheetContainer>
-      {showBackdrop ? <StyledSheetBackdrop onTap={onClose} /> : null}
+      {showBackdrop ? <StyledSheetBackdrop onTap={handleClose} /> : null}
     </Sheet>
   )
 }

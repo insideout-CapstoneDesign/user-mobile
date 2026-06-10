@@ -1,6 +1,7 @@
 import { UI_TYPE_BY_LEG_MODE } from '../../constants/navigation'
 import { formatDistance, formatDuration } from '../../utils/navigationFormatters'
 import { isDistanceSummaryInstruction } from '../../utils/navigationStepFilters'
+import { isGeographicCoordinateType } from '../../utils/map/routeOverlayMappers'
 
 export function normalizeMapLegs(legs, routeContext) {
   return legs.flatMap((leg, legIndex) => {
@@ -36,7 +37,7 @@ export function normalizeTurnByTurnSteps(legs, routeContext) {
     const floorSegments = Array.isArray(leg.floorSegments) ? leg.floorSegments : []
     if (floorSegments.length > 0) {
       return floorSegments.flatMap((segment, segmentIndex) => {
-        const path = normalizeLegPath(segment)
+        const path = normalizeLegPath(segment, leg.coordinateType)
         const steps = Array.isArray(segment.steps) ? segment.steps : []
         const floorId = segment.floorId ?? leg.floorId ?? null
         const floorName = segment.floorName ?? leg.floorName ?? null
@@ -175,7 +176,7 @@ function toSafePathIndex(value, path) {
 }
 
 function normalizeMapSegment(segment, leg, context) {
-  const path = normalizeLegPath(segment)
+  const path = normalizeLegPath(segment, leg.coordinateType)
   const steps = Array.isArray(segment.steps) ? segment.steps : []
   const floorId = segment.floorId ?? leg.floorId ?? null
   const floorName = segment.floorName ?? leg.floorName ?? null
@@ -263,15 +264,17 @@ function resolveStepPathRange(startIndex, endIndex, path) {
   return { start: from, end: to }
 }
 
-function normalizeLegPath(leg) {
+function normalizeLegPath(leg, fallbackCoordinateType = null) {
   if (Array.isArray(leg?.path) && leg.path.length > 0) {
     return leg.path
   }
 
+  const coordinateType = leg?.coordinateType ?? fallbackCoordinateType
+  const isValidPathPoint = createPathPointValidator(coordinateType)
   const stops = Array.isArray(leg?.stops) ? leg.stops : []
   const stopPath = stops
     .map((stop) => ({ x: stop?.x, y: stop?.y, name: stop?.name ?? null }))
-    .filter(isValidGeographicPoint)
+    .filter(isValidPathPoint)
 
   if (stopPath.length >= 2) {
     return stopPath
@@ -280,7 +283,17 @@ function normalizeLegPath(leg) {
   const steps = Array.isArray(leg?.steps) ? leg.steps : []
   return steps
     .map((step) => ({ x: step?.x, y: step?.y, name: step?.instruction ?? null }))
-    .filter(isValidGeographicPoint)
+    .filter(isValidPathPoint)
+}
+
+function createPathPointValidator(coordinateType) {
+  return isGeographicCoordinateType(coordinateType)
+    ? isValidGeographicPoint
+    : isValidFinitePoint
+}
+
+function isValidFinitePoint(point) {
+  return Number.isFinite(point?.x) && Number.isFinite(point?.y)
 }
 
 function isValidGeographicPoint(point) {

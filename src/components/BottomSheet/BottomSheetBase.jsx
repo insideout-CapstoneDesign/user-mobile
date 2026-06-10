@@ -16,6 +16,8 @@ export default function BottomSheetBase({
   showBackdrop = true,
   scrollableContent = true,
   dismissible = true,
+  contentHeight,
+  contentMaxHeight,
 }) {
   return (
     <Sheet
@@ -28,8 +30,19 @@ export default function BottomSheetBase({
     >
       <StyledSheetContainer>
         <Sheet.Header />
-        <StyledSheetContent $scrollable={scrollableContent}>
-          <SheetBody $scrollable={scrollableContent}>{children}</SheetBody>
+        <StyledSheetContent
+          $scrollable={scrollableContent}
+          $contentHeight={contentHeight}
+          $contentMaxHeight={contentMaxHeight}
+          disableDrag={!scrollableContent}
+          disableScroll={!scrollableContent}
+        >
+          <SheetBody
+            $scrollable={scrollableContent}
+            $bounded={Boolean(contentMaxHeight)}
+          >
+            {children}
+          </SheetBody>
         </StyledSheetContent>
       </StyledSheetContainer>
       {showBackdrop ? <StyledSheetBackdrop onTap={onClose} /> : null}

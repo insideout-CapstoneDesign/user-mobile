@@ -45,6 +45,10 @@ export function toNavigationRequestInput({
   transportMode,
   includeIndoor = true,
 }) {
+  const shouldIncludeIndoor =
+    Boolean(includeIndoor) &&
+    (Boolean(origin?.startPoiId) || Boolean(destination?.destinationPoiId))
+
   return {
     start: origin,
     end: destination,
@@ -53,7 +57,7 @@ export function toNavigationRequestInput({
     startPoiId: origin?.startPoiId,
     destinationBuildingId: destination?.destinationBuildingId,
     destinationPoiId: destination?.destinationPoiId,
-    includeIndoor,
+    includeIndoor: shouldIncludeIndoor,
     transportMode,
   }
 }

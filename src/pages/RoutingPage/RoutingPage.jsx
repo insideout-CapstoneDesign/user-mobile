@@ -17,8 +17,9 @@ import RoutingOptionLayer from './components/RoutingOptionLayer'
 import useRoutingController from './useRoutingController'
 import './RoutingPage.css'
 
-const ROUTE_OPTION_SNAP_POINTS = [0, 96, 0.76, 1]
+const ROUTE_OPTION_SNAP_POINTS = [0, 96, 1]
 const ROUTE_OPTION_INITIAL_SNAP = 2
+const ROUTE_OPTION_CONTENT_MAX_HEIGHT = 'calc(58dvh - 40px)'
 
 export default function RoutingPage() {
   const location = useLocation()
@@ -178,16 +179,19 @@ export default function RoutingPage() {
         isOpen={routeSheetOpen}
         onClose={routing.closeRouteSheet}
         showBackdrop={false}
+        detent="content"
         snapPoints={ROUTE_OPTION_SNAP_POINTS}
         initialSnap={ROUTE_OPTION_INITIAL_SNAP}
         dismissible={false}
         scrollableContent={false}
+        contentMaxHeight={ROUTE_OPTION_CONTENT_MAX_HEIGHT}
       >
         <BottomSheetRouteOptions
           mode={transportMode}
           options={navigationRoute.routeOptions}
           onSelectOption={routing.selectRouteOption}
           onStartNavigation={routing.startNavigation}
+          maxHeight={ROUTE_OPTION_CONTENT_MAX_HEIGHT}
         />
       </BottomSheetBase>
     </main>

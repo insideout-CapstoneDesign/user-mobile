@@ -21,11 +21,16 @@ export const StyledSheetBackdrop = styled(Sheet.Backdrop)`
 export const StyledSheetContent = styled(Sheet.Content)`
   box-sizing: border-box;
   width: 100%;
-  height: ${({ $scrollable = true }) => ($scrollable ? 'auto' : '100%')};
+  height: ${({ $contentHeight, $contentMaxHeight, $scrollable = true }) => {
+    if ($contentHeight) return $contentHeight
+    if ($contentMaxHeight) return 'auto'
+    return $scrollable ? 'auto' : '100%'
+  }};
   display: flex;
   flex-direction: column;
   padding: 0 var(--space-16) var(--space-20);
-  max-height: calc(100dvh - var(--sheet-handle-offset));
+  max-height: ${({ $contentMaxHeight }) =>
+    $contentMaxHeight ?? 'calc(100dvh - var(--sheet-handle-offset))'};
   overflow-y: ${({ $scrollable = true }) => ($scrollable ? 'auto' : 'hidden')};
   overflow-x: hidden;
   overscroll-behavior: contain;
@@ -42,12 +47,19 @@ export const StyledSheetContent = styled(Sheet.Content)`
 export const SheetBody = styled.div`
   display: flex;
   flex-direction: column;
-  flex: ${({ $scrollable = true }) => ($scrollable ? '0 0 auto' : '1 1 auto')};
+  flex: ${({ $bounded, $scrollable = true }) => {
+    if ($bounded) return '0 1 auto'
+    return $scrollable ? '0 0 auto' : '1 1 auto'
+  }};
   gap: var(--space-8);
   color: var(--gray-700);
   width: 100%;
   min-width: 0;
   overflow-x: hidden;
   min-height: 0;
-  height: ${({ $scrollable = true }) => ($scrollable ? 'auto' : '100%')};
+  max-height: ${({ $bounded }) => ($bounded ? '100%' : 'none')};
+  height: ${({ $bounded, $scrollable = true }) => {
+    if ($bounded) return 'auto'
+    return $scrollable ? 'auto' : '100%'
+  }};
 `

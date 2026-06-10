@@ -42,6 +42,7 @@ export default function BottomSheetRouteOptions({
   selectedOptionId: controlledSelectedOptionId,
   onSelectOption,
   onStartNavigation,
+  maxHeight,
 }) {
   const [internalSelectedOptionId, setInternalSelectedOptionId] = useState(
     () => options.find((option) => option.active)?.id ?? options[0]?.id ?? null,
@@ -57,8 +58,8 @@ export default function BottomSheetRouteOptions({
   }
 
   return (
-    <TypeContainer>
-      <RouteOptionsBody>
+    <TypeContainer $maxHeight={maxHeight}>
+      <RouteOptionsBody $maxHeight={maxHeight}>
         <RouteSectionTitle>경로 옵션</RouteSectionTitle>
 
         <RouteListViewport>

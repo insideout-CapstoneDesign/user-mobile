@@ -21,8 +21,9 @@ import { createRoutingGuidanceState } from '../../utils/routing/routingGuidanceS
 import FloorplanRouteView from '../../components/Map/FloorplanRouteView'
 import './RoutingOptionPage.css'
 
-const ROUTE_OPTION_SNAP_POINTS = [0, 96, 0.9, 1]
+const ROUTE_OPTION_SNAP_POINTS = [0, 96, 1]
 const ROUTE_OPTION_INITIAL_SNAP = 2
+const ROUTE_OPTION_CONTENT_MAX_HEIGHT = 'calc(58dvh - 40px)'
 
 export default function RoutingOptionPage() {
   const location = useLocation()
@@ -190,10 +191,12 @@ export default function RoutingOptionPage() {
         isOpen
         onClose={() => {}}
         showBackdrop={false}
+        detent="content"
         snapPoints={ROUTE_OPTION_SNAP_POINTS}
         initialSnap={ROUTE_OPTION_INITIAL_SNAP}
         dismissible={false}
         scrollableContent={false}
+        contentMaxHeight={ROUTE_OPTION_CONTENT_MAX_HEIGHT}
       >
         <BottomSheetRouteOptions
           mode={transportMode}
@@ -201,6 +204,7 @@ export default function RoutingOptionPage() {
           selectedOptionId={navigationRoute.selectedRouteOptionId}
           onSelectOption={navigationRoute.selectRouteOption}
           onStartNavigation={handleStartNavigation}
+          maxHeight={ROUTE_OPTION_CONTENT_MAX_HEIGHT}
         />
       </BottomSheetBase>
     </main>

@@ -122,6 +122,10 @@ function formatRawDuration(durationSeconds) {
 }
 
 function getTransitStopCount(leg, stops) {
+  if (Array.isArray(stops) && stops.length > 0) {
+    return stops.length + 1
+  }
+
   const explicitCount =
     toFiniteNumber(leg.stopCount) ??
     toFiniteNumber(leg.stationCount) ??
@@ -130,7 +134,11 @@ function getTransitStopCount(leg, stops) {
     toFiniteNumber(leg.viaStopCount) ??
     toFiniteNumber(leg.viaStationCount)
 
-  return explicitCount ?? stops.length
+  if (explicitCount !== null && explicitCount !== undefined) {
+    return Math.max(explicitCount - 1, 1)
+  }
+
+  return 1
 }
 
 function toFiniteNumber(value) {

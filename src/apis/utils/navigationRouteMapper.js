@@ -22,6 +22,12 @@ export function normalizeRouteOption(route, index) {
   const id = `${mode}-${optionKey}-${index}`
   const meta = ROUTE_OPTION_META[routeOption] ?? ROUTE_OPTION_META[routeType] ?? {}
   const legs = Array.isArray(route.legs) ? route.legs : []
+  const startsIndoor = doesRouteStartIndoor(legs)
+  const totalTime = formatTotalDuration(
+    route.totalDuration,
+    route.totalTimeSeconds,
+    { indoorPrefix: startsIndoor },
+  )
   const mapLegs = normalizeMapLegs(legs, { routeId: id, routeType, routeOption })
   const turnByTurnSteps = normalizeTurnByTurnSteps(legs, { routeId: id, routeType, routeOption })
 
@@ -30,10 +36,11 @@ export function normalizeRouteOption(route, index) {
     routeType,
     routeOption,
     mode,
+    startsIndoor,
     active: index === 0,
-    totalTime: formatTotalDuration(route.totalDuration, route.totalTimeSeconds),
+    totalTime,
     name: meta.label ?? routeOption ?? routeType,
-    time: formatTotalDuration(route.totalDuration, route.totalTimeSeconds),
+    time: totalTime,
     distance: formatDistance(route.totalDistanceMeters),
     extraInfo: meta.extraInfo,
     segments: normalizeRouteSegments(legs),
@@ -43,6 +50,11 @@ export function normalizeRouteOption(route, index) {
     failures: Array.isArray(route.failures) ? route.failures : [],
     raw: route,
   }
+}
+
+function doesRouteStartIndoor(legs) {
+  const firstLegMode = String(legs[0]?.mode ?? '').toUpperCase()
+  return firstLegMode === 'INDOOR' || firstLegMode === 'CAMPUS'
 }
 
 function normalizeRouteSegments(legs) {

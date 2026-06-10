@@ -16,9 +16,9 @@ const toneStyles = {
 }
 
 export const IconBubble = styled.span`
-  width: var(--size-36);
-  height: var(--size-36);
-  flex: 0 0 var(--size-36);
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
   border-radius: var(--radius-pill);
   display: inline-flex;
   align-items: center;
@@ -27,22 +27,30 @@ export const IconBubble = styled.span`
 
   img {
     filter: brightness(0) invert(1);
+    width: 1.15rem;
+    height: 1.15rem;
   }
 `
 
 export const PlainStepIcon = styled.span`
-  width: var(--size-26);
-  height: var(--size-26);
-  flex: 0 0 var(--size-26);
+  width: ${({ $tone }) => ($tone === 'default' ? '2.125rem' : '1.875rem')};
+  height: ${({ $tone }) => ($tone === 'default' ? '2.125rem' : '1.875rem')};
+  flex: 0 0 ${({ $tone }) => ($tone === 'default' ? '2.125rem' : '1.875rem')};
   display: inline-flex;
   align-items: center;
   justify-content: center;
   ${({ $tone }) => toneStyles[$tone] ?? toneStyles.default}
   border-radius: ${({ $tone }) => ($tone === 'default' ? '0' : 'var(--radius-pill)')};
+
+  img {
+    filter: ${({ $tone }) => ($tone === 'default' ? 'none' : 'brightness(0) invert(1)')};
+    width: ${({ $tone }) => ($tone === 'default' ? '1.75rem' : '1.1rem')};
+    height: ${({ $tone }) => ($tone === 'default' ? '1.75rem' : '1.1rem')};
+  }
 `
 
 export const IconImage = styled.img`
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.75rem;
+  height: 1.75rem;
   display: block;
 `

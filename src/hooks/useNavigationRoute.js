@@ -4,6 +4,7 @@ import {
   findNavigationRoutes,
   findTransitNavigationRoutes,
 } from '../apis/navigationApi'
+import { collectFloorplans } from '../utils/map/routeOverlayMappers'
 
 const EMPTY_ARRAY = []
 
@@ -36,9 +37,10 @@ export default function useNavigationRoute({
   )
 
   const selectedRouteMapLegs = selectedRouteOption?.mapLegs ?? EMPTY_ARRAY
+  const buildingFloorplans = data?.indoor?.floorplans ?? EMPTY_ARRAY
   const floorplans = useMemo(
-    () => collectFloorplans(selectedRouteMapLegs),
-    [selectedRouteMapLegs],
+    () => collectFloorplans(selectedRouteMapLegs, buildingFloorplans),
+    [buildingFloorplans, selectedRouteMapLegs],
   )
   const selectedFloorplan = useMemo(
     () =>
@@ -70,7 +72,7 @@ export default function useNavigationRoute({
       }
 
       const firstOption = nextData.routeOptions[0] ?? null
-      const firstFloorplan = collectFloorplans(firstOption?.mapLegs ?? EMPTY_ARRAY)[0] ?? null
+      const firstFloorplan = getFirstFloorplan(firstOption, nextData?.indoor?.floorplans)
 
       setData(nextData)
       setSelectedRouteOptionId(firstOption?.id ?? null)
@@ -99,11 +101,11 @@ export default function useNavigationRoute({
       routeOptions.find((option) => option.id === nextOptionId) ??
       routeOptions[0] ??
       null
-    const nextFloorplan = collectFloorplans(nextOption?.mapLegs ?? EMPTY_ARRAY)[0] ?? null
+    const nextFloorplan = getFirstFloorplan(nextOption, buildingFloorplans)
 
     setSelectedRouteOptionId(nextOption?.id ?? nextOptionId)
     setSelectedFloorplanKey(nextFloorplan?.key ?? null)
-  }, [routeOptions])
+  }, [buildingFloorplans, routeOptions])
 
   const selectFloorplan = useCallback((floorplanOrKey) => {
     const key =
@@ -157,34 +159,13 @@ export default function useNavigationRoute({
   }
 }
 
-function collectFloorplans(mapLegs) {
-  const floorplanMap = new Map()
+function getFirstFloorplan(routeOption, buildingFloorplans = EMPTY_ARRAY) {
+  const floorplans = collectFloorplans(
+    routeOption?.mapLegs ?? EMPTY_ARRAY,
+    buildingFloorplans,
+  )
 
-  mapLegs.forEach((leg) => {
-    if (!leg || typeof leg !== 'object') {
-      return
-    }
-
-    const key = getMapFloorKey(leg)
-    const current = floorplanMap.get(key)
-    const nextLegs = [...(current?.mapLegs ?? []), leg]
-    const steps = nextLegs.flatMap((item) => item.steps ?? [])
-
-    floorplanMap.set(key, {
-      key,
-      id: current?.id ?? leg.floorId,
-      name: current?.name ?? leg.floorName ?? leg.mapType ?? '지도',
-      label: current?.label ?? leg.floorName ?? leg.mapType ?? '지도',
-      mapType: current?.mapType ?? leg.mapType,
-      mapImageUrl: current?.mapImageUrl ?? leg.mapImageUrl,
-      coordinateType: current?.coordinateType ?? leg.coordinateType,
-      mapLegs: nextLegs,
-      paths: nextLegs.map((item) => item.path).filter((path) => path?.length),
-      steps,
-    })
-  })
-
-  return [...floorplanMap.values()]
+  return floorplans[0] ?? null
 }
 
 function startRequest(requestSequenceRef) {
@@ -201,8 +182,4 @@ function getFindRoutes(transportMode) {
   return transportMode === 'transit'
     ? findTransitNavigationRoutes
     : findNavigationRoutes
-}
-
-function getMapFloorKey(mapLeg) {
-  return mapLeg?.floorId ?? `${mapLeg?.mapType ?? 'MAP'}-${mapLeg?.floorName ?? 'default'}`
 }

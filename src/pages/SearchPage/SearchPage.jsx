@@ -6,6 +6,7 @@ import SearchAutocompleteList from '../../components/Search/SearchAutocompleteLi
 import SearchResultList from '../../components/Search/SearchResultList'
 import { ROUTES } from '../../constants/routes'
 import { SEARCH_MODES } from '../../constants/search'
+import { firstIntegerId } from '../../utils/idHelpers'
 import './SearchPage.css'
 
 const SEARCH_DELAY_MS = 250
@@ -54,14 +55,19 @@ function mapPlaceToSearchItem(place, idx) {
     place.displayName ??
     (place.parentBuildingName ? `${place.parentBuildingName} · ${baseName}` : null)
   const placeId = place.placeId ?? place.destinationBuildingId ?? place.buildingPlaceId ?? null
-  const poiId = place.poiId ?? place.destinationPoiId ?? place.startPoiId ?? null
+  const poiId = firstIntegerId(
+    place.poiId,
+    place.poiPublicId,
+    place.destinationPoiId,
+    place.startPoiId,
+  )
 
   return {
     placeId,
     poiId,
     publicId: place.publicId ?? place.externalApiId ?? poiId ?? placeId ?? null,
-    startPoiId: place.startPoiId ?? poiId,
-    destinationPoiId: place.destinationPoiId ?? poiId,
+    startPoiId: firstIntegerId(place.startPoiId, poiId),
+    destinationPoiId: firstIntegerId(place.destinationPoiId, poiId),
     destinationBuildingId: place.destinationBuildingId ?? place.placeId ?? null,
     id: place.externalApiId ?? poiId ?? placeId ?? `${baseName}-${idx}`,
     name: baseName,

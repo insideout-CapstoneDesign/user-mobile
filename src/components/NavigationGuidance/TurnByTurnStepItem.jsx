@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import NavigationStepIcon from './NavigationStepIcon'
 import {
   ListItem,
@@ -5,33 +6,40 @@ import {
   ListItemTitle,
 } from './TurnByTurnList.styles'
 
-export default function TurnByTurnStepItem({
+const TurnByTurnStepItem = forwardRef(function TurnByTurnStepItem({
   step,
   index,
   active,
+  originBubble,
+  destinationBubble,
   onSelect,
-}) {
+}, ref) {
   const safeStep = step && typeof step === 'object' ? step : {}
+  const bubbleTone = getBubbleTone({ originBubble, destinationBubble })
 
   return (
     <ListItem
+      ref={ref}
       type="button"
       $active={active}
       onClick={() => onSelect?.(safeStep, index)}
     >
       <NavigationStepIcon
         step={safeStep}
-        variant={isEndpointStep(safeStep) ? 'bubble' : 'plain'}
+        variant={bubbleTone ? 'bubble' : 'plain'}
+        tone={bubbleTone ?? 'default'}
       />
       <ListItemContent>
         <ListItemTitle>{safeStep.instruction || '안내 메시지'}</ListItemTitle>
       </ListItemContent>
     </ListItem>
   )
-}
+})
 
-function isEndpointStep(step = {}) {
-  const text = String(step.instruction ?? '')
+export default TurnByTurnStepItem
 
-  return text.includes('도착') || text.includes('출발') || text.includes('현재 위치')
+function getBubbleTone({ originBubble, destinationBubble }) {
+  if (originBubble) return 'origin'
+  if (destinationBubble) return 'destination'
+  return null
 }

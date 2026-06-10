@@ -15,22 +15,41 @@ export default function BottomSheetBase({
   initialSnap,
   showBackdrop = true,
   scrollableContent = true,
+  dismissible = true,
+  contentMaxHeight,
 }) {
+  const handleClose = () => {
+    if (dismissible) {
+      onClose?.()
+    }
+  }
+
   return (
     <Sheet
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       detent={detent}
       snapPoints={snapPoints}
       initialSnap={initialSnap}
+      disableDismiss={!dismissible}
     >
       <StyledSheetContainer>
         <Sheet.Header />
-        <StyledSheetContent $scrollable={scrollableContent}>
-          <SheetBody $scrollable={scrollableContent}>{children}</SheetBody>
+        <StyledSheetContent
+          $scrollable={scrollableContent}
+          $contentMaxHeight={contentMaxHeight}
+          disableDrag={!scrollableContent}
+          disableScroll={!scrollableContent}
+        >
+          <SheetBody
+            $scrollable={scrollableContent}
+            $bounded={Boolean(contentMaxHeight)}
+          >
+            {children}
+          </SheetBody>
         </StyledSheetContent>
       </StyledSheetContainer>
-      {showBackdrop ? <StyledSheetBackdrop onTap={onClose} /> : null}
+      {showBackdrop ? <StyledSheetBackdrop onTap={handleClose} /> : null}
     </Sheet>
   )
 }

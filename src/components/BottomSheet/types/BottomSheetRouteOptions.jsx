@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FaBus, FaCarAlt, FaChevronRight, FaSubway } from 'react-icons/fa'
 import Button from '../../Button/Button'
+import DurationWithIndoorSuffix from '../../NavigationGuidance/DurationWithIndoorSuffix'
 import NavigationRouteBar from '../../NavigationGuidance/NavigationRouteBar'
 import {
   RouteCard,
@@ -41,6 +42,7 @@ export default function BottomSheetRouteOptions({
   selectedOptionId: controlledSelectedOptionId,
   onSelectOption,
   onStartNavigation,
+  maxHeight,
 }) {
   const [internalSelectedOptionId, setInternalSelectedOptionId] = useState(
     () => options.find((option) => option.active)?.id ?? options[0]?.id ?? null,
@@ -56,8 +58,8 @@ export default function BottomSheetRouteOptions({
   }
 
   return (
-    <TypeContainer>
-      <RouteOptionsBody>
+    <TypeContainer $maxHeight={maxHeight}>
+      <RouteOptionsBody $maxHeight={maxHeight}>
         <RouteSectionTitle>경로 옵션</RouteSectionTitle>
 
         <RouteListViewport>
@@ -101,7 +103,9 @@ function TransitRouteOption({ option }) {
   return (
     <>
       <RouteCardHead>
-        <RouteTimeText>{option.totalTime}</RouteTimeText>
+        <RouteTimeText>
+          <DurationWithIndoorSuffix value={option.totalTime} />
+        </RouteTimeText>
         <RouteChevron />
       </RouteCardHead>
 
@@ -127,7 +131,11 @@ function StandardRouteOption({ option }) {
       <div>
         <RouteOptionName>{option.name}</RouteOptionName>
         <RouteOptionMetaRow>
-          {option.time ? <RouteOptionTime>{option.time}</RouteOptionTime> : null}
+          {option.time ? (
+            <RouteOptionTime>
+              <DurationWithIndoorSuffix value={option.time} />
+            </RouteOptionTime>
+          ) : null}
           {option.distance ? (
             <RouteOptionDistance>{option.distance}</RouteOptionDistance>
           ) : null}

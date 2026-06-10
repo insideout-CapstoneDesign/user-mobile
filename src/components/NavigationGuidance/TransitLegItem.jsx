@@ -68,6 +68,13 @@ function PointLegContent({ leg }) {
 }
 
 function TransitLegContent({ leg, hiddenStops, expanded, onToggle }) {
+  const stopUnit = leg.type === 'bus' ? '정류장' : '역'
+  const stopCount = leg.stopCount ?? hiddenStops.length + 1
+  const metaText = [stopCount ? `${stopCount}개${stopUnit}` : null, leg.durationText]
+    .filter(Boolean)
+    .join(' · ')
+  const canToggleStops = hiddenStops.length > 0
+
   return (
     <>
       <LegTitleRow>
@@ -76,12 +83,16 @@ function TransitLegContent({ leg, hiddenStops, expanded, onToggle }) {
       </LegTitleRow>
       {leg.startDetail ? <LegSubText>{leg.startDetail}</LegSubText> : null}
 
-      <ToggleButton type="button" onClick={onToggle} $expanded={expanded}>
-        {leg.stopCount ?? hiddenStops.length}개 {leg.type === 'bus' ? '정류장' : '역'} · {leg.durationText}
-        <FaChevronDown size={14} />
-      </ToggleButton>
+      {canToggleStops ? (
+        <ToggleButton type="button" onClick={onToggle} $expanded={expanded}>
+          {metaText}
+          <FaChevronDown size={14} />
+        </ToggleButton>
+      ) : metaText ? (
+        <LegSubText>{metaText}</LegSubText>
+      ) : null}
 
-      {expanded && hiddenStops.length > 0 ? (
+      {expanded && canToggleStops ? (
         <HiddenStopList>
           {hiddenStops.map((stop, index) => (
             <HiddenStop

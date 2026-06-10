@@ -1,3 +1,5 @@
+import { firstIntegerId } from '../idHelpers'
+
 function getCanonicalPlaceId(place) {
   return (
     place?.placeId ??
@@ -9,7 +11,12 @@ function getCanonicalPlaceId(place) {
 }
 
 function getCanonicalPoiId(place) {
-  return place?.poiId ?? place?.destinationPoiId ?? place?.startPoiId ?? null
+  return firstIntegerId(
+    place?.poiId,
+    place?.poiPublicId,
+    place?.destinationPoiId,
+    place?.startPoiId,
+  )
 }
 
 function getBasePlaceName(place) {
@@ -47,8 +54,8 @@ export function mapNearestPlaceToPoi(place) {
     placeId,
     poiId,
     publicId: poiId ?? place.externalApiId ?? placeId ?? null,
-    startPoiId: place.startPoiId ?? poiId,
-    destinationPoiId: place.destinationPoiId ?? poiId,
+    startPoiId: firstIntegerId(place.startPoiId, poiId),
+    destinationPoiId: firstIntegerId(place.destinationPoiId, poiId),
     destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
     name: baseName,
     title: baseName,
@@ -75,8 +82,8 @@ export function mapSearchPlaceToPoi(place) {
     placeId,
     poiId,
     publicId: poiId ?? place.externalApiId ?? placeId ?? null,
-    startPoiId: place.startPoiId ?? poiId,
-    destinationPoiId: place.destinationPoiId ?? poiId,
+    startPoiId: firstIntegerId(place.startPoiId, poiId),
+    destinationPoiId: firstIntegerId(place.destinationPoiId, poiId),
     destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
     name: baseName,
     title: baseName,
@@ -103,8 +110,8 @@ export function mapRoutePlaceToPoi(place) {
     placeId,
     poiId,
     publicId: poiId ?? place.externalApiId ?? placeId ?? null,
-    startPoiId: place.startPoiId ?? poiId,
-    destinationPoiId: place.destinationPoiId ?? poiId,
+    startPoiId: firstIntegerId(place.startPoiId, poiId),
+    destinationPoiId: firstIntegerId(place.destinationPoiId, poiId),
     destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
     name: baseName,
     title: baseName,
@@ -140,9 +147,9 @@ export function mapPoiToRoutingPlace(place) {
     externalApiId: place.externalApiId ?? place.id ?? null,
     isRegistered: Boolean(place.isRegistered),
     publicId: poiId ?? place.externalApiId ?? placeId ?? null,
-    startPoiId: place.startPoiId ?? poiId ?? null,
+    startPoiId: firstIntegerId(place.startPoiId, poiId),
     destinationBuildingId: place.destinationBuildingId ?? placeId ?? null,
-    destinationPoiId: place.destinationPoiId ?? poiId ?? null,
+    destinationPoiId: firstIntegerId(place.destinationPoiId, poiId),
   }
 }
 

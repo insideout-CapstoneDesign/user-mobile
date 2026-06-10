@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
@@ -7,9 +7,15 @@ import FloorplanRouteView from '../../components/Map/FloorplanRouteView'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
 import SearchInput from '../../components/SearchInput/SearchInput'
+import {
+  ROUTE_OPTION_CONTENT_MAX_HEIGHT,
+  ROUTE_OPTION_INITIAL_SNAP,
+  ROUTE_OPTION_SNAP_POINTS,
+} from '../../constants/routeOptionSheet'
 import { ROUTES } from '../../constants/routes'
 import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mapSearchPlaceToPoi } from '../../utils/map/mapPoiMappers'
+import { getOutdoorRouteLegs } from '../../utils/map/routeOverlayMappers'
 import { getRoutingGuidanceState } from '../../utils/routing/routingGuidanceState'
 import RoutingGuidanceLayer from './components/RoutingGuidanceLayer'
 import RoutingOptionLayer from './components/RoutingOptionLayer'
@@ -22,9 +28,18 @@ export default function RoutingPage() {
   const selectedSearchPlace = location.state?.selectedSearchPlace ?? null
   const selectedMapPlace = location.state?.selectedMapPlace ?? null
   const routingGuidanceState = getRoutingGuidanceState(location.state)
-  const [selectedPoi, setSelectedPoi] = useState(() =>
-    mapSearchPlaceToPoi(selectedSearchPlace ?? selectedMapPlace),
+  const placePoiFromLocation = useMemo(
+    () => mapSearchPlaceToPoi(selectedSearchPlace ?? selectedMapPlace),
+    [selectedMapPlace, selectedSearchPlace],
   )
+  const [selectedPoiOverride, setSelectedPoiOverride] = useState(null)
+  const [dismissedLocationPoiKey, setDismissedLocationPoiKey] = useState(null)
+  const locationPoiKey = getPoiSelectionKey(placePoiFromLocation)
+  const selectedPoi =
+    selectedPoiOverride ??
+    (locationPoiKey && dismissedLocationPoiKey === locationPoiKey
+      ? null
+      : placePoiFromLocation)
   const routing = useRoutingController(
     routingGuidanceState
       ? {
@@ -50,13 +65,21 @@ export default function RoutingPage() {
     transportMode,
   } = routing
   const isSelectedPoiRegistered = Boolean(selectedPoi?.isRegistered)
-
-  useEffect(() => {
-    setSelectedPoi(mapSearchPlaceToPoi(selectedSearchPlace ?? selectedMapPlace))
-  }, [selectedMapPlace, selectedSearchPlace])
+  const outdoorRouteLegs = useMemo(
+    () => getOutdoorRouteLegs(navigationRoute.selectedRouteOption),
+    [navigationRoute.selectedRouteOption],
+  )
+  const shouldShowIndoorRoute =
+    guidanceStarted && isIndoorGuidanceStep && navigationRoute.selectedFloorplan
 
   const closePoiSheet = () => {
-    setSelectedPoi(null)
+    setDismissedLocationPoiKey(getPoiSelectionKey(selectedPoi))
+    setSelectedPoiOverride(null)
+  }
+
+  const handlePoiSelect = (poi) => {
+    setSelectedPoiOverride(poi)
+    setDismissedLocationPoiKey(null)
   }
 
   const openSearchPage = () => {
@@ -83,13 +106,20 @@ export default function RoutingPage() {
   return (
     <main className="routing-page">
       <div className="routing-page__viewport">
-        {guidanceStarted && isIndoorGuidanceStep && navigationRoute.selectedFloorplan ? (
+        {shouldShowIndoorRoute ? (
           <FloorplanRouteView
             floorplan={navigationRoute.selectedFloorplan}
+            activeStep={routing.activeGuidanceStep}
             showInstructionBadge={false}
           />
         ) : (
-          <KakaoMapView pois={mockMapPois} onPoiSelect={setSelectedPoi} />
+          <KakaoMapView
+            pois={mockMapPois}
+            onPoiSelect={handlePoiSelect}
+            routeLegs={outdoorRouteLegs}
+            activeRouteStep={routing.activeGuidanceStep}
+            fitRouteBounds={outdoorRouteLegs.length > 0}
+          />
         )}
       </div>
 
@@ -157,14 +187,29 @@ export default function RoutingPage() {
         onArrival={routing.selectArrival}
       />
 
-      <BottomSheetBase isOpen={routeSheetOpen} onClose={routing.closeRouteSheet}>
+      <BottomSheetBase
+        isOpen={routeSheetOpen}
+        onClose={routing.closeRouteSheet}
+        showBackdrop={false}
+        detent="content"
+        snapPoints={ROUTE_OPTION_SNAP_POINTS}
+        initialSnap={ROUTE_OPTION_INITIAL_SNAP}
+        dismissible={false}
+        scrollableContent={false}
+        contentMaxHeight={ROUTE_OPTION_CONTENT_MAX_HEIGHT}
+      >
         <BottomSheetRouteOptions
           mode={transportMode}
           options={navigationRoute.routeOptions}
           onSelectOption={routing.selectRouteOption}
           onStartNavigation={routing.startNavigation}
+          maxHeight={ROUTE_OPTION_CONTENT_MAX_HEIGHT}
         />
       </BottomSheetBase>
     </main>
   )
+}
+
+function getPoiSelectionKey(poi) {
+  return poi?.id ?? poi?.placeId ?? poi?.publicId ?? poi?.name ?? null
 }

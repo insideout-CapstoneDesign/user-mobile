@@ -5,6 +5,11 @@ import BottomSheetRouteOptions from '../../components/BottomSheet/types/BottomSh
 import DirectionSearch from '../../components/Direction/DirectionSearch'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import TransportSelector from '../../components/Transport/TransportSelector'
+import {
+  ROUTE_OPTION_CONTENT_MAX_HEIGHT,
+  ROUTE_OPTION_INITIAL_SNAP,
+  ROUTE_OPTION_SNAP_POINTS,
+} from '../../constants/routeOptionSheet'
 import { ROUTES } from '../../constants/routes'
 import { SEARCH_MODES } from '../../constants/search'
 import useNavigationRoute from '../../hooks/useNavigationRoute'
@@ -13,7 +18,12 @@ import {
   toNavigationPlace,
   toNavigationRequestInput,
 } from '../../utils/map/navigationPlaceMapper'
+import {
+  getIndoorFloorplan,
+  getOutdoorRouteLegs,
+} from '../../utils/map/routeOverlayMappers'
 import { createRoutingGuidanceState } from '../../utils/routing/routingGuidanceState'
+import FloorplanRouteView from '../../components/Map/FloorplanRouteView'
 import './RoutingOptionPage.css'
 
 export default function RoutingOptionPage() {
@@ -39,6 +49,17 @@ export default function RoutingOptionPage() {
   }
   const mapLevel = location.state?.mapLevel ?? 3
   const hasRoutePlaces = Boolean(routeOrigin && routeDestination)
+  const selectedRouteOption = navigationRoute.selectedRouteOption
+  const outdoorRouteLegs = useMemo(
+    () => getOutdoorRouteLegs(selectedRouteOption),
+    [selectedRouteOption],
+  )
+  const selectedFloorplan = getIndoorFloorplan(
+    selectedRouteOption,
+    navigationRoute.selectedFloorplan,
+  )
+  const shouldShowFloorplanRoute =
+    outdoorRouteLegs.length === 0 && Boolean(selectedFloorplan?.mapImageUrl)
 
   useEffect(() => {
     if (!hasRoutePlaces) {
@@ -121,7 +142,20 @@ export default function RoutingOptionPage() {
   return (
     <main className="routing-option-page">
       <div className="routing-option-page__viewport">
-        <KakaoMapView center={mapCenter} level={mapLevel} pois={[]} />
+        {shouldShowFloorplanRoute ? (
+          <FloorplanRouteView
+            floorplan={selectedFloorplan}
+            showInstructionBadge={false}
+          />
+        ) : (
+          <KakaoMapView
+            center={mapCenter}
+            level={mapLevel}
+            pois={[]}
+            routeLegs={outdoorRouteLegs}
+            fitRouteBounds={outdoorRouteLegs.length > 0}
+          />
+        )}
       </div>
 
       <div className="routing-option-page__direction">
@@ -154,13 +188,24 @@ export default function RoutingOptionPage() {
         </div>
       ) : null}
 
-      <BottomSheetBase isOpen onClose={() => {}} showBackdrop={false}>
+      <BottomSheetBase
+        isOpen
+        onClose={() => {}}
+        showBackdrop={false}
+        detent="content"
+        snapPoints={ROUTE_OPTION_SNAP_POINTS}
+        initialSnap={ROUTE_OPTION_INITIAL_SNAP}
+        dismissible={false}
+        scrollableContent={false}
+        contentMaxHeight={ROUTE_OPTION_CONTENT_MAX_HEIGHT}
+      >
         <BottomSheetRouteOptions
           mode={transportMode}
           options={navigationRoute.routeOptions}
           selectedOptionId={navigationRoute.selectedRouteOptionId}
           onSelectOption={navigationRoute.selectRouteOption}
           onStartNavigation={handleStartNavigation}
+          maxHeight={ROUTE_OPTION_CONTENT_MAX_HEIGHT}
         />
       </BottomSheetBase>
     </main>

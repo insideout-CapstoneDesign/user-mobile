@@ -1,3 +1,5 @@
+import { firstIntegerId } from '../idHelpers'
+
 export const DEFAULT_ROUTE_ORIGIN = {
   x: 126.951744,
   y: 37.478095,
@@ -12,7 +14,12 @@ export function toNavigationPlace(place, role = 'destination') {
 
   const x = firstNumber(place.x, place.lng, place.longitude)
   const y = firstNumber(place.y, place.lat, place.latitude)
-  const poiId = place.poiId ?? place.destinationPoiId ?? place.startPoiId ?? place.publicId ?? null
+  const poiId = firstIntegerId(
+    place.poiId,
+    place.poiPublicId,
+    place.destinationPoiId,
+    place.startPoiId,
+  )
   const buildingId =
     place.destinationBuildingId ?? place.placeId ?? place.buildingPlaceId ?? place.buildingId ?? null
 
@@ -28,9 +35,9 @@ export function toNavigationPlace(place, role = 'destination') {
     source: place,
     placeId: buildingId,
     poiId,
-    startPoiId: place.startPoiId ?? poiId,
+    startPoiId: firstIntegerId(place.startPoiId, poiId),
     destinationBuildingId: buildingId,
-    destinationPoiId: place.destinationPoiId ?? poiId,
+    destinationPoiId: firstIntegerId(place.destinationPoiId, poiId),
   }
 }
 
@@ -40,15 +47,21 @@ export function toNavigationRequestInput({
   transportMode,
   includeIndoor = true,
 }) {
+  const startPoiId = firstIntegerId(origin?.startPoiId)
+  const destinationPoiId = firstIntegerId(destination?.destinationPoiId)
+  const shouldIncludeIndoor =
+    Boolean(includeIndoor) &&
+    (Boolean(startPoiId) || Boolean(destinationPoiId))
+
   return {
     start: origin,
     end: destination,
     startName: origin?.name,
     endName: destination?.name,
-    startPoiId: origin?.startPoiId,
+    startPoiId,
     destinationBuildingId: destination?.destinationBuildingId,
-    destinationPoiId: destination?.destinationPoiId,
-    includeIndoor,
+    destinationPoiId,
+    includeIndoor: shouldIncludeIndoor,
     transportMode,
   }
 }

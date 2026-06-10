@@ -64,6 +64,20 @@ export const Divider = styled.div`
   background: var(--gray-100);
 `
 
+export const RouteSectionDivider = styled.div`
+  min-height: 2.5rem;
+  border-top: var(--size-1) solid var(--gray-200);
+  border-bottom: var(--size-1) solid var(--gray-200);
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-12);
+  color: var(--gray-700);
+  font-size: var(--text-14);
+  font-weight: var(--fw-medium);
+  line-height: var(--line-20);
+`
+
 export const ListItem = styled.button`
   width: 100%;
   min-height: 3.75rem;

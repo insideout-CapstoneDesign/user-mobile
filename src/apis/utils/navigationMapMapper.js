@@ -203,6 +203,8 @@ function normalizeMapSegment(segment, leg, context) {
     legIndex: context.legIndex,
     segmentIndex: context.segmentIndex,
     mode: modeToUiType(leg.mode),
+    startName: segment.startName ?? leg.startName ?? null,
+    endName: segment.endName ?? leg.endName ?? null,
     mapType: segment.mapType ?? leg.mapType ?? null,
     mapImageUrl: segment.mapImageUrl ?? leg.mapImageUrl ?? null,
     floorId,
@@ -222,6 +224,7 @@ function normalizeMapSegment(segment, leg, context) {
       }),
     ),
     raw: segment,
+    rawLeg: leg,
   }
 }
 

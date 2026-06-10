@@ -21,6 +21,7 @@ import {
 import {
   getIndoorFloorplan,
   getOutdoorRouteLegs,
+  isIndoorOnlyRouteOption,
 } from '../../utils/map/routeOverlayMappers'
 import { createRoutingGuidanceState } from '../../utils/routing/routingGuidanceState'
 import FloorplanRouteView from '../../components/Map/FloorplanRouteView'
@@ -54,12 +55,11 @@ export default function RoutingOptionPage() {
     () => getOutdoorRouteLegs(selectedRouteOption),
     [selectedRouteOption],
   )
-  const selectedFloorplan = getIndoorFloorplan(
-    selectedRouteOption,
-    navigationRoute.selectedFloorplan,
-  )
+  const selectedFloorplan = getIndoorFloorplan(selectedRouteOption)
   const shouldShowFloorplanRoute =
-    outdoorRouteLegs.length === 0 && Boolean(selectedFloorplan?.mapImageUrl)
+    transportMode !== 'transit' &&
+    isIndoorOnlyRouteOption(selectedRouteOption) &&
+    Boolean(selectedFloorplan?.mapImageUrl)
 
   useEffect(() => {
     if (!hasRoutePlaces) {

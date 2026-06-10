@@ -30,6 +30,16 @@ export function getIndoorFloorplan(
   return floorplans[0] ?? null
 }
 
+export function isIndoorOnlyRouteOption(routeOption) {
+  const mapLegs = Array.isArray(routeOption?.mapLegs) ? routeOption.mapLegs : []
+
+  if (mapLegs.length === 0) {
+    return false
+  }
+
+  return mapLegs.every(isIndoorRouteLeg)
+}
+
 export function collectFloorplans(mapLegs, buildingFloorplans = []) {
   const floorplanMap = new Map()
 

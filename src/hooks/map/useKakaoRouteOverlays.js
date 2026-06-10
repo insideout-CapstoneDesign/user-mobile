@@ -209,7 +209,9 @@ function sliceActivePath(path, activeStep) {
 }
 
 function isArrivalStep(step = {}) {
-  return String(step.instruction ?? '').includes('도착')
+  const safeStep = step && typeof step === 'object' ? step : {}
+
+  return String(safeStep.instruction ?? '').includes('도착')
 }
 
 function getRouteKey(routeLegs) {

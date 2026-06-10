@@ -1,4 +1,5 @@
 import { FaBus, FaSubway } from 'react-icons/fa'
+import buildingIcon from '../../assets/icons/building.svg'
 import walkIcon from '../../assets/icons/D_walk.svg'
 import locateIcon from '../../assets/icons/MyLocate.svg'
 import {
@@ -18,8 +19,12 @@ export default function TransitTimelineIcon({
       <LegIcon $type={leg.type} $color={color} $tone={leg.tone}>
         {leg.type === 'bus' ? <FaBus size={14} /> : null}
         {leg.type === 'subway' ? <FaSubway size={14} /> : null}
+        {leg.type === 'indoor' || leg.type === 'campus' ? (
+          <img src={buildingIcon} alt="" aria-hidden="true" />
+        ) : null}
         {leg.type === 'walk' ? <img src={walkIcon} alt="" aria-hidden="true" /> : null}
         {leg.type === 'point' ? <img src={locateIcon} alt="" aria-hidden="true" /> : null}
+        {leg.type === 'building' ? <img src={buildingIcon} alt="" aria-hidden="true" /> : null}
       </LegIcon>
       {!isLast ? (
         <LegConnector $type={leg.type} $color={color} $isFirst={isFirst} />

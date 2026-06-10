@@ -51,8 +51,12 @@ export default function RoutingGuidanceLayer({ routing, onBackToRouteOptions }) 
             destination={destinationName}
             route={navigationRoute.selectedRouteOption}
             legs={transitDetailLegs}
+            activeStepId={activeGuidanceStep?.id}
+            indoorBuildingName={navigationRoute.data?.indoor?.buildingName}
             onBack={onBackToRouteOptions}
             onClose={routing.resetRouteView}
+            onSelectLeg={routing.selectTransitDetailLeg}
+            onSelectStep={routing.selectGuidanceStep}
           />
         ) : (
           <TurnByTurnList

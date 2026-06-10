@@ -39,8 +39,16 @@ function RouteSegment({ segment }) {
     )
   }
 
+  if (type === 'indoor') {
+    return (
+      <RouteBarSegment $weight={safeSegment.minutes} $bg={background} $type={type}>
+        <RouteLineBadge>실내이동</RouteLineBadge>
+      </RouteBarSegment>
+    )
+  }
+
   return (
-    <RouteBarSegment $weight={safeSegment.minutes} $bg={background}>
+    <RouteBarSegment $weight={safeSegment.minutes} $bg={background} $type={type}>
       {safeSegment.line ? <RouteLineBadge>{safeSegment.line}</RouteLineBadge> : null}
       {minutesText ? <span>{minutesText}</span> : null}
     </RouteBarSegment>

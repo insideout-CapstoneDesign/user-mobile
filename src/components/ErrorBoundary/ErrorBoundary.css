@@ -1,0 +1,47 @@
+.error-boundary {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-24);
+  background: var(--surface-50);
+  font-family: var(--font-sans);
+}
+
+.error-boundary__panel {
+  width: min(100%, 22rem);
+  display: grid;
+  gap: var(--space-12);
+  padding: var(--space-24);
+  border: var(--size-1) solid var(--gray-200);
+  border-radius: var(--radius-8);
+  background: var(--surface-0);
+  box-shadow: var(--shadow-searchbar);
+}
+
+.error-boundary__panel h1 {
+  margin: 0;
+  color: var(--black-1000);
+  font-size: var(--text-20);
+  line-height: var(--line-28);
+}
+
+.error-boundary__panel p {
+  margin: 0;
+  color: var(--gray-600);
+  font-size: var(--text-14);
+  line-height: var(--line-20);
+  overflow-wrap: anywhere;
+}
+
+.error-boundary__panel button {
+  min-height: var(--size-48);
+  border: none;
+  border-radius: var(--radius-8);
+  background: var(--blue-600);
+  color: var(--surface-0);
+  font-family: var(--font-sans);
+  font-size: var(--text-15);
+  font-weight: 700;
+  cursor: pointer;
+}

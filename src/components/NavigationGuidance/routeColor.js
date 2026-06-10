@@ -8,7 +8,7 @@ export function getRouteDisplayColor(type, color) {
   if (type === 'bus' || type === 'campus') return 'var(--green-500)'
   if (type === 'subway') return 'var(--blue-900)'
   if (type === 'car') return 'var(--blue-500)'
-  if (type === 'indoor') return 'var(--blue-600)'
+  if (type === 'indoor') return 'var(--red-500)'
   return 'var(--gray-500)'
 }
 

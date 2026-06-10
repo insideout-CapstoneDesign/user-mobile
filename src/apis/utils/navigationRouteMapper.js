@@ -60,16 +60,20 @@ function doesRouteStartIndoor(legs) {
 function normalizeRouteSegments(legs) {
   return legs
     .map((leg) => {
-      const minutes = secondsToMinutes(leg.durationSeconds)
-      const type = modeToUiType(leg.mode)
+      if (!leg || typeof leg !== 'object') {
+        return null
+      }
 
-      if (minutes === null) {
+      const minutes = secondsToMinutes(leg.durationSeconds)
+      const type = normalizeRouteBarType(modeToUiType(leg.mode))
+
+      if (minutes === null && type !== 'indoor') {
         return null
       }
 
       return {
         type,
-        minutes,
+        minutes: minutes ?? 6,
         line: buildRouteBarLineLabel(leg, type),
         routeColor: leg.routeColor,
         routeId: leg.routeId,
@@ -78,6 +82,10 @@ function normalizeRouteSegments(legs) {
       }
     })
     .filter(Boolean)
+}
+
+function normalizeRouteBarType(type) {
+  return type === 'campus' ? 'indoor' : type
 }
 
 function normalizeRouteSummarySteps(legs) {
@@ -145,6 +153,10 @@ function buildTransitBoardingStep(leg) {
 }
 
 function buildLegTitle(leg) {
+  if (!leg || typeof leg !== 'object') {
+    return null
+  }
+
   if (leg.routeName) {
     return leg.routeName
   }

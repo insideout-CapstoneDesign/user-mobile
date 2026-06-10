@@ -7,7 +7,7 @@ export const RouteBarRoot = styled.div`
 
 export const RouteBarSegment = styled.div`
   flex: ${({ $weight }) => Math.max($weight ?? 1, 1)};
-  min-width: 1.625rem;
+  min-width: ${({ $type }) => ($type === 'indoor' ? '3.625rem' : '1.625rem')};
   min-height: 0.875rem;
   border-radius: var(--radius-4);
   background: ${({ $bg }) => $bg || 'var(--gray-500)'};

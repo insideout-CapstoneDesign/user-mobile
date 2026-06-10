@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   FloorplanBadge,
   FloorplanCanvas,
@@ -26,19 +26,54 @@ export default function FloorplanRouteView({
   const gestureStartRef = useRef(null)
   const cameraFrameRef = useRef(null)
   const pendingCameraRef = useRef(null)
-  const preferredScaleRef = useRef(null)
   const [stageSize, setStageSize] = useState(null)
   const [imageState, setImageState] = useState({
     src: null,
     size: null,
     hasError: false,
   })
-  const [camera, setCamera] = useState(null)
-  const [userMovedCamera, setUserMovedCamera] = useState(false)
+  const [cameraState, setCameraState] = useState({
+    floorKey: null,
+    camera: null,
+    userMoved: false,
+    preferredScale: null,
+  })
   const viewModel = useMemo(
     () => normalizeFloorplanViewModel(floorplan, mapLeg, activeStep),
     [activeStep, floorplan, mapLeg],
   )
+  const isSameFloor = cameraState.floorKey === viewModel.key
+  const camera = isSameFloor ? cameraState.camera : null
+  const userMovedCamera = isSameFloor ? cameraState.userMoved : false
+  const preferredScale = cameraState.preferredScale
+  const setCamera = useCallback((nextCameraOrUpdater) => {
+    setCameraState((currentState) => {
+      const currentCamera =
+        currentState.floorKey === viewModel.key ? currentState.camera : null
+      const nextCamera =
+        typeof nextCameraOrUpdater === 'function'
+          ? nextCameraOrUpdater(currentCamera)
+          : nextCameraOrUpdater
+
+      return {
+        floorKey: viewModel.key,
+        camera: nextCamera,
+        userMoved:
+          currentState.floorKey === viewModel.key
+            ? currentState.userMoved
+            : false,
+        preferredScale: nextCamera?.scale ?? currentState.preferredScale,
+      }
+    })
+  }, [viewModel.key])
+  const markUserMovedCamera = useCallback(() => {
+    setCameraState((currentState) => ({
+      floorKey: viewModel.key,
+      camera: currentState.floorKey === viewModel.key ? currentState.camera : null,
+      userMoved: true,
+      preferredScale: currentState.preferredScale,
+    }))
+  }, [viewModel.key])
   const activeStepIsArrival = isArrivalStep(activeStep)
   const imageSize =
     imageState.src === viewModel.mapImageUrl && !imageState.hasError
@@ -53,10 +88,10 @@ export default function FloorplanRouteView({
             viewModel,
             imageSize,
             stageSize,
-            preferredScaleRef.current,
+            preferredScale,
           )
         : null,
-    [imageSize, stageSize, viewModel],
+    [imageSize, preferredScale, stageSize, viewModel],
   )
   const activeCamera = useMemo(
     () =>
@@ -70,7 +105,15 @@ export default function FloorplanRouteView({
             userMovedCamera,
           })
         : null,
-    [activeStepIsArrival, baseCamera, camera?.scale, imageSize, stageSize, userMovedCamera, viewModel.activeMarker],
+    [
+      activeStepIsArrival,
+      baseCamera,
+      camera,
+      imageSize,
+      stageSize,
+      userMovedCamera,
+      viewModel.activeMarker,
+    ],
   )
   const transform = camera ?? baseCamera
 
@@ -102,23 +145,12 @@ export default function FloorplanRouteView({
   }, [])
 
   useEffect(() => {
-    setUserMovedCamera(false)
-    setCamera(null)
-  }, [viewModel.key])
-
-  useEffect(() => {
-    if (camera?.scale) {
-      preferredScaleRef.current = camera.scale
-    }
-  }, [camera?.scale])
-
-  useEffect(() => {
     if (!baseCamera || userMovedCamera || activeStepIsArrival) {
       return
     }
 
     return animateCamera(setCamera, baseCamera)
-  }, [activeStepIsArrival, baseCamera, userMovedCamera])
+  }, [activeStepIsArrival, baseCamera, setCamera, userMovedCamera])
 
   useEffect(() => {
     if (!activeCamera || isInteractingRef.current) {
@@ -126,7 +158,7 @@ export default function FloorplanRouteView({
     }
 
     return animateCamera(setCamera, activeCamera)
-  }, [activeCamera])
+  }, [activeCamera, setCamera])
 
   if (!viewModel.mapImageUrl) {
     return (
@@ -152,7 +184,7 @@ export default function FloorplanRouteView({
             x: event.clientX - rect.left,
             y: event.clientY - rect.top,
           })
-          setUserMovedCamera(true)
+          markUserMovedCamera()
 
           if (activePointersRef.current.size >= 2) {
             const pointers = getPointerPair(activePointersRef.current)
@@ -249,7 +281,7 @@ export default function FloorplanRouteView({
         onWheel={(event) => {
           if (!transform || !imageSize || !stageSize) return
           event.preventDefault()
-          setUserMovedCamera(true)
+          markUserMovedCamera()
 
           const rect = event.currentTarget.getBoundingClientRect()
           const focus = {

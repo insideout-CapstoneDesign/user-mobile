@@ -16,7 +16,6 @@ export default function BottomSheetBase({
   showBackdrop = true,
   scrollableContent = true,
   dismissible = true,
-  contentHeight,
   contentMaxHeight,
 }) {
   return (
@@ -32,7 +31,6 @@ export default function BottomSheetBase({
         <Sheet.Header />
         <StyledSheetContent
           $scrollable={scrollableContent}
-          $contentHeight={contentHeight}
           $contentMaxHeight={contentMaxHeight}
           disableDrag={!scrollableContent}
           disableScroll={!scrollableContent}

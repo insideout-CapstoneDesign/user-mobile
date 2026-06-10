@@ -17,28 +17,31 @@ export function getOutdoorRouteLegs(routeOption) {
     .filter(Boolean)
 }
 
-export function getIndoorFloorplan(routeOption, selectedFloorplan = null) {
+export function getIndoorFloorplan(
+  routeOption,
+  selectedFloorplan = null,
+  buildingFloorplans = [],
+) {
   if (selectedFloorplan) {
     return selectedFloorplan
   }
 
-  const floorplans = collectFloorplans(routeOption?.mapLegs)
+  const floorplans = collectFloorplans(routeOption?.mapLegs, buildingFloorplans)
   return floorplans[0] ?? null
 }
 
-export function collectFloorplans(mapLegs) {
+export function collectFloorplans(mapLegs, buildingFloorplans = []) {
   const floorplanMap = new Map()
 
-  if (!Array.isArray(mapLegs)) {
-    return []
-  }
+  const routeMapLegs = Array.isArray(mapLegs) ? mapLegs : []
+  const allBuildingFloorplans = Array.isArray(buildingFloorplans) ? buildingFloorplans : []
 
-  mapLegs.forEach((leg) => {
+  routeMapLegs.forEach((leg) => {
     if (!isIndoorRouteLeg(leg)) {
       return
     }
 
-    const key = leg.floorId ?? `${leg.mapType ?? 'INDOOR'}-${leg.floorName ?? 'default'}`
+    const key = getMapFloorKey(leg)
     const current = floorplanMap.get(key)
     const nextLegs = [...(current?.mapLegs ?? []), leg]
     const steps = nextLegs.flatMap((item) => item.steps ?? [])
@@ -57,7 +60,44 @@ export function collectFloorplans(mapLegs) {
     })
   })
 
+  allBuildingFloorplans.forEach((floorplan) => {
+    if (!floorplan || typeof floorplan !== 'object' || !floorplan.mapImageUrl) {
+      return
+    }
+
+    const key = getBuildingFloorplanKey(floorplan)
+
+    if (floorplanMap.has(key)) {
+      return
+    }
+
+    floorplanMap.set(key, {
+      key,
+      id: floorplan.floorId ?? floorplan.id ?? null,
+      name: floorplan.floorName ?? floorplan.name ?? '도면',
+      label: floorplan.floorName ?? floorplan.name ?? '도면',
+      mapType: 'BUILDING',
+      mapImageUrl: floorplan.mapImageUrl,
+      coordinateType: floorplan.coordinateType ?? 'PIXEL',
+      mapLegs: [],
+      paths: [],
+      steps: [],
+    })
+  })
+
   return [...floorplanMap.values()]
+}
+
+function getMapFloorKey(mapLeg) {
+  return mapLeg?.floorId ?? `${mapLeg?.mapType ?? 'INDOOR'}-${mapLeg?.floorName ?? 'default'}`
+}
+
+function getBuildingFloorplanKey(floorplan) {
+  return (
+    floorplan?.floorId ??
+    floorplan?.id ??
+    `${floorplan?.floorName ?? floorplan?.name ?? 'floor'}`
+  )
 }
 
 function normalizeOutdoorRouteLeg(leg, index) {

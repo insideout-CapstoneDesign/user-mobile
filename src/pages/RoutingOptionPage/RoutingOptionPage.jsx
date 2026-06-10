@@ -5,6 +5,11 @@ import BottomSheetRouteOptions from '../../components/BottomSheet/types/BottomSh
 import DirectionSearch from '../../components/Direction/DirectionSearch'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import TransportSelector from '../../components/Transport/TransportSelector'
+import {
+  ROUTE_OPTION_CONTENT_MAX_HEIGHT,
+  ROUTE_OPTION_INITIAL_SNAP,
+  ROUTE_OPTION_SNAP_POINTS,
+} from '../../constants/routeOptionSheet'
 import { ROUTES } from '../../constants/routes'
 import { SEARCH_MODES } from '../../constants/search'
 import useNavigationRoute from '../../hooks/useNavigationRoute'
@@ -20,10 +25,6 @@ import {
 import { createRoutingGuidanceState } from '../../utils/routing/routingGuidanceState'
 import FloorplanRouteView from '../../components/Map/FloorplanRouteView'
 import './RoutingOptionPage.css'
-
-const ROUTE_OPTION_SNAP_POINTS = [0, 96, 1]
-const ROUTE_OPTION_INITIAL_SNAP = 2
-const ROUTE_OPTION_CONTENT_MAX_HEIGHT = 'calc(58dvh - 40px)'
 
 export default function RoutingOptionPage() {
   const location = useLocation()

@@ -14,13 +14,27 @@ export default function MapPoiSheet({
   onDeparture,
   onArrival,
 }) {
-  const [showPOIs, setShowPOIs] = useState(false)
-  const [selectedFloor, setSelectedFloor] = useState(null)
-  const [selectedPoiId, setSelectedPoiId] = useState(null)
-  const [placeDetail, setPlaceDetail] = useState(null)
-  const [isDetailLoading, setIsDetailLoading] = useState(false)
-  const [isFavorite, setIsFavorite] = useState(false)
+  const placeKey = getPlaceSheetKey(place)
+  const [placeDetailState, setPlaceDetailState] = useState({
+    key: null,
+    detail: null,
+    loading: false,
+    favorite: false,
+  })
+  const [poiPanelState, setPoiPanelState] = useState({
+    key: null,
+    showPOIs: false,
+    selectedFloor: null,
+    selectedPoiId: null,
+  })
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const isCurrentPlaceDetail =
+    Boolean(isOpen && placeKey) && placeDetailState.key === placeKey
+  const placeDetail = isCurrentPlaceDetail ? placeDetailState.detail : null
+  const isDetailLoading = Boolean(
+    isOpen && place && (!isCurrentPlaceDetail || placeDetailState.loading),
+  )
+  const isFavorite = isCurrentPlaceDetail ? placeDetailState.favorite : false
   const selectedPoiKeyFromPlace =
     place?.poiId ?? place?.destinationPoiId ?? place?.startPoiId ?? place?.publicId ?? null
   const resolvedIsRegistered = placeDetail?.isRegistered ?? isRegistered ?? false
@@ -34,22 +48,10 @@ export default function MapPoiSheet({
 
   useEffect(() => {
     if (!isOpen || !place) {
-      setPlaceDetail(null)
-      setIsDetailLoading(false)
-      setShowPOIs(false)
-      setSelectedFloor(null)
-      setSelectedPoiId(null)
-      setIsFavorite(false)
-      return
+      return undefined
     }
 
     let isActive = true
-    setPlaceDetail(null)
-    setIsDetailLoading(true)
-    setShowPOIs(false)
-    setSelectedFloor(null)
-    setSelectedPoiId(null)
-    setIsFavorite(false)
 
     getPlaceDetail({
       placeId: place.placeId ?? place.destinationBuildingId ?? null,
@@ -57,17 +59,22 @@ export default function MapPoiSheet({
     })
       .then((detail) => {
         if (isActive) {
-          setPlaceDetail(detail)
+          setPlaceDetailState({
+            key: placeKey,
+            detail,
+            loading: false,
+            favorite: false,
+          })
         }
       })
       .catch(() => {
         if (isActive) {
-          setPlaceDetail(null)
-        }
-      })
-      .finally(() => {
-        if (isActive) {
-          setIsDetailLoading(false)
+          setPlaceDetailState({
+            key: placeKey,
+            detail: null,
+            loading: false,
+            favorite: false,
+          })
         }
       })
 
@@ -76,10 +83,12 @@ export default function MapPoiSheet({
     }
   }, [
     isOpen,
+    place,
     place?.destinationBuildingId,
     place?.externalApiId,
     place?.id,
     place?.placeId,
+    placeKey,
   ])
 
   useEffect(() => {
@@ -173,6 +182,17 @@ export default function MapPoiSheet({
     }
   }, [place, placeDetail, resolvedIsRegistered, sheetTitle])
 
+  const hasPoiPanelState = poiPanelState.key === placeKey
+  const selectedPoiId = hasPoiPanelState
+    ? poiPanelState.selectedPoiId
+    : selectedPoiFromPlace?.id ?? null
+  const selectedFloor = hasPoiPanelState
+    ? poiPanelState.selectedFloor
+    : normalizeFloorNumber(selectedPoiFromPlace?.floor)
+  const showPOIs = hasPoiPanelState
+    ? poiPanelState.showPOIs
+    : Boolean(selectedPoiFromPlace)
+
   const selectedPoi = useMemo(() => {
     if (!selectedPoiId) return selectedPoiFromPlace
 
@@ -202,31 +222,62 @@ export default function MapPoiSheet({
     }
   }, [place, selectedPoi])
 
-  useEffect(() => {
-    if (!selectedPoiFromPlace) return
-
-    setSelectedPoiId(selectedPoiFromPlace.id ?? null)
-    setSelectedFloor(
-      Number.isFinite(Number(selectedPoiFromPlace.floor))
-        ? Number(selectedPoiFromPlace.floor)
-        : null,
-    )
-    setShowPOIs(true)
-  }, [selectedPoiFromPlace])
-
   const handleClose = () => {
-    setShowPOIs(false)
-    setSelectedFloor(null)
-    setSelectedPoiId(null)
+    setPoiPanelState({
+      key: placeKey,
+      showPOIs: false,
+      selectedFloor: null,
+      selectedPoiId: null,
+    })
     onClose?.()
   }
 
   const handleSelectPoi = (poi) => {
     if (!poi) return
 
-    setSelectedPoiId(poi.id ?? null)
-    setSelectedFloor(Number.isFinite(Number(poi.floor)) ? Number(poi.floor) : null)
-    setShowPOIs(true)
+    setPoiPanelState({
+      key: placeKey,
+      showPOIs: true,
+      selectedFloor: normalizeFloorNumber(poi.floor),
+      selectedPoiId: poi.id ?? null,
+    })
+  }
+
+  const handleSelectFloor = (floor) => {
+    setPoiPanelState((currentState) => ({
+      key: placeKey,
+      showPOIs: currentState.key === placeKey ? currentState.showPOIs : false,
+      selectedFloor: floor,
+      selectedPoiId:
+        currentState.key === placeKey ? currentState.selectedPoiId : null,
+    }))
+  }
+
+  const handleTogglePOIs = () => {
+    setPoiPanelState((currentState) => ({
+      key: placeKey,
+      showPOIs:
+        currentState.key === placeKey
+          ? !currentState.showPOIs
+          : !selectedPoiFromPlace,
+      selectedFloor:
+        currentState.key === placeKey
+          ? currentState.selectedFloor
+          : normalizeFloorNumber(selectedPoiFromPlace?.floor),
+      selectedPoiId:
+        currentState.key === placeKey
+          ? currentState.selectedPoiId
+          : selectedPoiFromPlace?.id ?? null,
+    }))
+  }
+
+  const handleToggleFavorite = () => {
+    setPlaceDetailState((currentState) => ({
+      key: placeKey,
+      detail: currentState.key === placeKey ? currentState.detail : placeDetail,
+      loading: currentState.key === placeKey ? currentState.loading : false,
+      favorite: currentState.key === placeKey ? !currentState.favorite : true,
+    }))
   }
 
   return (
@@ -240,8 +291,8 @@ export default function MapPoiSheet({
           isLoggedIn={isLoggedIn}
           building={building}
           isFavorite={isFavorite}
-          onToggleFavorite={() => setIsFavorite((prev) => !prev)}
-          onSelectFloor={setSelectedFloor}
+          onToggleFavorite={handleToggleFavorite}
+          onSelectFloor={handleSelectFloor}
           selectedFloor={selectedFloor}
           onDeparture={() => {
             onDeparture?.(routablePlace ?? place)
@@ -253,7 +304,7 @@ export default function MapPoiSheet({
           }}
           pois={pois}
           showPOIs={showPOIs}
-          onTogglePOIs={() => setShowPOIs((prev) => !prev)}
+          onTogglePOIs={handleTogglePOIs}
           selectedPoiId={selectedPoiId}
           onSelectPoi={handleSelectPoi}
           reviewSummary={demoReviewSummary}
@@ -274,4 +325,19 @@ export default function MapPoiSheet({
       )}
     </BottomSheetBase>
   )
+}
+
+function getPlaceSheetKey(place) {
+  return (
+    place?.placeId ??
+    place?.destinationBuildingId ??
+    place?.externalApiId ??
+    place?.id ??
+    place?.publicId ??
+    null
+  )
+}
+
+function normalizeFloorNumber(value) {
+  return Number.isFinite(Number(value)) ? Number(value) : null
 }

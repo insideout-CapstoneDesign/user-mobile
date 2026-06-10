@@ -21,8 +21,7 @@ export const StyledSheetBackdrop = styled(Sheet.Backdrop)`
 export const StyledSheetContent = styled(Sheet.Content)`
   box-sizing: border-box;
   width: 100%;
-  height: ${({ $contentHeight, $contentMaxHeight, $scrollable = true }) => {
-    if ($contentHeight) return $contentHeight
+  height: ${({ $contentMaxHeight, $scrollable = true }) => {
     if ($contentMaxHeight) return 'auto'
     return $scrollable ? 'auto' : '100%'
   }};

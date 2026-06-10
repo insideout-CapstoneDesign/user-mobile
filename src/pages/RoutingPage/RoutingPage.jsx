@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import BottomSheetBase from '../../components/BottomSheet/BottomSheetBase'
@@ -7,6 +7,11 @@ import FloorplanRouteView from '../../components/Map/FloorplanRouteView'
 import KakaoMapView from '../../components/Map/KakaoMapView'
 import MapPoiSheet from '../../components/Map/MapPoiSheet'
 import SearchInput from '../../components/SearchInput/SearchInput'
+import {
+  ROUTE_OPTION_CONTENT_MAX_HEIGHT,
+  ROUTE_OPTION_INITIAL_SNAP,
+  ROUTE_OPTION_SNAP_POINTS,
+} from '../../constants/routeOptionSheet'
 import { ROUTES } from '../../constants/routes'
 import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mapSearchPlaceToPoi } from '../../utils/map/mapPoiMappers'
@@ -17,19 +22,24 @@ import RoutingOptionLayer from './components/RoutingOptionLayer'
 import useRoutingController from './useRoutingController'
 import './RoutingPage.css'
 
-const ROUTE_OPTION_SNAP_POINTS = [0, 96, 1]
-const ROUTE_OPTION_INITIAL_SNAP = 2
-const ROUTE_OPTION_CONTENT_MAX_HEIGHT = 'calc(58dvh - 40px)'
-
 export default function RoutingPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const selectedSearchPlace = location.state?.selectedSearchPlace ?? null
   const selectedMapPlace = location.state?.selectedMapPlace ?? null
   const routingGuidanceState = getRoutingGuidanceState(location.state)
-  const [selectedPoi, setSelectedPoi] = useState(() =>
-    mapSearchPlaceToPoi(selectedSearchPlace ?? selectedMapPlace),
+  const placePoiFromLocation = useMemo(
+    () => mapSearchPlaceToPoi(selectedSearchPlace ?? selectedMapPlace),
+    [selectedMapPlace, selectedSearchPlace],
   )
+  const [selectedPoiOverride, setSelectedPoiOverride] = useState(null)
+  const [dismissedLocationPoiKey, setDismissedLocationPoiKey] = useState(null)
+  const locationPoiKey = getPoiSelectionKey(placePoiFromLocation)
+  const selectedPoi =
+    selectedPoiOverride ??
+    (locationPoiKey && dismissedLocationPoiKey === locationPoiKey
+      ? null
+      : placePoiFromLocation)
   const routing = useRoutingController(
     routingGuidanceState
       ? {
@@ -62,12 +72,14 @@ export default function RoutingPage() {
   const shouldShowIndoorRoute =
     guidanceStarted && isIndoorGuidanceStep && navigationRoute.selectedFloorplan
 
-  useEffect(() => {
-    setSelectedPoi(mapSearchPlaceToPoi(selectedSearchPlace ?? selectedMapPlace))
-  }, [selectedMapPlace, selectedSearchPlace])
-
   const closePoiSheet = () => {
-    setSelectedPoi(null)
+    setDismissedLocationPoiKey(getPoiSelectionKey(selectedPoi))
+    setSelectedPoiOverride(null)
+  }
+
+  const handlePoiSelect = (poi) => {
+    setSelectedPoiOverride(poi)
+    setDismissedLocationPoiKey(null)
   }
 
   const openSearchPage = () => {
@@ -103,7 +115,7 @@ export default function RoutingPage() {
         ) : (
           <KakaoMapView
             pois={mockMapPois}
-            onPoiSelect={setSelectedPoi}
+            onPoiSelect={handlePoiSelect}
             routeLegs={outdoorRouteLegs}
             activeRouteStep={routing.activeGuidanceStep}
             fitRouteBounds={outdoorRouteLegs.length > 0}
@@ -196,4 +208,8 @@ export default function RoutingPage() {
       </BottomSheetBase>
     </main>
   )
+}
+
+function getPoiSelectionKey(poi) {
+  return poi?.id ?? poi?.placeId ?? poi?.publicId ?? poi?.name ?? null
 }

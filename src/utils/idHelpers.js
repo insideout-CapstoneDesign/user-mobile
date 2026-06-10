@@ -4,8 +4,9 @@ export function firstIntegerId(...values) {
       return value
     }
 
-    if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
-      const parsed = Number(value)
+    const trimmed = typeof value === 'string' ? value.trim() : value
+    if (typeof trimmed === 'string' && /^\d+$/.test(trimmed)) {
+      const parsed = Number(trimmed)
       if (Number.isSafeInteger(parsed)) {
         return parsed
       }

@@ -30,6 +30,8 @@ export default function TurnByTurnList({
   const visibleSteps = steps
     .map((step, index) => ({ step, originalIndex: index }))
     .filter(({ step }) => shouldShowStep(step))
+  const originBubbleIndexes = getOriginBubbleIndexes(visibleSteps)
+  const destinationBubbleIndexes = getDestinationBubbleIndexes(visibleSteps)
 
   useEffect(() => {
     if (!activeStepId || !activeItemRef.current) {
@@ -76,6 +78,8 @@ export default function TurnByTurnList({
               step={step}
               index={originalIndex}
               active={activeStepId === step.id}
+              originBubble={originBubbleIndexes.has(index)}
+              destinationBubble={destinationBubbleIndexes.has(index)}
               onSelect={onSelectStep}
             />
           </FragmentWithRouteDivider>
@@ -92,6 +96,44 @@ function FragmentWithRouteDivider({ dividerLabel, children }) {
       {children}
     </>
   )
+}
+
+function getOriginBubbleIndexes(visibleSteps) {
+  const indexes = new Set()
+  const firstStep = visibleSteps[0]?.step
+
+  if (isOriginStep(firstStep)) {
+    indexes.add(0)
+  }
+
+  return indexes
+}
+
+function getDestinationBubbleIndexes(visibleSteps) {
+  const indexes = new Set()
+  const lastIndex = visibleSteps.length - 1
+
+  if (lastIndex < 0) {
+    return indexes
+  }
+
+  indexes.add(lastIndex)
+
+  for (let index = 0; index < lastIndex; index += 1) {
+    const currentIsIndoor = isIndoorStep(visibleSteps[index]?.step)
+    const nextIsIndoor = isIndoorStep(visibleSteps[index + 1]?.step)
+
+    if (currentIsIndoor !== nextIsIndoor) {
+      indexes.add(index)
+    }
+  }
+
+  return indexes
+}
+
+function isOriginStep(step = {}) {
+  const text = String(step?.instruction ?? '')
+  return text.includes('출발') || text.includes('현재 위치')
 }
 
 function getRouteSectionDividerLabel(visibleSteps, index) {

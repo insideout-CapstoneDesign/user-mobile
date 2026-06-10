@@ -14,9 +14,9 @@ import {
   PlainStepIcon,
 } from './NavigationStepIcon.styles'
 
-export default function NavigationStepIcon({ step, variant = 'plain' }) {
+export default function NavigationStepIcon({ step, variant = 'plain', tone: toneOverride }) {
   const icon = getStepIcon(step)
-  const tone = getStepTone(step)
+  const tone = toneOverride ?? getStepTone(step)
 
   if (variant === 'bubble') {
     return <IconBubble $tone={tone}>{icon}</IconBubble>

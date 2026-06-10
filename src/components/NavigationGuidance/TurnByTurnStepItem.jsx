@@ -10,9 +10,12 @@ const TurnByTurnStepItem = forwardRef(function TurnByTurnStepItem({
   step,
   index,
   active,
+  originBubble,
+  destinationBubble,
   onSelect,
 }, ref) {
   const safeStep = step && typeof step === 'object' ? step : {}
+  const bubbleTone = getBubbleTone({ originBubble, destinationBubble })
 
   return (
     <ListItem
@@ -23,7 +26,8 @@ const TurnByTurnStepItem = forwardRef(function TurnByTurnStepItem({
     >
       <NavigationStepIcon
         step={safeStep}
-        variant={isBubbleStep(safeStep) ? 'bubble' : 'plain'}
+        variant={bubbleTone ? 'bubble' : 'plain'}
+        tone={bubbleTone ?? 'default'}
       />
       <ListItemContent>
         <ListItemTitle>{safeStep.instruction || '안내 메시지'}</ListItemTitle>
@@ -34,14 +38,8 @@ const TurnByTurnStepItem = forwardRef(function TurnByTurnStepItem({
 
 export default TurnByTurnStepItem
 
-function isBubbleStep(step = {}) {
-  const text = String(step.instruction ?? '')
-
-  return (
-    text.includes('도착') ||
-    text.includes('출발') ||
-    text.includes('현재 위치') ||
-    text.includes('출구') ||
-    text.includes('나가기')
-  )
+function getBubbleTone({ originBubble, destinationBubble }) {
+  if (originBubble) return 'origin'
+  if (destinationBubble) return 'destination'
+  return null
 }

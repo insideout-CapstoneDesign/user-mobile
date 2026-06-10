@@ -35,9 +35,9 @@ export function toNavigationPlace(place, role = 'destination') {
     source: place,
     placeId: buildingId,
     poiId,
-    startPoiId: place.startPoiId ?? poiId,
+    startPoiId: firstIntegerId(place.startPoiId, poiId),
     destinationBuildingId: buildingId,
-    destinationPoiId: place.destinationPoiId ?? poiId,
+    destinationPoiId: firstIntegerId(place.destinationPoiId, poiId),
   }
 }
 
@@ -47,18 +47,20 @@ export function toNavigationRequestInput({
   transportMode,
   includeIndoor = true,
 }) {
+  const startPoiId = firstIntegerId(origin?.startPoiId)
+  const destinationPoiId = firstIntegerId(destination?.destinationPoiId)
   const shouldIncludeIndoor =
     Boolean(includeIndoor) &&
-    (Boolean(origin?.startPoiId) || Boolean(destination?.destinationPoiId))
+    (Boolean(startPoiId) || Boolean(destinationPoiId))
 
   return {
     start: origin,
     end: destination,
     startName: origin?.name,
     endName: destination?.name,
-    startPoiId: origin?.startPoiId,
+    startPoiId,
     destinationBuildingId: destination?.destinationBuildingId,
-    destinationPoiId: destination?.destinationPoiId,
+    destinationPoiId,
     includeIndoor: shouldIncludeIndoor,
     transportMode,
   }

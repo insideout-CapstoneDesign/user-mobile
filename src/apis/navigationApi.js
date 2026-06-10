@@ -9,6 +9,7 @@ import {
 import getErrorMessage from './utils/getErrorMessage'
 import { isNavigationNotFoundCode } from './utils/navigationErrors'
 import normalizeNavigationResponse from './utils/normalizeNavigationResponse'
+import { firstIntegerId } from '../utils/idHelpers'
 
 export {
   NAVIGATION_NOT_FOUND_CODES,
@@ -93,9 +94,9 @@ export function buildNavigationRequest({
     endY: end?.y,
     startName: startName ?? start?.name,
     endName: endName ?? end?.name,
-    startPoiId,
+    startPoiId: firstIntegerId(startPoiId),
     destinationBuildingId,
-    destinationPoiId,
+    destinationPoiId: firstIntegerId(destinationPoiId),
     includeIndoor,
     routeTypes: normalizeRouteTypes(routeTypes, transportMode),
   }

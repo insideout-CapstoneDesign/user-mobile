@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import escalatorIcon from '../../assets/icons/escalator.svg'
+import elevatorIcon from '../../assets/icons/elevator.svg'
 import { fetchPublishedFloorMap } from '../../apis/mapApi'
 import {
   FloorplanBadge,
@@ -556,7 +558,7 @@ function VectorFloorplanLayers({ vectorMap }) {
         y="0"
         width={vectorMap.size.width}
         height={vectorMap.size.height}
-        fill="#f8fafc"
+        fill="#f3f4f6"
       />
       {vectorMap.zones.map((zone) => (
         <path
@@ -588,6 +590,21 @@ function VectorFloorplanLayers({ vectorMap }) {
 }
 
 function PoiLabel({ poi }) {
+  if (poi.icon) {
+    const iconSize = poi.iconSize
+
+    return (
+      <image
+        href={poi.icon}
+        x={poi.x - iconSize / 2}
+        y={poi.y - iconSize / 2}
+        width={iconSize}
+        height={iconSize}
+        preserveAspectRatio="xMidYMid meet"
+      />
+    )
+  }
+
   if (!poi.name || poi.lines.length === 0) {
     return null
   }
@@ -599,9 +616,9 @@ function PoiLabel({ poi }) {
     <text
       x={poi.x}
       y={poi.y}
-      fill="#111827"
+      fill="#111111"
       fontSize={poi.fontSize}
-      fontWeight="800"
+      fontWeight="750"
       textAnchor="middle"
       dominantBaseline="middle"
       paintOrder="stroke"
@@ -656,8 +673,8 @@ function normalizeZones(zones) {
       return {
         id: zone.id ?? `zone-${index}`,
         path,
-        fill: zone?.properties?.fill ?? 'rgba(219, 234, 254, 0.52)',
-        stroke: zone?.properties?.stroke ?? 'rgba(96, 165, 250, 0.55)',
+        fill: 'rgba(229, 231, 235, 0.72)',
+        stroke: 'rgba(17, 24, 39, 0.28)',
       }
     })
     .filter(Boolean)
@@ -679,9 +696,9 @@ function normalizeFloorplanObjects(objects) {
       return {
         id: object.id ?? `object-${index}`,
         path,
-        fill: isArea ? 'rgba(15, 23, 42, 0.08)' : 'none',
-        stroke: kind.includes('wall') ? '#334155' : '#64748b',
-        strokeWidth: kind.includes('wall') ? 3 : 2,
+        fill: isArea ? 'rgba(17, 24, 39, 0.08)' : 'none',
+        stroke: kind.includes('wall') ? '#111111' : '#2f2f2f',
+        strokeWidth: kind.includes('wall') ? 3.2 : 2.2,
       }
     })
     .filter(Boolean)
@@ -698,6 +715,7 @@ function normalizePois(pois) {
       if (!point) return null
       const labelBox = getGeometryBounds(poi?.footprintPx)
       const label = buildPoiLabel(poi.name, labelBox)
+      const icon = resolvePoiIcon(poi)
 
       return {
         id: poi.id ?? `poi-${index}`,
@@ -706,9 +724,52 @@ function normalizePois(pois) {
         y: labelBox?.center.y ?? point.y,
         lines: label.lines,
         fontSize: label.fontSize,
+        icon,
+        iconSize: resolvePoiIconSize(labelBox),
       }
     })
     .filter(Boolean)
+}
+
+function resolvePoiIcon(poi) {
+  const searchText = [
+    poi?.name,
+    poi?.code,
+    ...(Array.isArray(poi?.tags) ? poi.tags : []),
+    poi?.attrs?.type,
+    poi?.attrs?.kind,
+    poi?.attrs?.category,
+    poi?.attrs?.label,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+
+  if (
+    searchText.includes('elevator') ||
+    searchText.includes('엘리베이터') ||
+    searchText.includes('엘레베이터')
+  ) {
+    return elevatorIcon
+  }
+
+  if (
+    searchText.includes('escalator') ||
+    searchText.includes('에스컬레이터') ||
+    searchText.includes('에스칼레이터')
+  ) {
+    return escalatorIcon
+  }
+
+  return null
+}
+
+function resolvePoiIconSize(bounds) {
+  if (!bounds) {
+    return 34
+  }
+
+  return clamp(Math.min(bounds.width, bounds.height) * 0.82, 26, 42)
 }
 
 function buildPoiLabel(name, bounds) {
@@ -723,7 +784,7 @@ function buildPoiLabel(name, bounds) {
     ? cleanName.split(/\s+/).filter(Boolean)
     : [cleanName]
 
-  const candidateLines = compactPoiLabelLines(wordLines, maxWidth, 18)
+  const candidateLines = compactPoiLabelLines(wordLines, maxWidth, 20)
   const fontSize = resolvePoiLabelFontSize(candidateLines, maxWidth, maxHeight)
 
   return {
@@ -755,7 +816,7 @@ function compactPoiLabelLines(words, maxWidth, fontSize) {
 }
 
 function resolvePoiLabelFontSize(lines, maxWidth, maxHeight) {
-  for (let fontSize = 18; fontSize >= 10; fontSize -= 1) {
+  for (let fontSize = 20; fontSize >= 12; fontSize -= 1) {
     const widestLine = Math.max(
       ...lines.map((line) => estimateTextWidth(line, fontSize)),
       0,
@@ -767,7 +828,7 @@ function resolvePoiLabelFontSize(lines, maxWidth, maxHeight) {
     }
   }
 
-  return 10
+  return 12
 }
 
 function estimateTextWidth(text, fontSize) {

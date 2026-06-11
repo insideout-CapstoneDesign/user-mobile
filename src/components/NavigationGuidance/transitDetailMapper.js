@@ -31,10 +31,21 @@ function toRawTransitDetailLeg(leg, routeId, index) {
   const type = getRawLegType(leg.mode)
   const isTransit = type === 'bus' || type === 'subway'
 
+  if (isIndoorLeg(leg.mode)) {
+    return {
+      id: `${routeId}-raw-detail-${index}`,
+      type: 'indoor',
+      sourceLegIndex: index,
+      title: buildIndoorLegTitle(leg),
+      detail: leg.floorName ?? null,
+    }
+  }
+
   if (!isTransit) {
     return {
       id: `${routeId}-raw-detail-${index}`,
       type: 'walk',
+      sourceLegIndex: index,
       title: buildRawWalkTitle(leg),
       detail: leg.description ?? leg.instruction ?? null,
     }
@@ -47,6 +58,7 @@ function toRawTransitDetailLeg(leg, routeId, index) {
   return {
     id: `${routeId}-raw-detail-${index}`,
     type,
+    sourceLegIndex: index,
     routeColor: leg.routeColor,
     line: buildTransitLineLabel(leg, type),
     startName,
@@ -57,6 +69,146 @@ function toRawTransitDetailLeg(leg, routeId, index) {
     endName,
     endDetail: leg.endDetail ?? null,
   }
+}
+
+export function buildTransitGuidanceSteps(routeOption) {
+  const rawLegs = routeOption?.raw?.legs
+  const routeId = routeOption?.id ?? DEFAULT_ROUTE_ID
+
+  if (!Array.isArray(rawLegs) || rawLegs.length === 0) {
+    return routeOption?.turnByTurnSteps ?? []
+  }
+
+  return rawLegs.flatMap((leg, legIndex) => {
+    const type = getRawLegType(leg?.mode)
+
+    if (type === 'bus' || type === 'subway') {
+      return buildTransitLegGuidanceStep(routeOption, leg, routeId, legIndex, type)
+    }
+
+    const legSteps = getTurnByTurnStepsForLeg(routeOption, legIndex)
+    if (legSteps.length > 0) {
+      return legSteps.map((step) => ({
+        ...step,
+        sourceLegIndex: legIndex,
+      }))
+    }
+
+    return buildWalkLegGuidanceStep(routeOption, leg, routeId, legIndex)
+  })
+}
+
+function getTurnByTurnStepsForLeg(routeOption, legIndex) {
+  const steps = Array.isArray(routeOption?.turnByTurnSteps)
+    ? routeOption.turnByTurnSteps
+    : []
+
+  return steps.filter((step) => step?.legIndex === legIndex)
+}
+
+function buildTransitLegGuidanceStep(routeOption, leg, routeId, legIndex, type) {
+  const mapLeg = findMapLegForSourceLeg(routeOption, legIndex)
+  const line = buildTransitGuidanceLineLabel(leg, type)
+  const stops = getIntermediateStops(
+    leg,
+    leg?.startName ?? leg?.fromName,
+    leg?.endName ?? leg?.toName,
+  )
+  const stopCount = getTransitStopCount(leg, stops)
+  const instruction = [line ? `${line}을 타고` : '대중교통을 타고', `${stopCount}개 정류장 이동`]
+    .filter(Boolean)
+    .join('\n')
+
+  return [{
+    id: `${routeId}-transit-leg-${legIndex}-summary`,
+    routeId,
+    routeType: routeOption?.routeType ?? 'TRANSIT',
+    routeOption: routeOption?.routeOption ?? 'TRANSIT_CANDIDATE',
+    legIndex,
+    sourceLegIndex: legIndex,
+    mapLegId: mapLeg?.id ?? `${routeId}-leg-${legIndex}-segment-0`,
+    segmentId: mapLeg?.segmentId ?? mapLeg?.id ?? `${routeId}-leg-${legIndex}-segment-0`,
+    segmentIndex: mapLeg?.segmentIndex ?? 0,
+    stepIndex: 0,
+    pathIndex: 0,
+    pathStartIndex: 0,
+    pathEndIndex: getLastPathIndex(mapLeg),
+    type,
+    instruction,
+    distanceMeters: leg?.distanceMeters ?? null,
+    durationSeconds: leg?.durationSeconds ?? null,
+    distanceText: '',
+    durationText: formatRawDuration(leg?.durationSeconds),
+    x: mapLeg?.path?.[0]?.x ?? null,
+    y: mapLeg?.path?.[0]?.y ?? null,
+    turnType: null,
+    mode: leg?.mode ?? type.toUpperCase(),
+    streetName: null,
+    floorId: null,
+    floorName: null,
+    raw: leg,
+  }]
+}
+
+function buildWalkLegGuidanceStep(routeOption, leg, routeId, legIndex) {
+  const mapLeg = findMapLegForSourceLeg(routeOption, legIndex)
+
+  return [{
+    id: `${routeId}-walk-leg-${legIndex}-summary`,
+    routeId,
+    routeType: routeOption?.routeType ?? 'TRANSIT',
+    routeOption: routeOption?.routeOption ?? 'TRANSIT_CANDIDATE',
+    legIndex,
+    sourceLegIndex: legIndex,
+    mapLegId: mapLeg?.id ?? `${routeId}-leg-${legIndex}-segment-0`,
+    segmentId: mapLeg?.segmentId ?? mapLeg?.id ?? `${routeId}-leg-${legIndex}-segment-0`,
+    segmentIndex: mapLeg?.segmentIndex ?? 0,
+    stepIndex: 0,
+    pathIndex: 0,
+    pathStartIndex: 0,
+    pathEndIndex: getLastPathIndex(mapLeg),
+    type: 'walk',
+    instruction: buildTransitInstructionFallback(leg),
+    distanceMeters: leg?.distanceMeters ?? null,
+    durationSeconds: leg?.durationSeconds ?? null,
+    distanceText: leg?.distanceMeters ? `${Math.round(leg.distanceMeters)}m` : '',
+    durationText: formatRawDuration(leg?.durationSeconds),
+    x: mapLeg?.path?.[0]?.x ?? null,
+    y: mapLeg?.path?.[0]?.y ?? null,
+    turnType: null,
+    mode: leg?.mode ?? 'WALK',
+    streetName: null,
+    floorId: null,
+    floorName: null,
+    raw: leg,
+  }]
+}
+
+function findMapLegForSourceLeg(routeOption, legIndex) {
+  const mapLegs = Array.isArray(routeOption?.mapLegs) ? routeOption.mapLegs : []
+
+  return mapLegs.find((leg) => leg?.legIndex === legIndex) ?? null
+}
+
+function buildTransitGuidanceLineLabel(leg, type) {
+  return leg?.routeName ?? leg?.routeNm ?? leg?.routeId ?? buildTransitLineLabel(leg, type)
+}
+
+function getLastPathIndex(mapLeg) {
+  const path = Array.isArray(mapLeg?.path) ? mapLeg.path : []
+
+  return Math.max(path.length - 1, 0)
+}
+
+function buildTransitInstructionFallback(leg) {
+  const startName = leg?.startName ?? leg?.fromName
+  const endName = leg?.endName ?? leg?.toName
+
+  if (startName && endName) {
+    return `${startName}에서 ${endName}까지 도보 이동`
+  }
+
+  return '도보 이동'
 }
 
 function toSummaryTransitDetailLeg(step, routeId, index) {
@@ -95,6 +247,20 @@ function getRawLegType(mode) {
   if (normalizedMode === 'bus') return 'bus'
 
   return 'walk'
+}
+
+function isIndoorLeg(mode) {
+  const normalizedMode = String(mode ?? '').trim().toUpperCase()
+
+  return normalizedMode === 'INDOOR' || normalizedMode === 'CAMPUS'
+}
+
+function buildIndoorLegTitle(leg) {
+  if (leg?.startName && leg?.endName) {
+    return `${leg.startName}에서 ${leg.endName}까지 실내 이동`
+  }
+
+  return '실내 이동'
 }
 
 function normalizeTransitType(type) {

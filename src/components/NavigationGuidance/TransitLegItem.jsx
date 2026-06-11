@@ -23,6 +23,7 @@ export default function TransitLegItem({
   isLast = false,
   expanded = false,
   onToggle,
+  onSelect,
 }) {
   const safeLeg = leg && typeof leg === 'object' ? leg : {}
   const type = safeLeg.type ?? 'walk'
@@ -31,8 +32,29 @@ export default function TransitLegItem({
   const hiddenStops = Array.isArray(safeLeg.stops) ? safeLeg.stops : []
   const color = normalizeRouteColor(safeLeg.routeColor ?? safeLeg.color)
 
+  const isSelectable =
+    type !== 'point' && type !== 'building' && typeof onSelect === 'function'
+
   return (
-    <LegCard $type={type}>
+    <LegCard
+      $type={type}
+      $selectable={isSelectable}
+      role={isSelectable ? 'button' : undefined}
+      tabIndex={isSelectable ? 0 : undefined}
+      onClick={isSelectable ? onSelect : undefined}
+      onKeyDown={
+        isSelectable
+          ? (event) => {
+              if (event.key !== 'Enter' && event.key !== ' ') {
+                return
+              }
+
+              event.preventDefault()
+              onSelect()
+            }
+          : undefined
+      }
+    >
       <TransitTimelineIcon
         leg={displayLeg}
         color={color}
@@ -41,7 +63,7 @@ export default function TransitLegItem({
       />
 
       <LegBody>
-        {type === 'point' ? (
+        {type === 'point' || type === 'building' ? (
           <PointLegContent leg={displayLeg} />
         ) : isTransit ? (
           <TransitLegContent
@@ -84,7 +106,14 @@ function TransitLegContent({ leg, hiddenStops, expanded, onToggle }) {
       {leg.startDetail ? <LegSubText>{leg.startDetail}</LegSubText> : null}
 
       {canToggleStops ? (
-        <ToggleButton type="button" onClick={onToggle} $expanded={expanded}>
+        <ToggleButton
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            onToggle?.()
+          }}
+          $expanded={expanded}
+        >
           {metaText}
           <FaChevronDown size={14} />
         </ToggleButton>

@@ -4,6 +4,7 @@ const transitColor = ({ $type, $color }) => {
   if ($color) return $color
   if ($type === 'bus') return 'var(--green-500)'
   if ($type === 'subway') return 'var(--blue-900)'
+  if ($type === 'indoor' || $type === 'campus') return 'var(--red-500)'
   if ($type === 'point') return 'var(--red-500)'
   return 'var(--gray-400)'
 }
@@ -22,12 +23,61 @@ export const TransitDetailList = styled.div`
   display: grid;
 `
 
+export const IndoorStepList = styled.div`
+  display: grid;
+`
+
+export const IndoorDividerLabel = styled.div`
+  min-height: 2.5rem;
+  border-top: var(--size-1) solid var(--gray-200);
+  border-bottom: var(--size-1) solid var(--gray-200);
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-12);
+  color: var(--gray-700);
+  font-size: var(--text-14);
+  font-weight: var(--fw-medium);
+  line-height: var(--line-20);
+`
+
+export const IndoorDividerButton = styled.button`
+  min-height: 2.5rem;
+  border: none;
+  border-top: var(--size-1) solid var(--gray-200);
+  border-bottom: var(--size-1) solid var(--gray-200);
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-12);
+  color: var(--gray-700);
+  font-family: var(--font-sans);
+  font-size: var(--text-14);
+  font-weight: var(--fw-medium);
+  line-height: var(--line-20);
+  cursor: pointer;
+
+  svg {
+    color: var(--gray-600);
+    transform: ${({ $expanded }) => ($expanded ? 'rotate(180deg)' : 'rotate(0deg)')};
+    transition: transform 0.16s ease;
+  }
+`
+
 export const LegCard = styled.div`
   position: relative;
   z-index: ${({ $type }) => ($type === 'bus' || $type === 'subway' ? 2 : 1)};
   display: grid;
   grid-template-columns: var(--size-48) 1fr;
   min-height: 5.5rem;
+  cursor: ${({ $selectable }) => ($selectable ? 'pointer' : 'default')};
+
+  &:focus-visible {
+    outline: ${({ $selectable }) =>
+      $selectable ? '2px solid var(--blue-500)' : 'none'};
+    outline-offset: -2px;
+  }
 `
 
 export const LegTimeline = styled.div`
@@ -55,7 +105,7 @@ export const LegIcon = styled.span`
   justify-content: center;
 
   ${({ $type }) =>
-    $type === 'point'
+      $type === 'point' || $type === 'building'
       ? css`
           width: var(--size-26);
           height: var(--size-26);
@@ -65,7 +115,7 @@ export const LegIcon = styled.span`
       : null}
 
   ${({ $type }) =>
-    $type === 'bus' || $type === 'subway'
+      $type === 'bus' || $type === 'subway' || $type === 'indoor' || $type === 'campus'
       ? css`
           width: var(--size-26);
           height: var(--size-26);
@@ -84,11 +134,11 @@ export const LegIcon = styled.span`
       : null}
 
   img {
-    width: ${({ $type }) => ($type === 'point' ? '1rem' : '1.25rem')};
-    height: ${({ $type }) => ($type === 'point' ? '1rem' : '1.25rem')};
+    width: ${({ $type }) => ($type === 'point' || $type === 'building' ? '1rem' : '1.25rem')};
+    height: ${({ $type }) => ($type === 'point' || $type === 'building' ? '1rem' : '1.25rem')};
     display: block;
     filter: ${({ $type }) =>
-      $type === 'point'
+      $type === 'point' || $type === 'building'
         ? 'brightness(0) invert(1)'
         : 'invert(39%) sepia(13%) saturate(716%) hue-rotate(182deg) brightness(88%) contrast(86%)'};
   }
@@ -103,12 +153,12 @@ export const LegConnector = styled.span`
   z-index: 0;
   width: ${({ $type }) => ($type === 'bus' || $type === 'subway' ? '0.375rem' : '0')};
   border-left: ${({ $type }) =>
-    $type === 'bus' || $type === 'subway'
+    $type === 'bus' || $type === 'subway' || $type === 'indoor' || $type === 'campus'
       ? 'none'
       : '0.25rem dotted var(--gray-200)'};
   border-radius: var(--radius-pill);
   background: ${({ $type, $color }) =>
-    $type === 'bus' || $type === 'subway'
+    $type === 'bus' || $type === 'subway' || $type === 'indoor' || $type === 'campus'
       ? transitColor({ $type, $color })
       : 'transparent'};
 `

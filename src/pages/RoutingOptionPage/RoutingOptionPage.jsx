@@ -8,7 +8,7 @@ import TransportSelector from '../../components/Transport/TransportSelector'
 import {
   ROUTE_OPTION_CONTENT_MAX_HEIGHT,
   ROUTE_OPTION_INITIAL_SNAP,
-  ROUTE_OPTION_SNAP_POINTS,
+  ROUTING_OPTION_PAGE_SNAP_POINTS,
 } from '../../constants/routeOptionSheet'
 import { ROUTES } from '../../constants/routes'
 import { SEARCH_MODES } from '../../constants/search'
@@ -21,6 +21,7 @@ import {
 import {
   getIndoorFloorplan,
   getOutdoorRouteLegs,
+  isIndoorOnlyRouteOption,
 } from '../../utils/map/routeOverlayMappers'
 import { createRoutingGuidanceState } from '../../utils/routing/routingGuidanceState'
 import FloorplanRouteView from '../../components/Map/FloorplanRouteView'
@@ -54,12 +55,11 @@ export default function RoutingOptionPage() {
     () => getOutdoorRouteLegs(selectedRouteOption),
     [selectedRouteOption],
   )
-  const selectedFloorplan = getIndoorFloorplan(
-    selectedRouteOption,
-    navigationRoute.selectedFloorplan,
-  )
+  const selectedFloorplan = getIndoorFloorplan(selectedRouteOption)
   const shouldShowFloorplanRoute =
-    outdoorRouteLegs.length === 0 && Boolean(selectedFloorplan?.mapImageUrl)
+    transportMode !== 'transit' &&
+    isIndoorOnlyRouteOption(selectedRouteOption) &&
+    Boolean(selectedFloorplan?.mapImageUrl)
 
   useEffect(() => {
     if (!hasRoutePlaces) {
@@ -193,7 +193,7 @@ export default function RoutingOptionPage() {
         onClose={() => {}}
         showBackdrop={false}
         detent="content"
-        snapPoints={ROUTE_OPTION_SNAP_POINTS}
+        snapPoints={ROUTING_OPTION_PAGE_SNAP_POINTS}
         initialSnap={ROUTE_OPTION_INITIAL_SNAP}
         dismissible={false}
         scrollableContent={false}

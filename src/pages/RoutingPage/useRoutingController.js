@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react'
-import { buildTransitDetailLegs } from '../../components/NavigationGuidance/transitDetailMapper'
+import {
+  buildTransitDetailLegs,
+  buildTransitGuidanceSteps,
+} from '../../components/NavigationGuidance/transitDetailMapper'
 import useNavigationRoute from '../../hooks/useNavigationRoute'
 import {
   DEFAULT_ROUTE_ORIGIN,
@@ -38,16 +41,6 @@ export default function useRoutingController({
         : navigationRoute.activeFloorSteps,
     [navigationRoute.activeFloorSteps, navigationRoute.turnByTurnSteps],
   )
-  const boundedGuidanceStepIndex = Math.min(
-    activeGuidanceStepIndex,
-    Math.max(guidanceSteps.length - 1, 0),
-  )
-  const activeGuidanceStep =
-    guidanceSteps[boundedGuidanceStepIndex] ?? guidanceSteps[0] ?? null
-  const isIndoorGuidanceStep =
-    !!activeGuidanceStep?.floorId ||
-    activeGuidanceStep?.type === 'indoor' ||
-    activeGuidanceStep?.mode === 'INDOOR'
   const isTransitGuidance =
     navigationRoute.selectedRouteOption?.mode === 'transit' ||
     navigationRoute.selectedRouteOption?.routeType === 'TRANSIT'
@@ -59,6 +52,25 @@ export default function useRoutingController({
       }),
     [navigationRoute.selectedRouteOption, routeDestination, routeOrigin],
   )
+  const transitGuidanceSteps = useMemo(
+    () => buildTransitGuidanceSteps(navigationRoute.selectedRouteOption),
+    [navigationRoute.selectedRouteOption],
+  )
+  const effectiveGuidanceSteps = isTransitGuidance
+    ? transitGuidanceSteps
+    : guidanceSteps
+  const effectiveBoundedGuidanceStepIndex = Math.min(
+    activeGuidanceStepIndex,
+    Math.max(effectiveGuidanceSteps.length - 1, 0),
+  )
+  const effectiveActiveGuidanceStep =
+    effectiveGuidanceSteps[effectiveBoundedGuidanceStepIndex] ??
+    effectiveGuidanceSteps[0] ??
+    null
+  const isIndoorGuidanceStep =
+    !!effectiveActiveGuidanceStep?.floorId ||
+    effectiveActiveGuidanceStep?.type === 'indoor' ||
+    effectiveActiveGuidanceStep?.mode === 'INDOOR'
 
   const requestRoute = async ({
     origin = routeOrigin,
@@ -144,7 +156,10 @@ export default function useRoutingController({
   }
 
   const selectGuidanceStep = (step, index) => {
-    setActiveGuidanceStepIndex(index)
+    const resolvedIndex = effectiveGuidanceSteps.findIndex(
+      (guidanceStep) => guidanceStep?.id === step?.id,
+    )
+    setActiveGuidanceStepIndex(resolvedIndex >= 0 ? resolvedIndex : index)
     setGuidanceView('map')
 
     if (step?.floorId) {
@@ -152,14 +167,30 @@ export default function useRoutingController({
     }
   }
 
-  const moveGuidanceStep = (direction) => {
-    const nextIndex = boundedGuidanceStepIndex + direction
-
-    if (nextIndex < 0 || nextIndex >= guidanceSteps.length) {
+  const selectTransitDetailLeg = (leg) => {
+    if (leg?.type === 'point' || leg?.sourceLegIndex === undefined) {
       return
     }
 
-    const nextStep = guidanceSteps[nextIndex]
+    const stepIndex = transitGuidanceSteps.findIndex(
+      (step) => step?.sourceLegIndex === leg.sourceLegIndex,
+    )
+
+    if (stepIndex < 0) {
+      return
+    }
+
+    selectGuidanceStep(transitGuidanceSteps[stepIndex], stepIndex)
+  }
+
+  const moveGuidanceStep = (direction) => {
+    const nextIndex = effectiveBoundedGuidanceStepIndex + direction
+
+    if (nextIndex < 0 || nextIndex >= effectiveGuidanceSteps.length) {
+      return
+    }
+
+    const nextStep = effectiveGuidanceSteps[nextIndex]
     setActiveGuidanceStepIndex(nextIndex)
 
     if (nextStep?.floorId) {
@@ -177,11 +208,11 @@ export default function useRoutingController({
   }
 
   return {
-    activeGuidanceStep,
-    boundedGuidanceStepIndex,
+    activeGuidanceStep: effectiveActiveGuidanceStep,
+    boundedGuidanceStepIndex: effectiveBoundedGuidanceStepIndex,
     currentNav,
     guidanceStarted,
-    guidanceSteps,
+    guidanceSteps: effectiveGuidanceSteps,
     guidanceView,
     isIndoorGuidanceStep,
     isRouteMode,
@@ -200,6 +231,7 @@ export default function useRoutingController({
     selectDeparture,
     selectFloorplan: navigationRoute.selectFloorplan,
     selectGuidanceStep,
+    selectTransitDetailLeg,
     selectRouteOption: navigationRoute.selectRouteOption,
     selectTransportMode,
     setCurrentNav,

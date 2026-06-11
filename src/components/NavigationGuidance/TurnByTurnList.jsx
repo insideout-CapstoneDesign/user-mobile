@@ -29,6 +29,7 @@ export default function TurnByTurnList({
   const activeItemRef = useRef(null)
   const visibleSteps = steps
     .map((step, index) => ({ step, originalIndex: index }))
+    .filter(({ step }) => step && typeof step === 'object')
     .filter(({ step }) => shouldShowStep(step))
   const originBubbleIndexes = getOriginBubbleIndexes(visibleSteps)
   const destinationBubbleIndexes = getDestinationBubbleIndexes(visibleSteps)
@@ -158,21 +159,27 @@ function getRouteSectionDividerLabel(visibleSteps, index) {
 }
 
 function isIndoorStep(step = {}) {
-  const mode = String(step.mode ?? '').toUpperCase()
-  return step.type === 'indoor' || mode === 'INDOOR' || Boolean(step.floorId)
+  const safeStep = step && typeof step === 'object' ? step : {}
+  const mode = String(safeStep.mode ?? '').toUpperCase()
+  return safeStep.type === 'indoor' || mode === 'INDOOR' || Boolean(safeStep.floorId)
 }
 
 function shouldShowStep(step = {}) {
-  return !isMetaOnlyStep(step) && !isDistanceSummaryStep(step)
+  const safeStep = step && typeof step === 'object' ? step : {}
+
+  return !isMetaOnlyStep(safeStep) && !isDistanceSummaryStep(safeStep)
 }
 
 function isMetaOnlyStep(step = {}) {
-  const instruction = String(step.instruction ?? '').trim()
-  const hasMeta = [step.distanceText, step.durationText, step.floorName].some(Boolean)
+  const safeStep = step && typeof step === 'object' ? step : {}
+  const instruction = String(safeStep.instruction ?? '').trim()
+  const hasMeta = [safeStep.distanceText, safeStep.durationText, safeStep.floorName].some(Boolean)
 
   return !instruction && hasMeta
 }
 
 function isDistanceSummaryStep(step = {}) {
-  return isDistanceSummaryInstruction(step.instruction)
+  const safeStep = step && typeof step === 'object' ? step : {}
+
+  return isDistanceSummaryInstruction(safeStep)
 }

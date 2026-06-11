@@ -2,9 +2,14 @@ import { UI_TYPE_BY_LEG_MODE } from '../../constants/navigation'
 import { formatDistance, formatDuration } from '../../utils/navigationFormatters'
 import { isDistanceSummaryInstruction } from '../../utils/navigationStepFilters'
 import { isGeographicCoordinateType } from '../../utils/map/routeOverlayMappers'
+import { STEP_TYPE } from '../../utils/navigationStepTypes'
 
 export function normalizeMapLegs(legs, routeContext) {
   return legs.flatMap((leg, legIndex) => {
+    if (!leg || typeof leg !== 'object') {
+      return []
+    }
+
     const floorSegments = Array.isArray(leg.floorSegments) ? leg.floorSegments : []
     const legPath = normalizeLegPath(leg)
 
@@ -33,7 +38,11 @@ export function normalizeMapLegs(legs, routeContext) {
 }
 
 export function normalizeTurnByTurnSteps(legs, routeContext) {
-  return legs.flatMap((leg, legIndex) => {
+  const normalizedSteps = legs.flatMap((leg, legIndex) => {
+    if (!leg || typeof leg !== 'object') {
+      return []
+    }
+
     const floorSegments = Array.isArray(leg.floorSegments) ? leg.floorSegments : []
     if (floorSegments.length > 0) {
       return floorSegments.flatMap((segment, segmentIndex) => {
@@ -81,31 +90,40 @@ export function normalizeTurnByTurnSteps(legs, routeContext) {
 
     return assignStepPathRanges(visibleSteps, path)
   })
+
+  return ensureArrivalStep(normalizedSteps)
 }
 
 function shouldShowTurnByTurnStep(step = {}) {
-  return !isMetaOnlyStep(step) && !isRouteSegmentSummaryStep(step)
+  const safeStep = step && typeof step === 'object' ? step : {}
+
+  return !isMetaOnlyStep(safeStep) && !isRouteSegmentSummaryStep(safeStep)
 }
 
 function isRouteSegmentSummaryStep(step = {}) {
-  return isDistanceSummaryInstruction(step.instruction)
+  const safeStep = step && typeof step === 'object' ? step : {}
+
+  return isDistanceSummaryInstruction(safeStep)
 }
 
 function isMetaOnlyStep(step = {}) {
-  const instruction = String(step.instruction ?? '').trim()
-  const hasMeta = [step.distanceText, step.durationText, step.floorName].some(Boolean)
+  const safeStep = step && typeof step === 'object' ? step : {}
+  const instruction = String(safeStep.instruction ?? '').trim()
+  const hasMeta = [safeStep.distanceText, safeStep.durationText, safeStep.floorName].some(Boolean)
 
   return !instruction && hasMeta
 }
 
 function normalizeStep(step, context) {
-  const mode = step.mode ?? context.leg?.mode
+  const safeStep = step && typeof step === 'object' ? step : {}
+  const mode = safeStep.mode ?? context.leg?.mode
   const segmentPart =
     context.segmentIndex === undefined ? '' : `-segment-${context.segmentIndex}`
   const mapLegId = `${context.routeId}-leg-${context.legIndex}-segment-${context.segmentIndex ?? 0}`
-  const pathIndex = findNearestPathIndex(step, context.path)
-  const explicitPathStartIndex = toSafePathIndex(step.pathStartIndex, context.path)
-  const explicitPathEndIndex = toSafePathIndex(step.pathEndIndex, context.path)
+  const pathIndex = findNearestPathIndex(safeStep, context.path)
+  const explicitPathStartIndex = toSafePathIndex(safeStep.pathStartIndex, context.path)
+  const explicitPathEndIndex = toSafePathIndex(safeStep.pathEndIndex, context.path)
+  const stepType = normalizeStepType(safeStep)
 
   return {
     id: `${context.routeId}-leg-${context.legIndex}${segmentPart}-step-${context.stepIndex}`,
@@ -121,19 +139,21 @@ function normalizeStep(step, context) {
     pathStartIndex: explicitPathStartIndex,
     pathEndIndex: explicitPathEndIndex,
     type: modeToUiType(mode),
-    instruction: step.instruction ?? '',
-    distanceMeters: step.distanceMeters ?? null,
-    durationSeconds: step.durationSeconds ?? null,
-    distanceText: formatDistance(step.distanceMeters),
-    durationText: formatDuration(step.durationSeconds),
-    x: step.x ?? null,
-    y: step.y ?? null,
-    turnType: step.turnType ?? null,
+    stepType,
+    arrival: stepType === STEP_TYPE.ARRIVAL,
+    instruction: safeStep.instruction ?? '',
+    distanceMeters: safeStep.distanceMeters ?? null,
+    durationSeconds: safeStep.durationSeconds ?? null,
+    distanceText: formatDistance(safeStep.distanceMeters),
+    durationText: formatDuration(safeStep.durationSeconds),
+    x: safeStep.x ?? null,
+    y: safeStep.y ?? null,
+    turnType: safeStep.turnType ?? null,
     mode,
-    streetName: step.streetName ?? null,
+    streetName: safeStep.streetName ?? null,
     floorId: context.floorId,
     floorName: context.floorName,
-    raw: step,
+    raw: safeStep,
   }
 }
 
@@ -167,6 +187,35 @@ function assignStepPathRanges(steps, path) {
   })
 }
 
+function normalizeStepType(step = {}) {
+  const explicitStepType = String(step?.stepType ?? '').trim().toUpperCase()
+  if (explicitStepType) {
+    return explicitStepType
+  }
+
+  if (step?.arrival === true) {
+    return STEP_TYPE.ARRIVAL
+  }
+
+  return null
+}
+
+function ensureArrivalStep(steps) {
+  if (!Array.isArray(steps) || steps.length === 0 || steps.some((step) => step.arrival)) {
+    return steps
+  }
+
+  return steps.map((step, index) =>
+    index === steps.length - 1
+      ? {
+          ...step,
+          stepType: STEP_TYPE.ARRIVAL,
+          arrival: true,
+        }
+      : step,
+  )
+}
+
 function toSafePathIndex(value, path) {
   if (!Number.isInteger(value) || !Array.isArray(path) || path.length === 0) {
     return null
@@ -189,6 +238,8 @@ function normalizeMapSegment(segment, leg, context) {
     legIndex: context.legIndex,
     segmentIndex: context.segmentIndex,
     mode: modeToUiType(leg.mode),
+    startName: segment.startName ?? leg.startName ?? null,
+    endName: segment.endName ?? leg.endName ?? null,
     mapType: segment.mapType ?? leg.mapType ?? null,
     mapImageUrl: segment.mapImageUrl ?? leg.mapImageUrl ?? null,
     floorId,
@@ -208,6 +259,7 @@ function normalizeMapSegment(segment, leg, context) {
       }),
     ),
     raw: segment,
+    rawLeg: leg,
   }
 }
 

@@ -114,7 +114,7 @@ function TransitRouteOption({ option }) {
       </RouteBarSlot>
 
       <RouteSteps>
-        {option.steps.map((step, index) => (
+        {option.steps.filter(isStepObject).map((step, index) => (
           <RouteStep
             key={`${option.id}-step-${index}`}
             step={step}
@@ -150,17 +150,23 @@ function StandardRouteOption({ option }) {
 }
 
 function RouteStep({ step }) {
+  const safeStep = step && typeof step === 'object' ? step : {}
+
   return (
     <RouteStepItem>
-      <RouteStepIconColumn $color={getStepColor(step.type)}>
-        <RouteStepIcon type={step.type} />
+      <RouteStepIconColumn $color={getStepColor(safeStep.type)}>
+        <RouteStepIcon type={safeStep.type} />
       </RouteStepIconColumn>
       <RouteStepContent>
-        <RouteStepTitle>{step.name}</RouteStepTitle>
-        {step.sub ? <RouteStepSub>{step.sub}</RouteStepSub> : null}
+        <RouteStepTitle>{safeStep.name ?? '경로 안내'}</RouteStepTitle>
+        {safeStep.sub ? <RouteStepSub>{safeStep.sub}</RouteStepSub> : null}
       </RouteStepContent>
     </RouteStepItem>
   )
+}
+
+function isStepObject(step) {
+  return step && typeof step === 'object'
 }
 
 function RouteStepIcon({ type }) {

@@ -1,4 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { fetchPublishedFloorMap } from '../../apis/mapApi'
+import FloorplanVectorLayers from './floorplan/FloorplanVectorLayers'
+import {
+  MAX_SCALE,
+  animateCamera,
+  clampCamera,
+  getMinScale,
+  getPointerCenter,
+  getPointerDistance,
+  getPointerPair,
+  resolveActiveCamera,
+  resolveBaseCamera,
+  scheduleCameraUpdate,
+  screenToImagePoint,
+} from './floorplan/floorplanCamera'
+import { clamp } from './floorplan/floorplanGeometry'
+import { normalizeFloorplanViewModel } from './floorplan/floorplanRouteViewModel'
 import {
   FloorplanBadge,
   FloorplanCanvas,
@@ -9,16 +26,23 @@ import {
   FloorplanSvg,
 } from './FloorplanRouteView.styles'
 
-const MIN_SCALE_FALLBACK = 0.35
-const MAX_SCALE = 5
-const ROUTE_FIT_PADDING = 1.1
-const DEFAULT_ROUTE_ZOOM = 2
+const DEFAULT_IMAGE_FALLBACK_DELAY_MS = 600
+
+function resolveImageFallbackDelayMs(value) {
+  const number = Number.parseInt(value, 10)
+  return Number.isInteger(number) && number >= 0
+    ? number
+    : DEFAULT_IMAGE_FALLBACK_DELAY_MS
+}
 
 export default function FloorplanRouteView({
   floorplan,
   mapLeg,
   activeStep = null,
   showInstructionBadge = true,
+  imageFallbackDelayMs = resolveImageFallbackDelayMs(
+    import.meta.env.VITE_IMAGE_FALLBACK_DELAY_MS,
+  ),
 }) {
   const stageRef = useRef(null)
   const isInteractingRef = useRef(false)
@@ -32,15 +56,31 @@ export default function FloorplanRouteView({
     size: null,
     hasError: false,
   })
+  const [publishedMapState, setPublishedMapState] = useState({
+    floorId: null,
+    data: null,
+  })
+  const [imageFallbackDelayState, setImageFallbackDelayState] = useState({
+    floorId: null,
+  })
   const [cameraState, setCameraState] = useState({
     floorKey: null,
     camera: null,
     userMoved: false,
     preferredScale: null,
   })
+  const currentFloorId = floorplan?.id ?? mapLeg?.floorId ?? null
+  const publishedMapData =
+    publishedMapState.floorId === currentFloorId ? publishedMapState.data : null
   const viewModel = useMemo(
-    () => normalizeFloorplanViewModel(floorplan, mapLeg, activeStep),
-    [activeStep, floorplan, mapLeg],
+    () =>
+      normalizeFloorplanViewModel(
+        floorplan,
+        mapLeg,
+        activeStep,
+        publishedMapData,
+      ),
+    [activeStep, floorplan, mapLeg, publishedMapData],
   )
   const isSameFloor = cameraState.floorKey === viewModel.key
   const camera = isSameFloor ? cameraState.camera : null
@@ -74,13 +114,27 @@ export default function FloorplanRouteView({
       preferredScale: currentState.preferredScale,
     }))
   }, [viewModel.key])
-  const activeStepIsArrival = isArrivalStep(activeStep)
+  const vectorSize = viewModel.vectorMap?.size ?? null
+  const isPublishedMapSettled =
+    !currentFloorId || publishedMapState.floorId === currentFloorId
+  const imageFallbackDelayElapsed =
+    imageFallbackDelayState.floorId === currentFloorId
+  const allowImageFallback =
+    !currentFloorId ||
+    imageFallbackDelayElapsed ||
+    (isPublishedMapSettled && !vectorSize)
   const imageSize =
-    imageState.src === viewModel.mapImageUrl && !imageState.hasError
+    vectorSize ??
+    (allowImageFallback &&
+    imageState.src === viewModel.mapImageUrl &&
+    !imageState.hasError
       ? imageState.size
-      : null
+      : null)
   const hasImageError =
-    imageState.src === viewModel.mapImageUrl && imageState.hasError
+    allowImageFallback &&
+    !vectorSize &&
+    imageState.src === viewModel.mapImageUrl &&
+    imageState.hasError
   const baseCamera = useMemo(
     () =>
       imageSize && stageSize
@@ -95,9 +149,9 @@ export default function FloorplanRouteView({
   )
   const activeCamera = useMemo(
     () =>
-      imageSize && stageSize && baseCamera && !activeStepIsArrival
+      imageSize && stageSize && baseCamera
         ? resolveActiveCamera({
-            activePoint: viewModel.activeMarker,
+            activePoint: viewModel.activeFocusPoint,
             baseCamera,
             camera,
             imageSize,
@@ -106,13 +160,12 @@ export default function FloorplanRouteView({
           })
         : null,
     [
-      activeStepIsArrival,
       baseCamera,
       camera,
       imageSize,
       stageSize,
       userMovedCamera,
-      viewModel.activeMarker,
+      viewModel.activeFocusPoint,
     ],
   )
   const transform = camera ?? baseCamera
@@ -145,12 +198,50 @@ export default function FloorplanRouteView({
   }, [])
 
   useEffect(() => {
-    if (!baseCamera || userMovedCamera || activeStepIsArrival) {
+    const floorId = currentFloorId
+
+    if (!floorId) {
+      return undefined
+    }
+
+    let isActive = true
+
+    fetchPublishedFloorMap(floorId)
+      .then((data) => {
+        if (!isActive) return
+        setPublishedMapState({ floorId, data })
+      })
+      .catch(() => {
+        if (!isActive) return
+        setPublishedMapState({ floorId, data: null })
+      })
+
+    return () => {
+      isActive = false
+    }
+  }, [currentFloorId])
+
+  useEffect(() => {
+    if (!currentFloorId) {
+      return undefined
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setImageFallbackDelayState({ floorId: currentFloorId })
+    }, resolveImageFallbackDelayMs(imageFallbackDelayMs))
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [currentFloorId, imageFallbackDelayMs])
+
+  useEffect(() => {
+    if (!baseCamera || userMovedCamera || viewModel.activeFocusPoint) {
       return
     }
 
     return animateCamera(setCamera, baseCamera)
-  }, [activeStepIsArrival, baseCamera, setCamera, userMovedCamera])
+  }, [baseCamera, setCamera, userMovedCamera, viewModel.activeFocusPoint])
 
   useEffect(() => {
     if (!activeCamera || isInteractingRef.current) {
@@ -160,7 +251,7 @@ export default function FloorplanRouteView({
     return animateCamera(setCamera, activeCamera)
   }, [activeCamera, setCamera])
 
-  if (!viewModel.mapImageUrl) {
+  if (!viewModel.hasRenderableMap) {
     return (
       <FloorplanRoot>
         <FloorplanState>도면을 불러올 수 없습니다.</FloorplanState>
@@ -309,30 +400,32 @@ export default function FloorplanRouteView({
         }}
       >
         <FloorplanCanvas>
-          <FloorplanImage
-            key={viewModel.mapImageUrl}
-            src={viewModel.mapImageUrl}
-            alt={viewModel.floorName ? `${viewModel.floorName} 도면` : '도면'}
-            draggable={false}
-            onDragStart={(event) => event.preventDefault()}
-            onLoad={(event) => {
-              setImageState({
-                src: viewModel.mapImageUrl,
-                hasError: false,
-                size: {
-                  width: event.currentTarget.naturalWidth,
-                  height: event.currentTarget.naturalHeight,
-                },
-              })
-            }}
-            onError={() =>
-              setImageState({
-                src: viewModel.mapImageUrl,
-                size: null,
-                hasError: true,
-              })
-            }
-          />
+          {!vectorSize && allowImageFallback && viewModel.mapImageUrl ? (
+            <FloorplanImage
+              key={viewModel.mapImageUrl}
+              src={viewModel.mapImageUrl}
+              alt={viewModel.floorName ? `${viewModel.floorName} 도면` : '도면'}
+              draggable={false}
+              onDragStart={(event) => event.preventDefault()}
+              onLoad={(event) => {
+                setImageState({
+                  src: viewModel.mapImageUrl,
+                  hasError: false,
+                  size: {
+                    width: event.currentTarget.naturalWidth,
+                    height: event.currentTarget.naturalHeight,
+                  },
+                })
+              }}
+              onError={() =>
+                setImageState({
+                  src: viewModel.mapImageUrl,
+                  size: null,
+                  hasError: true,
+                })
+              }
+            />
+          ) : null}
 
           {imageSize && transform ? (
             <FloorplanSvg
@@ -348,14 +441,18 @@ export default function FloorplanRouteView({
                 transformOrigin: '0 0',
               }}
             >
-              <image
-                href={viewModel.mapImageUrl}
-                x="0"
-                y="0"
-                width={imageSize.width}
-                height={imageSize.height}
-                preserveAspectRatio="none"
-              />
+              {viewModel.vectorMap ? (
+                <FloorplanVectorLayers vectorMap={viewModel.vectorMap} />
+              ) : (
+                <image
+                  href={viewModel.mapImageUrl}
+                  x="0"
+                  y="0"
+                  width={imageSize.width}
+                  height={imageSize.height}
+                  preserveAspectRatio="none"
+                />
+              )}
               {viewModel.polylines.map((polyline) => (
                 <g key={polyline.id}>
                   <polyline
@@ -384,14 +481,14 @@ export default function FloorplanRouteView({
                     cx={viewModel.activeMarker.x}
                     cy={viewModel.activeMarker.y}
                     r="17"
-                    fill="rgba(37, 99, 235, 0.2)"
+                    fill={viewModel.activeMarker.backgroundColor}
                     vectorEffect="non-scaling-stroke"
                   />
                   <circle
                     cx={viewModel.activeMarker.x}
                     cy={viewModel.activeMarker.y}
                     r="9"
-                    fill="var(--blue-700)"
+                    fill={viewModel.activeMarker.color}
                     stroke="var(--surface-0)"
                     strokeWidth="4"
                     vectorEffect="non-scaling-stroke"
@@ -412,309 +509,4 @@ export default function FloorplanRouteView({
       ) : null}
     </FloorplanRoot>
   )
-}
-
-function normalizeFloorplanViewModel(floorplan, mapLeg, activeStep) {
-  if (floorplan) {
-    const mapLegs = Array.isArray(floorplan.mapLegs) ? floorplan.mapLegs : []
-    const activeMarker = findActiveMarker(mapLegs, activeStep)
-
-    return {
-      key: floorplan.key ?? floorplan.id ?? floorplan.name ?? floorplan.mapImageUrl,
-      mapImageUrl: floorplan.mapImageUrl,
-      floorName: floorplan.name,
-      routePoints: mapLegs.flatMap((leg) => toValidMapPoints(leg.path)),
-      polylines: mapLegs
-        .map((leg, index) => ({
-          id: leg.id ?? `${floorplan.key}-path-${index}`,
-          points: toPolylinePoints(leg.path),
-        }))
-        .filter((polyline) => polyline.points),
-      activeMarker,
-      activeInstruction:
-        activeStep?.instruction ?? floorplan.steps?.[0]?.instruction ?? null,
-    }
-  }
-
-  const activeMarker = findActiveMarker(mapLeg ? [mapLeg] : [], activeStep)
-
-  return {
-    key: mapLeg?.id ?? mapLeg?.mapImageUrl ?? 'floorplan',
-    mapImageUrl: mapLeg?.mapImageUrl,
-    floorName: mapLeg?.floorName,
-    routePoints: toValidMapPoints(mapLeg?.path),
-    polylines: [
-      {
-        id: mapLeg?.id ?? 'path',
-        points: toPolylinePoints(mapLeg?.path),
-      },
-    ].filter((polyline) => polyline.points),
-    activeMarker,
-    activeInstruction: activeStep?.instruction ?? mapLeg?.steps?.[0]?.instruction ?? null,
-  }
-}
-
-function resolveBaseCamera(viewModel, imageSize, stageSize, preferredScale = null) {
-  const containScale = Math.min(
-    stageSize.width / imageSize.width,
-    stageSize.height / imageSize.height,
-  )
-  const routeBounds = getPointBounds(viewModel.routePoints)
-  const routeScale = routeBounds
-    ? resolveRouteFitScale(routeBounds, stageSize)
-    : containScale
-  const routeZoomScale = Math.max(
-    containScale,
-    Math.min(routeScale, containScale * DEFAULT_ROUTE_ZOOM),
-  )
-  const scale = clamp(
-    preferredScale ?? routeZoomScale,
-    getMinScale(imageSize, stageSize),
-    MAX_SCALE,
-  )
-  const center = getBoundsCenter(routeBounds) ?? {
-    x: imageSize.width / 2,
-    y: imageSize.height / 2,
-  }
-
-  return clampCamera(centerCamera(center, scale, stageSize), imageSize, stageSize)
-}
-
-function resolveActiveCamera({
-  activePoint,
-  baseCamera,
-  camera,
-  imageSize,
-  stageSize,
-  userMovedCamera,
-}) {
-  if (!activePoint) {
-    return userMovedCamera ? null : baseCamera
-  }
-
-  const scale = camera?.scale ?? baseCamera.scale
-  return clampCamera(centerCamera(activePoint, scale, stageSize), imageSize, stageSize)
-}
-
-function resolveRouteFitScale(bounds, stageSize) {
-  const routeWidth = Math.max(bounds.maxX - bounds.minX, 1)
-  const routeHeight = Math.max(bounds.maxY - bounds.minY, 1)
-
-  return Math.min(
-    stageSize.width / (routeWidth * ROUTE_FIT_PADDING),
-    stageSize.height / (routeHeight * ROUTE_FIT_PADDING),
-  )
-}
-
-function getMinScale(imageSize, stageSize) {
-  if (!imageSize || !stageSize) {
-    return MIN_SCALE_FALLBACK
-  }
-
-  return Math.min(
-    stageSize.width / imageSize.width,
-    stageSize.height / imageSize.height,
-  )
-}
-
-function centerCamera(point, scale, stageSize) {
-  return {
-    scale,
-    x: stageSize.width / 2 - point.x * scale,
-    y: stageSize.height / 2 - point.y * scale,
-  }
-}
-
-function clampCamera(camera, imageSize, stageSize) {
-  const scaledWidth = imageSize.width * camera.scale
-  const scaledHeight = imageSize.height * camera.scale
-
-  return {
-    scale: camera.scale,
-    x: clampTranslation(camera.x, scaledWidth, stageSize.width),
-    y: clampTranslation(camera.y, scaledHeight, stageSize.height),
-  }
-}
-
-function clampTranslation(value, scaledSize, viewportSize) {
-  if (scaledSize <= viewportSize) {
-    return (viewportSize - scaledSize) / 2
-  }
-
-  return clamp(value, viewportSize - scaledSize, 0)
-}
-
-function screenToImagePoint(point, camera) {
-  return {
-    x: (point.x - camera.x) / camera.scale,
-    y: (point.y - camera.y) / camera.scale,
-  }
-}
-
-function scheduleCameraUpdate(nextCamera, setCamera, pendingCameraRef, frameRef) {
-  pendingCameraRef.current = nextCamera
-
-  if (frameRef.current) {
-    return
-  }
-
-  frameRef.current = requestAnimationFrame(() => {
-    frameRef.current = null
-    if (pendingCameraRef.current) {
-      setCamera(pendingCameraRef.current)
-      pendingCameraRef.current = null
-    }
-  })
-}
-
-function getPointerPair(pointerMap) {
-  return [...pointerMap.values()].slice(0, 2)
-}
-
-function getPointerCenter(pointers) {
-  return {
-    x: (pointers[0].x + pointers[1].x) / 2,
-    y: (pointers[0].y + pointers[1].y) / 2,
-  }
-}
-
-function getPointerDistance(pointers) {
-  const dx = pointers[0].x - pointers[1].x
-  const dy = pointers[0].y - pointers[1].y
-  return Math.sqrt(dx * dx + dy * dy)
-}
-
-function animateCamera(setCamera, targetCamera) {
-  let frameId = null
-  const durationMs = 220
-
-  setCamera((currentCamera) => {
-    if (!currentCamera) {
-      return targetCamera
-    }
-
-    const startedAt = performance.now()
-
-    const tick = (now) => {
-      const progress = Math.min((now - startedAt) / durationMs, 1)
-      const eased = easeOutCubic(progress)
-
-      setCamera({
-        x: interpolate(currentCamera.x, targetCamera.x, eased),
-        y: interpolate(currentCamera.y, targetCamera.y, eased),
-        scale: interpolate(currentCamera.scale, targetCamera.scale, eased),
-      })
-
-      if (progress < 1) {
-        frameId = requestAnimationFrame(tick)
-      }
-    }
-
-    frameId = requestAnimationFrame(tick)
-    return currentCamera
-  })
-
-  return () => {
-    if (frameId) {
-      cancelAnimationFrame(frameId)
-    }
-  }
-}
-
-function interpolate(from, to, progress) {
-  return from + (to - from) * progress
-}
-
-function easeOutCubic(value) {
-  return 1 - ((1 - value) ** 3)
-}
-
-function findActiveMarker(mapLegs, activeStep) {
-  if (!activeStep || isArrivalStep(activeStep)) {
-    return null
-  }
-
-  const leg = mapLegs.find((item) =>
-    [item?.id, item?.segmentId, item?.mapLegId]
-      .filter(Boolean)
-      .includes(activeStep.segmentId ?? activeStep.mapLegId),
-  )
-
-  if (!leg || !Array.isArray(leg.path) || leg.path.length === 0) {
-    return null
-  }
-
-  const startIndex = Number.isInteger(activeStep.pathStartIndex)
-    ? activeStep.pathStartIndex
-    : activeStep.pathIndex
-  const point = leg.path[Math.max(Math.min(startIndex ?? 0, leg.path.length - 1), 0)]
-
-  if (!isValidMapPoint(point)) {
-    return null
-  }
-
-  return {
-    id: `${activeStep.id ?? leg.id}-active-marker`,
-    x: point.x,
-    y: point.y,
-  }
-}
-
-function isArrivalStep(step = {}) {
-  return String(step.instruction ?? '').includes('도착')
-}
-
-function toPolylinePoints(path) {
-  const points = toValidMapPoints(path)
-
-  if (points.length < 2) {
-    return null
-  }
-
-  return points.map((point) => `${point.x},${point.y}`).join(' ')
-}
-
-function getPointBounds(points) {
-  const validPoints = Array.isArray(points) ? points.filter(isValidMapPoint) : []
-  if (validPoints.length === 0) {
-    return null
-  }
-
-  return validPoints.reduce(
-    (bounds, point) => ({
-      minX: Math.min(bounds.minX, point.x),
-      minY: Math.min(bounds.minY, point.y),
-      maxX: Math.max(bounds.maxX, point.x),
-      maxY: Math.max(bounds.maxY, point.y),
-    }),
-    {
-      minX: validPoints[0].x,
-      minY: validPoints[0].y,
-      maxX: validPoints[0].x,
-      maxY: validPoints[0].y,
-    },
-  )
-}
-
-function getBoundsCenter(bounds) {
-  if (!bounds) {
-    return null
-  }
-
-  return {
-    x: (bounds.minX + bounds.maxX) / 2,
-    y: (bounds.minY + bounds.maxY) / 2,
-  }
-}
-
-function toValidMapPoints(path) {
-  return Array.isArray(path) ? path.filter(isValidMapPoint) : []
-}
-
-function isValidMapPoint(point) {
-  return typeof point?.x === 'number' && typeof point?.y === 'number'
-}
-
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max)
 }

@@ -280,19 +280,17 @@ export default function useSearchPageController() {
     const selectedMapCenter = getPlaceCenter(selectedPlace, mapCenter)
 
     if (searchMode === SEARCH_MODES.ROUTE) {
-      const nextOrigin = routeField === 'origin' ? selectedPlace : routeOrigin
-      const nextDestination =
-        routeField === 'destination' ? selectedPlace : routeDestination
-      const nextRoute = nextOrigin && nextDestination ? ROUTES.ROUTING_OPTION : returnTo
-
-      navigate(nextRoute, {
+      navigate(ROUTES.MAP, {
         state: {
-          routeOrigin: nextOrigin,
-          routeDestination: nextDestination,
+          routeOrigin,
+          routeDestination,
+          selectedSearchPlace: selectedPlace,
+          openSheetFrom: 'search-result',
           selectedMapPlace,
           mapCenter: selectedMapCenter,
           mapLevel,
-          selectedRouteField: routeField,
+          returnTo,
+          routeField,
         },
       })
       return

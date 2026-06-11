@@ -8,7 +8,7 @@ import TransportSelector from '../../components/Transport/TransportSelector'
 import {
   ROUTE_OPTION_CONTENT_MAX_HEIGHT,
   ROUTE_OPTION_INITIAL_SNAP,
-  ROUTE_OPTION_SNAP_POINTS,
+  ROUTING_OPTION_PAGE_SNAP_POINTS,
 } from '../../constants/routeOptionSheet'
 import { ROUTES } from '../../constants/routes'
 import { SEARCH_MODES } from '../../constants/search'
@@ -193,7 +193,7 @@ export default function RoutingOptionPage() {
         onClose={() => {}}
         showBackdrop={false}
         detent="content"
-        snapPoints={ROUTE_OPTION_SNAP_POINTS}
+        snapPoints={ROUTING_OPTION_PAGE_SNAP_POINTS}
         initialSnap={ROUTE_OPTION_INITIAL_SNAP}
         dismissible={false}
         scrollableContent={false}

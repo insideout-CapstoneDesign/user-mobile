@@ -13,7 +13,6 @@ import {
   ROUTE_OPTION_SNAP_POINTS,
 } from '../../constants/routeOptionSheet'
 import { ROUTES } from '../../constants/routes'
-import { mockMapPois } from '../../mocks/map/poi.mock'
 import { mapSearchPlaceToPoi } from '../../utils/map/mapPoiMappers'
 import { getOutdoorRouteLegs } from '../../utils/map/routeOverlayMappers'
 import { getRoutingGuidanceState } from '../../utils/routing/routingGuidanceState'
@@ -114,7 +113,6 @@ export default function RoutingPage() {
           />
         ) : (
           <KakaoMapView
-            pois={mockMapPois}
             onPoiSelect={handlePoiSelect}
             routeLegs={outdoorRouteLegs}
             activeRouteStep={routing.activeGuidanceStep}

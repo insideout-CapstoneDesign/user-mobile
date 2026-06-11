@@ -5,7 +5,7 @@ export const FloorplanRoot = styled.div`
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: var(--surface-50);
+  background: #f3f4f6;
   user-select: none;
   -webkit-user-select: none;
   -webkit-user-drag: none;
@@ -32,7 +32,7 @@ export const FloorplanCanvas = styled.div`
   inset: 0;
   width: 100%;
   height: 100%;
-  background: var(--surface-0);
+  background: #f3f4f6;
   user-select: none;
   -webkit-user-select: none;
   -webkit-user-drag: none;

@@ -28,14 +28,9 @@ const HANGUL_JAMO_ONLY_REGEX = /^[ㄱ-ㅎㅏ-ㅣ]+$/
 const GEOLOCATION_UNAVAILABLE_MESSAGE = '현재 위치 정보를 사용할 수 없습니다.'
 const GEOLOCATION_REQUIRED_MESSAGE = '현재 위치를 확인한 뒤 다시 검색해 주세요.'
 const SEARCH_FAILED_MESSAGE = '검색 결과를 불러오지 못했습니다.'
-const DEBUG_SUGGEST_LOG = import.meta.env.DEV && import.meta.env.VITE_DEBUG_SUGGEST_LOG === 'true'
 
 function isInvalidIntermediateKeyword(keyword) {
   return HANGUL_JAMO_ONLY_REGEX.test(keyword)
-}
-
-function getNowMs() {
-  return typeof performance !== 'undefined' ? performance.now() : Date.now()
 }
 
 function toFiniteNumber(value) {
@@ -126,8 +121,6 @@ export default function SearchPage() {
   const suggestTimerRef = useRef(null)
   const requestSeqRef = useRef(0)
   const suggestSeqRef = useRef(0)
-  const mountedAtRef = useRef(getNowMs())
-  const lastLocationUpdatedAtRef = useRef(null)
 
   const getCenterParams = () => ({
     lat: searchCenter?.lat,
@@ -163,20 +156,10 @@ export default function SearchPage() {
     if (!supportsGeolocation) return
 
     const handleSuccess = ({ coords }) => {
-      const updatedAt = getNowMs()
-      lastLocationUpdatedAtRef.current = updatedAt
       setSearchCenter({
         lat: coords.latitude,
         lng: coords.longitude,
       })
-
-      if (DEBUG_SUGGEST_LOG) {
-        console.debug('[search][geo:update]', {
-          elapsedMsFromMount: Math.round(updatedAt - mountedAtRef.current),
-          lat: coords.latitude,
-          lng: coords.longitude,
-        })
-      }
     }
 
     const handleError = () => {
@@ -214,20 +197,6 @@ export default function SearchPage() {
     suggestTimerRef.current = window.setTimeout(async () => {
       try {
         const { lat, lng } = getCenterParams()
-
-        if (DEBUG_SUGGEST_LOG) {
-          const now = getNowMs()
-          console.debug('[search][suggest:req]', {
-            q: normalized,
-            lat: lat ?? null,
-            lng: lng ?? null,
-            size: SUGGEST_SIZE,
-            elapsedMsFromMount: Math.round(now - mountedAtRef.current),
-            elapsedMsAfterGeoUpdate: lastLocationUpdatedAtRef.current
-              ? Math.round(now - lastLocationUpdatedAtRef.current)
-              : null,
-          })
-        }
 
         const suggestions = await suggestPlaces({
           keyword: normalized,

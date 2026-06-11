@@ -38,7 +38,7 @@ export function normalizeMapLegs(legs, routeContext) {
 }
 
 export function normalizeTurnByTurnSteps(legs, routeContext) {
-  return legs.flatMap((leg, legIndex) => {
+  const normalizedSteps = legs.flatMap((leg, legIndex) => {
     if (!leg || typeof leg !== 'object') {
       return []
     }
@@ -90,6 +90,8 @@ export function normalizeTurnByTurnSteps(legs, routeContext) {
 
     return assignStepPathRanges(visibleSteps, path)
   })
+
+  return ensureArrivalStep(normalizedSteps)
 }
 
 function shouldShowTurnByTurnStep(step = {}) {
@@ -191,11 +193,27 @@ function normalizeStepType(step = {}) {
     return explicitStepType
   }
 
-  if (step?.arrival === true || String(step?.instruction ?? '').includes('도착')) {
+  if (step?.arrival === true) {
     return STEP_TYPE.ARRIVAL
   }
 
   return null
+}
+
+function ensureArrivalStep(steps) {
+  if (!Array.isArray(steps) || steps.length === 0 || steps.some((step) => step.arrival)) {
+    return steps
+  }
+
+  return steps.map((step, index) =>
+    index === steps.length - 1
+      ? {
+          ...step,
+          stepType: STEP_TYPE.ARRIVAL,
+          arrival: true,
+        }
+      : step,
+  )
 }
 
 function toSafePathIndex(value, path) {

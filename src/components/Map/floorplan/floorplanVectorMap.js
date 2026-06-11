@@ -9,6 +9,28 @@ import {
   toPositiveNumber,
 } from './floorplanGeometry'
 
+const DEFAULT_POI_ICON_SIZE = 34
+// Icon scale and bounds keep facility glyphs legible inside small POI footprints.
+const POI_ICON_SCALE = 0.82
+const POI_ICON_MIN_SIZE = 26
+const POI_ICON_MAX_SIZE = 42
+const POI_LABEL_HORIZONTAL_PADDING = 12
+const POI_LABEL_MIN_WIDTH = 42
+const POI_LABEL_VERTICAL_PADDING = 8
+const POI_LABEL_MIN_HEIGHT = 22
+const POI_LABEL_DEFAULT_WIDTH = 96
+const POI_LABEL_DEFAULT_HEIGHT = 42
+const MIN_POI_FONT_SIZE = 12
+const MAX_POI_FONT_SIZE = 20
+const POI_LINE_HEIGHT_MULTIPLIER = 1.18
+const SPACE_WIDTH_FACTOR = 0.34
+const LATIN_WIDTH_FACTOR = 0.58
+const CJK_WIDTH_FACTOR = 0.92
+const DEFAULT_WIDTH_FACTOR = 0.72
+const NARROW_CHARACTER_PATTERN = /[\p{Script=Latin}\p{Script=Common}]/u
+const CJK_CHARACTER_PATTERN =
+  /[\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/u
+
 export function normalizePublishedMap(mapData) {
   if (!mapData) {
     return null
@@ -136,10 +158,14 @@ function resolvePoiIcon(poi) {
 
 function resolvePoiIconSize(bounds) {
   if (!bounds) {
-    return 34
+    return DEFAULT_POI_ICON_SIZE
   }
 
-  return clamp(Math.min(bounds.width, bounds.height) * 0.82, 26, 42)
+  return clamp(
+    Math.min(bounds.width, bounds.height) * POI_ICON_SCALE,
+    POI_ICON_MIN_SIZE,
+    POI_ICON_MAX_SIZE,
+  )
 }
 
 function buildPoiLabel(name, bounds) {
@@ -148,13 +174,23 @@ function buildPoiLabel(name, bounds) {
     return { lines: [], fontSize: 14 }
   }
 
-  const maxWidth = Math.max((bounds?.width ?? 96) - 12, 42)
-  const maxHeight = Math.max((bounds?.height ?? 42) - 8, 22)
+  const maxWidth = Math.max(
+    (bounds?.width ?? POI_LABEL_DEFAULT_WIDTH) - POI_LABEL_HORIZONTAL_PADDING,
+    POI_LABEL_MIN_WIDTH,
+  )
+  const maxHeight = Math.max(
+    (bounds?.height ?? POI_LABEL_DEFAULT_HEIGHT) - POI_LABEL_VERTICAL_PADDING,
+    POI_LABEL_MIN_HEIGHT,
+  )
   const wordLines = cleanName.includes(' ')
     ? cleanName.split(/\s+/).filter(Boolean)
     : [cleanName]
 
-  const candidateLines = compactPoiLabelLines(wordLines, maxWidth, 20)
+  const candidateLines = compactPoiLabelLines(
+    wordLines,
+    maxWidth,
+    MAX_POI_FONT_SIZE,
+  )
   const fontSize = resolvePoiLabelFontSize(candidateLines, maxWidth, maxHeight)
 
   return {
@@ -186,27 +222,35 @@ function compactPoiLabelLines(words, maxWidth, fontSize) {
 }
 
 function resolvePoiLabelFontSize(lines, maxWidth, maxHeight) {
-  for (let fontSize = 20; fontSize >= 12; fontSize -= 1) {
+  for (let fontSize = MAX_POI_FONT_SIZE; fontSize >= MIN_POI_FONT_SIZE; fontSize -= 1) {
     const widestLine = Math.max(
       ...lines.map((line) => estimateTextWidth(line, fontSize)),
       0,
     )
-    const totalHeight = lines.length * fontSize * 1.18
+    const totalHeight = lines.length * fontSize * POI_LINE_HEIGHT_MULTIPLIER
 
     if (widestLine <= maxWidth && totalHeight <= maxHeight) {
       return fontSize
     }
   }
 
-  return 12
+  return MIN_POI_FONT_SIZE
 }
 
 function estimateTextWidth(text, fontSize) {
   return [...String(text ?? '')].reduce((width, character) => {
     if (character === ' ') {
-      return width + fontSize * 0.34
+      return width + fontSize * SPACE_WIDTH_FACTOR
     }
 
-    return width + fontSize * (/[ -~]/.test(character) ? 0.58 : 0.92)
+    if (CJK_CHARACTER_PATTERN.test(character)) {
+      return width + fontSize * CJK_WIDTH_FACTOR
+    }
+
+    if (NARROW_CHARACTER_PATTERN.test(character)) {
+      return width + fontSize * LATIN_WIDTH_FACTOR
+    }
+
+    return width + fontSize * DEFAULT_WIDTH_FACTOR
   }, 0)
 }

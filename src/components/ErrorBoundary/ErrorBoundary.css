@@ -34,7 +34,13 @@
   overflow-wrap: anywhere;
 }
 
-.error-boundary__panel button {
+.error-boundary__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-8);
+}
+
+.error-boundary__actions button {
   min-height: var(--size-48);
   border: none;
   border-radius: var(--radius-8);

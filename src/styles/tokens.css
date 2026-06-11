@@ -35,6 +35,7 @@
   /* Surface */
   --surface-0: var(--white);
   --surface-50: #f8fafc;
+  --floorplan-background: #f3f4f6;
 
   /* Text */
   --text-inverse: var(--white);

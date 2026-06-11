@@ -66,11 +66,22 @@ async function getJson(path, options = {}) {
 }
 
 export async function fetchPublishedFloorMap(floorId) {
-  if (!floorId) {
+  const normalizedFloorId = normalizeFloorId(floorId)
+
+  if (!normalizedFloorId) {
     return null
   }
 
-  return getJson(`${PUBLISHED_FLOOR_MAP_PATH}/${floorId}`, {
+  return getJson(`${PUBLISHED_FLOOR_MAP_PATH}/${encodeURIComponent(normalizedFloorId)}`, {
     fallbackMessage: '실내 지도를 불러올 수 없습니다.',
   })
+}
+
+function normalizeFloorId(floorId) {
+  if (typeof floorId !== 'string' && typeof floorId !== 'number') {
+    return null
+  }
+
+  const normalizedFloorId = String(floorId).trim()
+  return normalizedFloorId ? normalizedFloorId : null
 }

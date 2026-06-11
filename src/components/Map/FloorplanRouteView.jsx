@@ -26,13 +26,23 @@ import {
   FloorplanSvg,
 } from './FloorplanRouteView.styles'
 
-const IMAGE_FALLBACK_DELAY_MS = 600
+const DEFAULT_IMAGE_FALLBACK_DELAY_MS = 600
+
+function resolveImageFallbackDelayMs(value) {
+  const number = Number.parseInt(value, 10)
+  return Number.isInteger(number) && number >= 0
+    ? number
+    : DEFAULT_IMAGE_FALLBACK_DELAY_MS
+}
 
 export default function FloorplanRouteView({
   floorplan,
   mapLeg,
   activeStep = null,
   showInstructionBadge = true,
+  imageFallbackDelayMs = resolveImageFallbackDelayMs(
+    import.meta.env.VITE_IMAGE_FALLBACK_DELAY_MS,
+  ),
 }) {
   const stageRef = useRef(null)
   const isInteractingRef = useRef(false)
@@ -218,12 +228,12 @@ export default function FloorplanRouteView({
 
     const timeoutId = window.setTimeout(() => {
       setImageFallbackDelayState({ floorId: currentFloorId })
-    }, IMAGE_FALLBACK_DELAY_MS)
+    }, resolveImageFallbackDelayMs(imageFallbackDelayMs))
 
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [currentFloorId])
+  }, [currentFloorId, imageFallbackDelayMs])
 
   useEffect(() => {
     if (!baseCamera || userMovedCamera || viewModel.activeFocusPoint) {

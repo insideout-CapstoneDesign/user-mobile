@@ -181,5 +181,5 @@ function isMetaOnlyStep(step = {}) {
 function isDistanceSummaryStep(step = {}) {
   const safeStep = step && typeof step === 'object' ? step : {}
 
-  return isDistanceSummaryInstruction(safeStep.instruction)
+  return isDistanceSummaryInstruction(safeStep)
 }

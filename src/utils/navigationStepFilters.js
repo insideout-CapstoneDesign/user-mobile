@@ -1,11 +1,21 @@
+import { isArrivalStep } from './navigationStepTypes'
+
 const DISTANCE_TEXT_PATTERN = /\d+(?:\.\d+)?\s*(?:m|km)/i
 const ACTION_INSTRUCTION_PATTERN =
   /좌회전|우회전|직진|유턴|계단|엘리베이터|에스컬레이터|횡단보도|따라|이동|통과/
 
-export function isDistanceSummaryInstruction(instruction) {
-  const text = normalizeInstruction(instruction)
+export function isDistanceSummaryInstruction(instructionOrStep) {
+  const text = normalizeInstruction(
+    typeof instructionOrStep === 'object'
+      ? instructionOrStep?.instruction
+      : instructionOrStep,
+  )
 
-  if (!text || isEndpointInstruction(text) || ACTION_INSTRUCTION_PATTERN.test(text)) {
+  if (
+    !text ||
+    isEndpointInstruction(instructionOrStep, text) ||
+    ACTION_INSTRUCTION_PATTERN.test(text)
+  ) {
     return false
   }
 
@@ -30,8 +40,12 @@ function isNamedDistanceText(text) {
   )
 }
 
-function isEndpointInstruction(text) {
-  return text.includes('도착') || text.includes('출발') || text.includes('현재 위치')
+function isEndpointInstruction(instructionOrStep, text) {
+  return (
+    isArrivalStep(instructionOrStep) ||
+    text.includes('출발') ||
+    text.includes('현재 위치')
+  )
 }
 
 function normalizeInstruction(value) {

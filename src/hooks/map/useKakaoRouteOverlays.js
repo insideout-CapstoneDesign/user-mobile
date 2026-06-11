@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { getRouteDisplayColor } from '../../components/NavigationGuidance/routeColor'
+import { isArrivalStep } from '../../utils/navigationStepTypes'
 
 const ACTIVE_GUIDANCE_MAX_LEVEL = 2
 const DESTINATION_EDGE_COLOR = '#dc2626'
@@ -312,12 +313,6 @@ function findLastRouteLegWithPath(routeLegs) {
   }
 
   return null
-}
-
-function isArrivalStep(step = {}) {
-  const safeStep = step && typeof step === 'object' ? step : {}
-
-  return String(safeStep.instruction ?? '').includes('도착')
 }
 
 function getRouteKey(routeLegs) {

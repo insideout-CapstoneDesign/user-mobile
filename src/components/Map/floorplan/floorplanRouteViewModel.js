@@ -4,6 +4,7 @@ import {
   toValidMapPoints,
 } from './floorplanGeometry'
 import { normalizePublishedMap } from './floorplanVectorMap'
+import { isArrivalStep } from '../../../utils/navigationStepTypes'
 
 const DESTINATION_POI_SNAP_RADIUS_PX = 180
 
@@ -296,12 +297,6 @@ function getPathRangeCenter(path, startIndex, endIndex) {
     x: center.x / segmentPoints.length,
     y: center.y / segmentPoints.length,
   }
-}
-
-function isArrivalStep(step = {}) {
-  const safeStep = step && typeof step === 'object' ? step : {}
-
-  return String(safeStep.instruction ?? '').includes('도착')
 }
 
 function toPolylinePoints(path) {

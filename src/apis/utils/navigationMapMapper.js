@@ -2,6 +2,7 @@ import { UI_TYPE_BY_LEG_MODE } from '../../constants/navigation'
 import { formatDistance, formatDuration } from '../../utils/navigationFormatters'
 import { isDistanceSummaryInstruction } from '../../utils/navigationStepFilters'
 import { isGeographicCoordinateType } from '../../utils/map/routeOverlayMappers'
+import { STEP_TYPE } from '../../utils/navigationStepTypes'
 
 export function normalizeMapLegs(legs, routeContext) {
   return legs.flatMap((leg, legIndex) => {
@@ -100,7 +101,7 @@ function shouldShowTurnByTurnStep(step = {}) {
 function isRouteSegmentSummaryStep(step = {}) {
   const safeStep = step && typeof step === 'object' ? step : {}
 
-  return isDistanceSummaryInstruction(safeStep.instruction)
+  return isDistanceSummaryInstruction(safeStep)
 }
 
 function isMetaOnlyStep(step = {}) {
@@ -120,6 +121,7 @@ function normalizeStep(step, context) {
   const pathIndex = findNearestPathIndex(safeStep, context.path)
   const explicitPathStartIndex = toSafePathIndex(safeStep.pathStartIndex, context.path)
   const explicitPathEndIndex = toSafePathIndex(safeStep.pathEndIndex, context.path)
+  const stepType = normalizeStepType(safeStep)
 
   return {
     id: `${context.routeId}-leg-${context.legIndex}${segmentPart}-step-${context.stepIndex}`,
@@ -135,6 +137,8 @@ function normalizeStep(step, context) {
     pathStartIndex: explicitPathStartIndex,
     pathEndIndex: explicitPathEndIndex,
     type: modeToUiType(mode),
+    stepType,
+    arrival: stepType === STEP_TYPE.ARRIVAL,
     instruction: safeStep.instruction ?? '',
     distanceMeters: safeStep.distanceMeters ?? null,
     durationSeconds: safeStep.durationSeconds ?? null,
@@ -179,6 +183,19 @@ function assignStepPathRanges(steps, path) {
       pathEndIndex: pathRange.end,
     }
   })
+}
+
+function normalizeStepType(step = {}) {
+  const explicitStepType = String(step?.stepType ?? '').trim().toUpperCase()
+  if (explicitStepType) {
+    return explicitStepType
+  }
+
+  if (step?.arrival === true || String(step?.instruction ?? '').includes('도착')) {
+    return STEP_TYPE.ARRIVAL
+  }
+
+  return null
 }
 
 function toSafePathIndex(value, path) {

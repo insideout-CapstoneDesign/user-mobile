@@ -130,13 +130,17 @@ export default function TransitTurnByTurnList({
 
           {visibleLegs.map((leg, index) => {
             const legKey = getLegKey(leg, index)
+            const lastVisibleIndex = visibleLegs.length - 1
+            const hasFollowingIndoorEntry = visibleEntryIndoorSteps.length > 0
+            const isLast =
+              index === lastVisibleIndex && !arrivalPointLeg && !hasFollowingIndoorEntry
 
             return (
               <TransitLegItem
                 key={legKey}
                 leg={leg}
                 isFirst={index === 0}
-                isLast={index === legs.length - 1}
+                isLast={isLast}
                 expanded={expandedLegIds.has(legKey)}
                 onToggle={() => toggleLeg(legKey)}
                 onSelect={() => onSelectLeg?.(leg)}

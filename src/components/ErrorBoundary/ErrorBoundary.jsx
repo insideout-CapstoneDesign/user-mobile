@@ -11,19 +11,31 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error('[ErrorBoundary]', error, info)
+    if (import.meta.env.DEV) {
+      console.error('[ErrorBoundary]', error, info)
+    }
   }
 
   render() {
     if (this.state.error) {
+      const errorMessage =
+        this.state.error instanceof Error
+          ? this.state.error.message
+          : String(this.state.error || '일시적인 오류가 발생했습니다.')
+
       return (
         <main className="error-boundary">
           <section className="error-boundary__panel">
             <h1>화면을 불러오지 못했습니다.</h1>
-            <p>{this.state.error.message}</p>
-            <button type="button" onClick={() => window.location.reload()}>
-              새로고침
-            </button>
+            <p>{errorMessage}</p>
+            <div className="error-boundary__actions">
+              <button type="button" onClick={() => window.history.back()}>
+                뒤로가기
+              </button>
+              <button type="button" onClick={() => window.location.reload()}>
+                새로고침
+              </button>
+            </div>
           </section>
         </main>
       )

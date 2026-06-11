@@ -1,14 +1,30 @@
+const DEFAULT_MAP_SIZE = { width: 0, height: 0 }
+const DEFAULT_ICON_SIZE = 34
+const DEFAULT_FONT_SIZE = 14
+const POI_LINE_HEIGHT_MULTIPLIER = 1.18
+
 export default function FloorplanVectorLayers({ vectorMap }) {
+  const size = vectorMap?.size ?? DEFAULT_MAP_SIZE
+  const width = toPositiveNumber(size.width)
+  const height = toPositiveNumber(size.height)
+  const zones = Array.isArray(vectorMap?.zones) ? vectorMap.zones : []
+  const objects = Array.isArray(vectorMap?.objects) ? vectorMap.objects : []
+  const pois = Array.isArray(vectorMap?.pois) ? vectorMap.pois : []
+
+  if (!width || !height) {
+    return null
+  }
+
   return (
     <g>
       <rect
         x="0"
         y="0"
-        width={vectorMap.size.width}
-        height={vectorMap.size.height}
-        fill="#f3f4f6"
+        width={width}
+        height={height}
+        fill="var(--floorplan-background)"
       />
-      {vectorMap.zones.map((zone) => (
+      {zones.map((zone) => (
         <path
           key={zone.id}
           d={zone.path}
@@ -18,7 +34,7 @@ export default function FloorplanVectorLayers({ vectorMap }) {
           vectorEffect="non-scaling-stroke"
         />
       ))}
-      {vectorMap.objects.map((object) => (
+      {objects.map((object) => (
         <path
           key={object.id}
           d={object.path}
@@ -30,22 +46,24 @@ export default function FloorplanVectorLayers({ vectorMap }) {
           vectorEffect="non-scaling-stroke"
         />
       ))}
-      {vectorMap.pois.map((poi) => (
-        <PoiLabel key={poi.id} poi={poi} />
+      {pois.map((poi, index) => (
+        <PoiLabel key={poi?.id ?? `poi-${index}`} poi={poi} />
       ))}
     </g>
   )
 }
 
 function PoiLabel({ poi }) {
-  if (poi.icon) {
-    const iconSize = poi.iconSize
+  const safePoi = poi && typeof poi === 'object' ? poi : {}
+
+  if (safePoi.icon) {
+    const iconSize = toPositiveNumber(safePoi.iconSize) ?? DEFAULT_ICON_SIZE
 
     return (
       <image
-        href={poi.icon}
-        x={poi.x - iconSize / 2}
-        y={poi.y - iconSize / 2}
+        href={safePoi.icon}
+        x={safePoi.x - iconSize / 2}
+        y={safePoi.y - iconSize / 2}
         width={iconSize}
         height={iconSize}
         preserveAspectRatio="xMidYMid meet"
@@ -53,19 +71,22 @@ function PoiLabel({ poi }) {
     )
   }
 
-  if (!poi.name || poi.lines.length === 0) {
+  const lines = Array.isArray(safePoi.lines) ? safePoi.lines : []
+
+  if (!safePoi.name || lines.length === 0) {
     return null
   }
 
-  const lineHeight = poi.fontSize * 1.18
-  const firstDy = -((poi.lines.length - 1) * lineHeight) / 2
+  const fontSize = toPositiveNumber(safePoi.fontSize) ?? DEFAULT_FONT_SIZE
+  const lineHeight = fontSize * POI_LINE_HEIGHT_MULTIPLIER
+  const firstDy = -((lines.length - 1) * lineHeight) / 2
 
   return (
     <text
-      x={poi.x}
-      y={poi.y}
+      x={safePoi.x}
+      y={safePoi.y}
       fill="#111111"
-      fontSize={poi.fontSize}
+      fontSize={fontSize}
       fontWeight="750"
       textAnchor="middle"
       dominantBaseline="middle"
@@ -74,10 +95,10 @@ function PoiLabel({ poi }) {
       strokeWidth="4"
       strokeLinejoin="round"
     >
-      {poi.lines.map((line, index) => (
+      {lines.map((line, index) => (
         <tspan
-          key={`${poi.id}-line-${index}`}
-          x={poi.x}
+          key={`${safePoi.id ?? 'poi'}-line-${index}`}
+          x={safePoi.x}
           dy={index === 0 ? firstDy : lineHeight}
         >
           {line}
@@ -85,4 +106,9 @@ function PoiLabel({ poi }) {
       ))}
     </text>
   )
+}
+
+function toPositiveNumber(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : null
 }

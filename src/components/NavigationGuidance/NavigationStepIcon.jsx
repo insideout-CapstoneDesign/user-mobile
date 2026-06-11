@@ -13,6 +13,7 @@ import {
   IconImage,
   PlainStepIcon,
 } from './NavigationStepIcon.styles'
+import { isArrivalStep } from '../../utils/navigationStepTypes'
 
 export default function NavigationStepIcon({ step, variant = 'plain', tone: toneOverride }) {
   const safeStep = step && typeof step === 'object' ? step : {}
@@ -31,15 +32,11 @@ function getStepIcon(step = {}) {
   const normalizedText = `${safeStep.instruction ?? ''} ${safeStep.turnType ?? ''}`.toLowerCase()
   let src = hyphenIcon
 
-  if (isBuildingExitStep(step, normalizedText)) {
+  if (isBuildingExitStep(safeStep, normalizedText)) {
     src = doorIcon
-  } else if (isBuildingArrivalStep(step, normalizedText)) {
+  } else if (isBuildingArrivalStep(safeStep)) {
     src = buildingIcon
-  } else if (
-    normalizedText.includes('도착') ||
-    normalizedText.includes('출발') ||
-    normalizedText.includes('현재 위치')
-  ) {
+  } else if (isArrivalStep(safeStep) || isOriginStep(normalizedText)) {
     src = locateIcon
   } else if (
     normalizedText.includes('엘리베이터') ||
@@ -52,7 +49,7 @@ function getStepIcon(step = {}) {
   } else if (normalizedText.includes('횡단보도') || normalizedText.includes('crosswalk')) {
     src = crosswalkIcon
   } else if (
-    isIndoorStep(step) &&
+    isIndoorStep(safeStep) &&
     (normalizedText.includes('출입구') ||
       normalizedText.includes('건물 입구') ||
       normalizedText.includes('입구 진입') ||
@@ -77,20 +74,17 @@ function getStepIcon(step = {}) {
 }
 
 function isIndoorStep(step = {}) {
-  const safeStep = step && typeof step === 'object' ? step : {}
-  const mode = String(safeStep.mode ?? '').toUpperCase()
-  return safeStep.type === 'indoor' || mode === 'INDOOR'
+  const mode = String(step.mode ?? '').toUpperCase()
+  return step.type === 'indoor' || mode === 'INDOOR'
 }
 
-function isBuildingArrivalStep(step = {}, normalizedText = '') {
-  const safeStep = step && typeof step === 'object' ? step : {}
-  const mode = String(safeStep.mode ?? '').toUpperCase()
-  return mode === 'BUILDING' || normalizedText.includes('건물 도착')
+function isBuildingArrivalStep(step = {}) {
+  const mode = String(step.mode ?? '').toUpperCase()
+  return mode === 'BUILDING' || step.stepType === 'BUILDING_ARRIVAL'
 }
 
 function isBuildingExitStep(step = {}, normalizedText = '') {
-  const safeStep = step && typeof step === 'object' ? step : {}
-  const mode = String(safeStep.mode ?? '').toUpperCase()
+  const mode = String(step.mode ?? '').toUpperCase()
   return (
     normalizedText.includes('건물 출구') ||
     normalizedText.includes('로 나가기') ||
@@ -102,11 +96,14 @@ function getStepTone(step = {}) {
   const safeStep = step && typeof step === 'object' ? step : {}
   const text = String(safeStep.instruction ?? '').toLowerCase()
 
-  if (isBuildingExitStep(step, text)) return 'destination'
-  if (text.includes('도착') || text.includes('출구') || text.includes('나가기')) {
+  if (isBuildingExitStep(safeStep, text) || isArrivalStep(safeStep)) {
     return 'destination'
   }
-  if (text.includes('출발') || text.includes('현재 위치')) return 'origin'
+  if (isOriginStep(text)) return 'origin'
 
   return 'default'
+}
+
+function isOriginStep(text) {
+  return text.includes('출발') || text.includes('현재 위치')
 }

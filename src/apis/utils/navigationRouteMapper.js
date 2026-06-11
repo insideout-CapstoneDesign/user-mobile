@@ -13,6 +13,8 @@ import {
 import { simplifyTransitLineName } from '../../utils/transitLineFormatter'
 
 const TRANSIT_TYPES = new Set(['bus', 'subway'])
+// Default fallback duration for indoor legs in route bars, in minutes.
+const DEFAULT_INDOOR_LEG_MINUTES = 6
 
 export function normalizeRouteOption(route, index) {
   const routeType = route.routeType ?? 'WALK'
@@ -73,7 +75,7 @@ function normalizeRouteSegments(legs) {
 
       return {
         type,
-        minutes: minutes ?? 6,
+        minutes: minutes ?? DEFAULT_INDOOR_LEG_MINUTES,
         line: buildRouteBarLineLabel(leg, type),
         routeColor: leg.routeColor,
         routeId: leg.routeId,

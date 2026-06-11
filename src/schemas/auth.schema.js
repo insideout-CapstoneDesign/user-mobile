@@ -9,12 +9,14 @@ const passwordSchema = z
     '비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.',
   )
 
+const loginPasswordSchema = z.string().min(1, '비밀번호를 입력해 주세요.')
+
 export const loginSchema = z.object({
   email: z
     .string()
     .min(1, '이메일을 입력해 주세요.')
     .email('올바른 이메일 형식을 입력해 주세요.'),
-  password: passwordSchema,
+  password: loginPasswordSchema,
 })
 
 export const signupSchema = z

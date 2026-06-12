@@ -38,13 +38,9 @@ function getStepIcon(step = {}) {
     src = buildingIcon
   } else if (isArrivalStep(safeStep) || isOriginStep(normalizedText)) {
     src = locateIcon
-  } else if (
-    normalizedText.includes('엘리베이터') ||
-    normalizedText.includes('엘레베이터') ||
-    normalizedText.includes('elevator')
-  ) {
+  } else if (isElevatorVerticalMove(normalizedText)) {
     src = elevatorIcon
-  } else if (normalizedText.includes('계단') || normalizedText.includes('stair')) {
+  } else if (isStairVerticalMove(normalizedText) || isEscalatorVerticalMove(normalizedText)) {
     src = stairIcon
   } else if (normalizedText.includes('횡단보도') || normalizedText.includes('crosswalk')) {
     src = crosswalkIcon
@@ -90,6 +86,34 @@ function isBuildingExitStep(step = {}, normalizedText = '') {
     normalizedText.includes('로 나가기') ||
     (mode === 'INDOOR' && normalizedText.includes('나가기'))
   )
+}
+
+function isElevatorVerticalMove(text) {
+  return (
+    hasAnyText(text, ['엘리베이터', '엘레베이터', 'elevator']) &&
+    isVerticalMoveInstruction(text)
+  )
+}
+
+function isStairVerticalMove(text) {
+  return hasAnyText(text, ['계단', 'stair', 'stairs']) && isVerticalMoveInstruction(text)
+}
+
+function isEscalatorVerticalMove(text) {
+  return hasAnyText(text, ['에스컬레이터', 'escalator']) && isVerticalMoveInstruction(text)
+}
+
+function isVerticalMoveInstruction(text) {
+  return (
+    /(?:지하\s*)?\d+\s*(?:층|f)\s*(?:으로|로)?\s*(?:이동|올라|내려|가|진입)/i.test(text) ||
+    /(?:층|floor)\s*(?:이동|변경|올라|내려|상승|하강)/i.test(text) ||
+    /(?:타고|이용(?:해|하여)?).*(?:이동|올라|내려|상승|하강|층|floor|\d+\s*f)/i.test(text) ||
+    /(?:올라가|내려가|올라오|내려오)/i.test(text)
+  )
+}
+
+function hasAnyText(text, needles) {
+  return needles.some((needle) => text.includes(needle.toLowerCase()))
 }
 
 function getStepTone(step = {}) {

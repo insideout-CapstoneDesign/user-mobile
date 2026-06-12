@@ -5,7 +5,9 @@ export default function normalizeNavigationResponse(response = {}) {
   const normalizedResponse = response && typeof response === 'object' ? response : {}
   const routes = Array.isArray(normalizedResponse.routes) ? normalizedResponse.routes : []
   const failures = normalizeFailures(normalizedResponse)
-  const routeOptions = routes.map((route, index) => normalizeRouteOption(route, index))
+  const routeOptions = routes.map((route, index) =>
+    normalizeRouteOption(route, index, { indoor: normalizedResponse.indoor }),
+  )
   const mapLegs = routeOptions.flatMap((option) => option.mapLegs)
   const turnByTurnSteps = routeOptions.flatMap((option) => option.turnByTurnSteps)
 

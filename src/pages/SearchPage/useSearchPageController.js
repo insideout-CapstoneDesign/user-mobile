@@ -24,6 +24,8 @@ const HANGUL_JAMO_ONLY_REGEX = /^[ㄱ-ㅎㅏ-ㅣ]+$/
 const GEOLOCATION_UNAVAILABLE_MESSAGE = '현재 위치 정보를 사용할 수 없습니다.'
 const GEOLOCATION_REQUIRED_MESSAGE = '현재 위치를 확인한 뒤 다시 검색해 주세요.'
 const SEARCH_FAILED_MESSAGE = '검색 결과를 불러오지 못했습니다.'
+const RECENT_SEARCH_STORAGE_KEY = 'recent-search-keywords'
+const MAX_RECENT_SEARCHES = 8
 
 function isInvalidIntermediateKeyword(keyword) {
   return HANGUL_JAMO_ONLY_REGEX.test(keyword)
@@ -90,6 +92,93 @@ function getPlaceCenter(place, fallbackCenter = null) {
   return fallbackCenter
 }
 
+function loadRecentSearchKeywords() {
+  if (typeof window === 'undefined') {
+    return []
+  }
+
+  try {
+    const savedKeywords = window.localStorage.getItem(RECENT_SEARCH_STORAGE_KEY)
+
+    if (!savedKeywords) {
+      return []
+    }
+
+    const parsedKeywords = JSON.parse(savedKeywords)
+
+    if (!Array.isArray(parsedKeywords)) {
+      return []
+    }
+
+    return parsedKeywords.filter(
+      (keyword) => typeof keyword === 'string' && keyword.trim(),
+    )
+  } catch {
+    return []
+  }
+}
+
+function saveRecentSearchKeyword(rawKeyword, currentKeywords) {
+  const trimmedKeyword = rawKeyword.trim()
+
+  if (!trimmedKeyword || typeof window === 'undefined') {
+    return currentKeywords
+  }
+
+  const normalizedKeyword = normalizeText(trimmedKeyword)
+  const nextKeywords = [
+    trimmedKeyword,
+    ...currentKeywords.filter(
+      (keyword) => normalizeText(keyword) !== normalizedKeyword,
+    ),
+  ].slice(0, MAX_RECENT_SEARCHES)
+
+  try {
+    window.localStorage.setItem(
+      RECENT_SEARCH_STORAGE_KEY,
+      JSON.stringify(nextKeywords),
+    )
+  } catch {
+    return currentKeywords
+  }
+
+  return nextKeywords
+}
+
+function removeRecentSearchKeyword(targetKeyword, currentKeywords) {
+  const normalizedTargetKeyword = normalizeText(targetKeyword)
+  const nextKeywords = currentKeywords.filter(
+    (keyword) => normalizeText(keyword) !== normalizedTargetKeyword,
+  )
+
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(
+        RECENT_SEARCH_STORAGE_KEY,
+        JSON.stringify(nextKeywords),
+      )
+    } catch {
+      return currentKeywords
+    }
+  }
+
+  return nextKeywords
+}
+
+function clearRecentSearchKeywords() {
+  if (typeof window === 'undefined') {
+    return []
+  }
+
+  try {
+    window.localStorage.removeItem(RECENT_SEARCH_STORAGE_KEY)
+  } catch {
+    return loadRecentSearchKeywords()
+  }
+
+  return []
+}
+
 export default function useSearchPageController() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -112,6 +201,7 @@ export default function useSearchPageController() {
     supportsGeolocation ? '' : GEOLOCATION_UNAVAILABLE_MESSAGE,
   )
   const [searchCenter, setSearchCenter] = useState(null)
+  const [recentKeywords, setRecentKeywords] = useState(() => loadRecentSearchKeywords())
   const [autocompleteItems, setAutocompleteItems] = useState([])
   const [resultItems, setResultItems] = useState([])
   const searchTimerRef = useRef(null)
@@ -215,6 +305,7 @@ export default function useSearchPageController() {
 
   const runSearch = (rawKeyword) => {
     const normalized = normalizeText(rawKeyword)
+    const trimmedKeyword = rawKeyword.trim()
 
     if (!normalized || isInvalidIntermediateKeyword(normalized)) {
       invalidatePendingSearch()
@@ -226,6 +317,9 @@ export default function useSearchPageController() {
       return
     }
 
+    setRecentKeywords((currentKeywords) =>
+      saveRecentSearchKeyword(trimmedKeyword, currentKeywords),
+    )
     setIsResultMode(true)
     setIsLoading(true)
     setHasSearchError(false)
@@ -276,6 +370,21 @@ export default function useSearchPageController() {
     runSearch(selectedItem.title)
   }
 
+  const handleSelectRecentKeyword = (selectedKeyword) => {
+    setKeyword(selectedKeyword)
+    runSearch(selectedKeyword)
+  }
+
+  const handleRemoveRecentKeyword = (targetKeyword) => {
+    setRecentKeywords((currentKeywords) =>
+      removeRecentSearchKeyword(targetKeyword, currentKeywords),
+    )
+  }
+
+  const handleClearRecentKeywords = () => {
+    setRecentKeywords(clearRecentSearchKeywords())
+  }
+
   const handleSelectResult = (selectedPlace) => {
     const selectedMapCenter = getPlaceCenter(selectedPlace, mapCenter)
 
@@ -315,10 +424,14 @@ export default function useSearchPageController() {
     isLoading,
     hasSearchError,
     searchStateMessage,
+    recentKeywords,
     autocompleteItems,
     resultItems,
     handleChangeKeyword,
     handleSelectAutocomplete,
+    handleRemoveRecentKeyword,
+    handleClearRecentKeywords,
+    handleSelectRecentKeyword,
     handleSelectResult,
     runSearch,
   }

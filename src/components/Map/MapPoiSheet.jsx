@@ -26,6 +26,7 @@ export default function MapPoiSheet({
     showPOIs: false,
     selectedFloor: null,
     selectedPoiId: null,
+    hasPoiSelectionOverride: false,
   })
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const isCurrentPlaceDetail =
@@ -183,7 +184,9 @@ export default function MapPoiSheet({
   }, [place, placeDetail, resolvedIsRegistered, sheetTitle])
 
   const hasPoiPanelState = poiPanelState.key === placeKey
-  const selectedPoiId = hasPoiPanelState
+  const hasPoiSelectionOverride =
+    hasPoiPanelState && poiPanelState.hasPoiSelectionOverride
+  const selectedPoiId = hasPoiSelectionOverride
     ? poiPanelState.selectedPoiId
     : selectedPoiFromPlace?.id ?? null
   const selectedFloor = hasPoiPanelState
@@ -194,20 +197,38 @@ export default function MapPoiSheet({
     : Boolean(selectedPoiFromPlace)
 
   const selectedPoi = useMemo(() => {
+    if (hasPoiSelectionOverride && !selectedPoiId) {
+      return null
+    }
+
     if (!selectedPoiId) return selectedPoiFromPlace
 
     return pois.find((poi) => poi.id === selectedPoiId) ?? selectedPoiFromPlace
-  }, [pois, selectedPoiFromPlace, selectedPoiId])
+  }, [hasPoiSelectionOverride, pois, selectedPoiFromPlace, selectedPoiId])
 
   const routablePlace = useMemo(() => {
     if (!place) return null
 
+    const buildingPlaceId = place.placeId ?? place.destinationBuildingId ?? null
+
     if (!selectedPoi) {
-      return place
+      return {
+        ...place,
+        placeId: buildingPlaceId,
+        poiId: null,
+        publicId: buildingPlaceId,
+        startPoiId: null,
+        destinationPoiId: null,
+        destinationBuildingId: buildingPlaceId,
+        name: building.name ?? sheetTitle,
+        title: building.name ?? sheetTitle,
+        displayName: building.name ?? sheetTitle,
+        parentBuildingName: null,
+        address: building.address ?? place.address ?? '주소 정보 없음',
+      }
     }
 
     const selectedPoiIdentifier = selectedPoi.id ?? selectedPoi.externalApiId ?? null
-    const buildingPlaceId = place.placeId ?? place.destinationBuildingId ?? null
 
     return {
       ...place,
@@ -220,7 +241,7 @@ export default function MapPoiSheet({
       destinationPoiId: selectedPoiIdentifier,
       destinationBuildingId: buildingPlaceId,
     }
-  }, [place, selectedPoi])
+  }, [building.address, building.name, place, selectedPoi, sheetTitle])
 
   const handleClose = () => {
     setPoiPanelState({
@@ -228,6 +249,7 @@ export default function MapPoiSheet({
       showPOIs: false,
       selectedFloor: null,
       selectedPoiId: null,
+      hasPoiSelectionOverride: false,
     })
     onClose?.()
   }
@@ -235,11 +257,26 @@ export default function MapPoiSheet({
   const handleSelectPoi = (poi) => {
     if (!poi) return
 
-    setPoiPanelState({
-      key: placeKey,
-      showPOIs: true,
-      selectedFloor: normalizeFloorNumber(poi.floor),
-      selectedPoiId: poi.id ?? null,
+    setPoiPanelState((currentState) => {
+      const nextPoiId = poi.id ?? null
+      const currentPoiId =
+        currentState.key === placeKey
+          ? currentState.hasPoiSelectionOverride
+            ? currentState.selectedPoiId
+            : selectedPoiFromPlace?.id ?? null
+          : selectedPoiFromPlace?.id ?? null
+      const isSamePoiSelected =
+        currentPoiId != null &&
+        nextPoiId != null &&
+        String(currentPoiId) === String(nextPoiId)
+
+      return {
+        key: placeKey,
+        showPOIs: true,
+        selectedFloor: normalizeFloorNumber(poi.floor),
+        selectedPoiId: isSamePoiSelected ? null : nextPoiId,
+        hasPoiSelectionOverride: true,
+      }
     })
   }
 
@@ -250,6 +287,10 @@ export default function MapPoiSheet({
       selectedFloor: floor,
       selectedPoiId:
         currentState.key === placeKey ? currentState.selectedPoiId : null,
+      hasPoiSelectionOverride:
+        currentState.key === placeKey
+          ? currentState.hasPoiSelectionOverride
+          : false,
     }))
   }
 
@@ -268,6 +309,10 @@ export default function MapPoiSheet({
         currentState.key === placeKey
           ? currentState.selectedPoiId
           : selectedPoiFromPlace?.id ?? null,
+      hasPoiSelectionOverride:
+        currentState.key === placeKey
+          ? currentState.hasPoiSelectionOverride
+          : false,
     }))
   }
 
@@ -306,6 +351,7 @@ export default function MapPoiSheet({
           showPOIs={showPOIs}
           onTogglePOIs={handleTogglePOIs}
           selectedPoiId={selectedPoiId}
+          selectedPoiName={selectedPoi?.name ?? null}
           onSelectPoi={handleSelectPoi}
           reviewSummary={demoReviewSummary}
           reviews={demoReviews}

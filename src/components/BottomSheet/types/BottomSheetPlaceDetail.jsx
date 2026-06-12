@@ -33,6 +33,7 @@ export default function BottomSheetPlaceDetail({
   showPOIs = false,
   onTogglePOIs,
   selectedPoiId = null,
+  selectedPoiName = null,
   onSelectPoi,
   reviewSummary = { rating: 0, count: 0 },
   reviews = [],
@@ -83,7 +84,9 @@ export default function BottomSheetPlaceDetail({
       />
 
       <StickyActionSection $sticky={false}>
-        <ActionTitle>건물 입구로 가기</ActionTitle>
+        <ActionTitle>
+          {selectedPoiName ? `${selectedPoiName}로 가기` : '건물 입구로 가기'}
+        </ActionTitle>
         <BottomSheetActionBar
           leftLabel="출발"
           rightLabel="도착"

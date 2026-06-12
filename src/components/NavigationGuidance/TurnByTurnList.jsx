@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import CommonHeader from '../CommonHeader/CommonHeader'
 import { isDistanceSummaryInstruction } from '../../utils/navigationStepFilters'
+import { isIndoorStep } from '../../utils/navigationStepTypes'
 import DurationWithIndoorSuffix from './DurationWithIndoorSuffix'
 import TurnByTurnStepItem from './TurnByTurnStepItem'
 import {
@@ -156,12 +157,6 @@ function getRouteSectionDividerLabel(visibleSteps, index) {
   }
 
   return null
-}
-
-function isIndoorStep(step = {}) {
-  const safeStep = step && typeof step === 'object' ? step : {}
-  const mode = String(safeStep.mode ?? '').toUpperCase()
-  return safeStep.type === 'indoor' || mode === 'INDOOR' || Boolean(safeStep.floorId)
 }
 
 function shouldShowStep(step = {}) {

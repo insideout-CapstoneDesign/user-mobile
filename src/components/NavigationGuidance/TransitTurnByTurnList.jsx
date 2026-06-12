@@ -229,8 +229,8 @@ function buildBuildingArrivalLeg(rawLegs, indoorBuildingName, fallbackDestinatio
   const indoorLegIndex = findFirstIndoorLegIndex(rawLegs)
   const indoorLeg = indoorLegIndex >= 0 ? rawLegs[indoorLegIndex] : null
   const placeName =
-    fallbackDestination ??
     indoorLeg?.startName ??
+    fallbackDestination ??
     '건물'
   const name = buildBuildingArrivalName(indoorBuildingName, placeName)
 

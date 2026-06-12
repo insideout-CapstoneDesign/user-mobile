@@ -108,7 +108,7 @@ function buildExitInstruction(legs, indoorMeta) {
     getCleanText(indoorMeta?.entranceName) ??
     getExitLegEndpointName(legs)
 
-  return entranceName ? `${entranceName}로 나가기` : null
+  return entranceName ? `${entranceName}으로 나가기` : null
 }
 
 function getExitLegEndpointName(legs) {

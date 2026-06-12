@@ -1,5 +1,6 @@
 import escalatorIcon from '../../../assets/icons/escalator.svg'
 import elevatorIcon from '../../../assets/icons/elevator.svg'
+import stairsIcon from '../../../assets/icons/stairs.svg'
 import {
   clamp,
   geoJsonToPath,
@@ -151,6 +152,14 @@ function resolvePoiIcon(poi) {
     searchText.includes('에스칼레이터')
   ) {
     return escalatorIcon
+  }
+
+  if (
+    searchText.includes('stair') ||
+    searchText.includes('stairs') ||
+    searchText.includes('계단')
+  ) {
+    return stairsIcon
   }
 
   return null

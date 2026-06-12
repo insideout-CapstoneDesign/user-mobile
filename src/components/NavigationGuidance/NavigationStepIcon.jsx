@@ -3,6 +3,7 @@ import crosswalkIcon from '../../assets/icons/D_crosswalk.svg'
 import doorIcon from '../../assets/icons/door.svg'
 import hyphenIcon from '../../assets/icons/D_hyphen.svg'
 import elevatorIcon from '../../assets/icons/elevator.svg'
+import escalatorIcon from '../../assets/icons/escalator.svg'
 import leftIcon from '../../assets/icons/leftSign.svg'
 import locateIcon from '../../assets/icons/MyLocate.svg'
 import rightIcon from '../../assets/icons/rightSign.svg'
@@ -13,7 +14,7 @@ import {
   IconImage,
   PlainStepIcon,
 } from './NavigationStepIcon.styles'
-import { isArrivalStep } from '../../utils/navigationStepTypes'
+import { isArrivalStep, isIndoorStep } from '../../utils/navigationStepTypes'
 
 export default function NavigationStepIcon({ step, variant = 'plain', tone: toneOverride }) {
   const safeStep = step && typeof step === 'object' ? step : {}
@@ -40,7 +41,9 @@ function getStepIcon(step = {}) {
     src = locateIcon
   } else if (isElevatorVerticalMove(normalizedText)) {
     src = elevatorIcon
-  } else if (isStairVerticalMove(normalizedText) || isEscalatorVerticalMove(normalizedText)) {
+  } else if (isEscalatorVerticalMove(normalizedText)) {
+    src = escalatorIcon
+  } else if (isStairVerticalMove(normalizedText)) {
     src = stairIcon
   } else if (normalizedText.includes('횡단보도') || normalizedText.includes('crosswalk')) {
     src = crosswalkIcon
@@ -69,11 +72,6 @@ function getStepIcon(step = {}) {
   return <IconImage src={src} alt="" aria-hidden="true" />
 }
 
-function isIndoorStep(step = {}) {
-  const mode = String(step.mode ?? '').toUpperCase()
-  return step.type === 'indoor' || mode === 'INDOOR'
-}
-
 function isBuildingArrivalStep(step = {}) {
   const mode = String(step.mode ?? '').toUpperCase()
   return mode === 'BUILDING' || step.stepType === 'BUILDING_ARRIVAL'
@@ -84,7 +82,7 @@ function isBuildingExitStep(step = {}, normalizedText = '') {
   return (
     normalizedText.includes('건물 출구') ||
     normalizedText.includes('로 나가기') ||
-    (mode === 'INDOOR' && normalizedText.includes('나가기'))
+    (isIndoorStep(step) && mode !== 'BUILDING' && normalizedText.includes('나가기'))
   )
 }
 

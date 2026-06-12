@@ -13,10 +13,14 @@ export default function SearchPage() {
     isLoading,
     hasSearchError,
     searchStateMessage,
+    recentKeywords,
     autocompleteItems,
     resultItems,
     handleChangeKeyword,
     handleSelectAutocomplete,
+    handleRemoveRecentKeyword,
+    handleClearRecentKeywords,
+    handleSelectRecentKeyword,
     handleSelectResult,
     runSearch,
   } = useSearchPageController()
@@ -39,8 +43,12 @@ export default function SearchPage() {
       <section className="search-page__content">
         {!isResultMode ? (
           <SearchAutocompleteList
+            recentKeywords={recentKeywords}
             items={autocompleteItems}
             onSelect={handleSelectAutocomplete}
+            onRemoveRecentKeyword={handleRemoveRecentKeyword}
+            onClearRecentKeywords={handleClearRecentKeywords}
+            onSelectRecentKeyword={handleSelectRecentKeyword}
           />
         ) : null}
 

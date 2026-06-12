@@ -98,7 +98,7 @@ function parseFloorLabelOrder(value) {
   }
 
   const text = String(value).trim()
-  if (!/[층f]|지하/i.test(text)) {
+  if (!/(?:지하|B\s*\d+|-?\d+\s*(?:층|F))/i.test(text)) {
     return null
   }
 
@@ -110,14 +110,13 @@ function parseFloorOrder(value) {
     return null
   }
 
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null
+  }
+
   const text = String(value).trim()
   if (!text) {
     return null
-  }
-
-  const numericValue = Number(text)
-  if (Number.isFinite(numericValue)) {
-    return numericValue
   }
 
   const basementMatch = text.match(/(?:B|지하)\s*(\d+)/i)
@@ -125,7 +124,7 @@ function parseFloorOrder(value) {
     return -Number(basementMatch[1])
   }
 
-  const floorMatch = text.match(/(-?\d+)\s*(?:층|F)?/i)
+  const floorMatch = text.match(/(-?\d+)\s*(?:층|F)/i)
   if (floorMatch) {
     return Number(floorMatch[1])
   }

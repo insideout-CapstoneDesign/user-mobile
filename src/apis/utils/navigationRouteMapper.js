@@ -16,7 +16,7 @@ const TRANSIT_TYPES = new Set(['bus', 'subway'])
 // Default fallback duration for indoor legs in route bars, in minutes.
 const DEFAULT_INDOOR_LEG_MINUTES = 6
 
-export function normalizeRouteOption(route, index) {
+export function normalizeRouteOption(route, index, responseContext = {}) {
   const routeType = route.routeType ?? 'WALK'
   const routeOption = route.routeOption ?? null
   const mode = routeType.toLowerCase()
@@ -31,7 +31,11 @@ export function normalizeRouteOption(route, index) {
     { indoorPrefix: startsIndoor },
   )
   const mapLegs = normalizeMapLegs(legs, { routeId: id, routeType, routeOption })
-  const turnByTurnSteps = normalizeTurnByTurnSteps(legs, { routeId: id, routeType, routeOption })
+  const turnByTurnSteps = normalizeExitSteps(
+    normalizeTurnByTurnSteps(legs, { routeId: id, routeType, routeOption }),
+    legs,
+    responseContext.indoor,
+  )
 
   return {
     id,
@@ -55,8 +59,77 @@ export function normalizeRouteOption(route, index) {
 }
 
 function doesRouteStartIndoor(legs) {
-  const firstLegMode = String(legs[0]?.mode ?? '').toUpperCase()
-  return firstLegMode === 'INDOOR' || firstLegMode === 'CAMPUS'
+  return isIndoorLeg(legs[0])
+}
+
+function normalizeExitSteps(steps, legs, indoorMeta) {
+  if (!Array.isArray(steps) || steps.length === 0 || !doesRouteStartIndoor(legs)) {
+    return steps
+  }
+
+  const firstOutdoorLegIndex = legs.findIndex((leg) => !isIndoorLeg(leg))
+  if (firstOutdoorLegIndex <= 0) {
+    return steps
+  }
+
+  const lastIndoorStepIndex = findLastStepIndexBeforeLeg(steps, firstOutdoorLegIndex)
+  if (lastIndoorStepIndex < 0) {
+    return steps
+  }
+
+  const exitInstruction = buildExitInstruction(legs, indoorMeta)
+  if (!exitInstruction) {
+    return steps
+  }
+
+  return steps.map((step, stepIndex) =>
+    stepIndex === lastIndoorStepIndex
+      ? {
+          ...step,
+          instruction: exitInstruction,
+        }
+      : step,
+  )
+}
+
+function findLastStepIndexBeforeLeg(steps, legIndex) {
+  for (let index = steps.length - 1; index >= 0; index -= 1) {
+    if (steps[index]?.legIndex < legIndex) {
+      return index
+    }
+  }
+
+  return -1
+}
+
+function buildExitInstruction(legs, indoorMeta) {
+  const entranceName =
+    getCleanText(indoorMeta?.campusEntranceName) ??
+    getCleanText(indoorMeta?.entranceName) ??
+    getExitLegEndpointName(legs)
+
+  return entranceName ? `${entranceName}로 나가기` : null
+}
+
+function getExitLegEndpointName(legs) {
+  const indoorLegs = legs.filter(isIndoorLeg)
+  const exitLeg = indoorLegs[indoorLegs.length - 1]
+  const path = Array.isArray(exitLeg?.path) ? exitLeg.path : []
+  const lastPathName = getCleanText(path[path.length - 1]?.name)
+
+  return getCleanText(exitLeg?.endName) ?? lastPathName
+}
+
+function getCleanText(value) {
+  const text = String(value ?? '').trim()
+
+  return text ? text : null
+}
+
+function isIndoorLeg(leg) {
+  const mode = String(leg?.mode ?? '').toUpperCase()
+
+  return mode === 'INDOOR' || mode === 'CAMPUS'
 }
 
 function normalizeRouteSegments(legs) {

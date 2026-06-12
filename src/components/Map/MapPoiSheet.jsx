@@ -260,7 +260,11 @@ export default function MapPoiSheet({
     setPoiPanelState((currentState) => {
       const nextPoiId = poi.id ?? null
       const currentPoiId =
-        currentState.key === placeKey ? currentState.selectedPoiId : null
+        currentState.key === placeKey
+          ? currentState.hasPoiSelectionOverride
+            ? currentState.selectedPoiId
+            : selectedPoiFromPlace?.id ?? null
+          : selectedPoiFromPlace?.id ?? null
       const isSamePoiSelected =
         currentPoiId != null &&
         nextPoiId != null &&

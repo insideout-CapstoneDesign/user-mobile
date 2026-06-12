@@ -1,4 +1,4 @@
-import 'react'
+import { useMemo } from 'react'
 import {
   FloatingContainer,
   FloorInfo,
@@ -7,6 +7,8 @@ import {
 } from './FloorSelector.styles'
 
 export default function FloorSelector({ buildingName, floors, activeFloor, onSelect }) {
+  const sortedFloors = useMemo(() => sortFloors(floors), [floors])
+
   return (
     <FloatingContainer>
       <FloorInfo>
@@ -14,7 +16,7 @@ export default function FloorSelector({ buildingName, floors, activeFloor, onSel
       </FloorInfo>
 
       <ButtonGrid>
-        {floors.map((floor) => (
+        {sortedFloors.map((floor) => (
           <SquareButton
             type="button"
             key={getFloorKey(floor)}
@@ -43,4 +45,89 @@ function getFloorLabel(floor) {
   }
 
   return floor
+}
+
+function sortFloors(floors = []) {
+  return [...floors].sort((a, b) => {
+    const floorA = getFloorOrder(a)
+    const floorB = getFloorOrder(b)
+
+    if (floorA === null && floorB === null) return 0
+    if (floorA === null) return 1
+    if (floorB === null) return -1
+
+    return floorA - floorB
+  })
+}
+
+function getFloorOrder(floor) {
+  const explicitOrder = getExplicitFloorOrder(floor)
+
+  if (explicitOrder !== null) {
+    return explicitOrder
+  }
+
+  if (floor && typeof floor === 'object') {
+    const labelOrder = [floor.label, floor.floorName, floor.name]
+      .map(parseFloorOrder)
+      .find((order) => order !== null)
+
+    if (labelOrder !== undefined) {
+      return labelOrder
+    }
+
+    return parseFloorLabelOrder(floor.key)
+  }
+
+  return parseFloorOrder(getFloorLabel(floor))
+}
+
+function getExplicitFloorOrder(floor) {
+  if (!floor || typeof floor !== 'object') {
+    return parseFloorOrder(floor)
+  }
+
+  const floorValue = floor.level ?? floor.floor ?? floor.floorNumber ?? floor.floorLevel ?? floor.floorNo
+
+  return parseFloorOrder(floorValue)
+}
+
+function parseFloorLabelOrder(value) {
+  if (value === null || value === undefined) {
+    return null
+  }
+
+  const text = String(value).trim()
+  if (!/(?:지하|B\s*\d+|-?\d+\s*(?:층|F))/i.test(text)) {
+    return null
+  }
+
+  return parseFloorOrder(text)
+}
+
+function parseFloorOrder(value) {
+  if (value === null || value === undefined) {
+    return null
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null
+  }
+
+  const text = String(value).trim()
+  if (!text) {
+    return null
+  }
+
+  const basementMatch = text.match(/(?:B|지하)\s*(\d+)/i)
+  if (basementMatch) {
+    return -Number(basementMatch[1])
+  }
+
+  const floorMatch = text.match(/(-?\d+)\s*(?:층|F)/i)
+  if (floorMatch) {
+    return Number(floorMatch[1])
+  }
+
+  return null
 }

@@ -9,6 +9,7 @@ import {
   toNavigationPlace,
   toNavigationRequestInput,
 } from '../../utils/map/navigationPlaceMapper'
+import { isIndoorStep } from '../../utils/navigationStepTypes'
 
 export default function useRoutingController({
   initialCurrentNav = 'map',
@@ -67,10 +68,7 @@ export default function useRoutingController({
     effectiveGuidanceSteps[effectiveBoundedGuidanceStepIndex] ??
     effectiveGuidanceSteps[0] ??
     null
-  const isIndoorGuidanceStep =
-    !!effectiveActiveGuidanceStep?.floorId ||
-    effectiveActiveGuidanceStep?.type === 'indoor' ||
-    effectiveActiveGuidanceStep?.mode === 'INDOOR'
+  const isIndoorGuidanceStep = isIndoorStep(effectiveActiveGuidanceStep)
 
   const requestRoute = async ({
     origin = routeOrigin,

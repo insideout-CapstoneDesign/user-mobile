@@ -13,7 +13,7 @@ import {
   IconImage,
   PlainStepIcon,
 } from './NavigationStepIcon.styles'
-import { isArrivalStep } from '../../utils/navigationStepTypes'
+import { isArrivalStep, isIndoorStep } from '../../utils/navigationStepTypes'
 
 export default function NavigationStepIcon({ step, variant = 'plain', tone: toneOverride }) {
   const safeStep = step && typeof step === 'object' ? step : {}
@@ -69,11 +69,6 @@ function getStepIcon(step = {}) {
   return <IconImage src={src} alt="" aria-hidden="true" />
 }
 
-function isIndoorStep(step = {}) {
-  const mode = String(step.mode ?? '').toUpperCase()
-  return step.type === 'indoor' || mode === 'INDOOR'
-}
-
 function isBuildingArrivalStep(step = {}) {
   const mode = String(step.mode ?? '').toUpperCase()
   return mode === 'BUILDING' || step.stepType === 'BUILDING_ARRIVAL'
@@ -84,7 +79,7 @@ function isBuildingExitStep(step = {}, normalizedText = '') {
   return (
     normalizedText.includes('건물 출구') ||
     normalizedText.includes('로 나가기') ||
-    (mode === 'INDOOR' && normalizedText.includes('나가기'))
+    (isIndoorStep(step) && mode !== 'BUILDING' && normalizedText.includes('나가기'))
   )
 }
 

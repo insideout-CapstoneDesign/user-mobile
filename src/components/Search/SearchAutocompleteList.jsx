@@ -22,7 +22,7 @@ export default function SearchAutocompleteList({
   onClearRecentKeywords,
   onSelectRecentKeyword,
 }) {
-  const hasRecentKeywords = recentKeywords.length > 0
+  const hasRecentKeywords = recentKeywords.length > 0 && items.length === 0
   const hasAutocompleteItems = items.length > 0
 
   if (!hasRecentKeywords && !hasAutocompleteItems) {

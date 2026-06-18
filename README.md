@@ -11,7 +11,7 @@
 
 * **🌐 Insideout 웹 앱 바로가기:** [https://insideout-admin-web.vercel.app](https://insideout-admin-web.vercel.app)
 
-> 💡 *본 서비스는 모바일 브라우저 환경에 최적화(Mobile-First)되어 있습니다. 모바일 기기나 브라우저의 개발자 도구(모바일 뷰)로 접속하시면 가장 이상적인 UX를 경험하실 수 있습니다.*
+> 💡 *본 서비스는 모바일 브라우저 환경에 최적화(Mobile-First)되어 있습니다. 브라우저의 개발자 도구(모바일 뷰)로 접속하시면 가장 이상적인 UX를 경험하실 수 있습니다.*
 
 ---
 
@@ -22,7 +22,11 @@
 
 | 길찾기 검색 및 장소 선택 페이지 |
 | :---: |
-| ![길찾기 검색 페이지](https://github.com/user-attachments/assets/c55ce812-4d7d-4704-840f-a0559aa11347) |
+| ![길찾기 검색 페이지] 
+
+https://github.com/user-attachments/assets/36d5af15-9e01-49cf-9b06-4d0edd89adb7
+
+|
 
 ---
 

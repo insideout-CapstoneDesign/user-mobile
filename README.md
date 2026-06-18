@@ -78,3 +78,33 @@ src/
 유틸/API 파일: camelCase 사용 (예: formatDate.js, authApi.js)
 파일/폴더는 하나의 주요 책임만 가지도록 구성합니다.
 ```
+
+## 6️⃣ 프론트엔드 구현화면
+
+길찾기 검색 페이지
+
+
+https://github.com/user-attachments/assets/c55ce812-4d7d-4704-840f-a0559aa11347
+
+
+실외-실내 길찾기 화면
+
+
+https://github.com/user-attachments/assets/c8e8908a-5fef-4d11-8777-433d7b864b6a
+
+
+
+
+대중교통 옵션
+
+https://github.com/user-attachments/assets/d2c130c8-aa3d-442e-8456-7ac599e8f8f2
+
+
+
+
+
+
+
+
+
+

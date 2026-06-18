@@ -62,20 +62,38 @@ https://github.com/user-attachments/assets/d2c130c8-aa3d-442e-8456-7ac599e8f8f2
 ## 🛠️ 기술 스택 (Tech Stack)
 
 ### Frontend Core
-* **Framework:** React 18 (Vite 기반 Fast 배포 환경)
-* **Language:** JavaScript
-* **State & Routing:** React Router Dom, React Context API
+<div>
+  <img src="https://img.shields.io/badge/React%2019-20232A?style=for-the-badge&logo=react&logoColor=61DAFB">
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black">
+  <img src="https://img.shields.io/badge/React%20Router%20DOM-CA4245?style=for-the-badge&logo=reactrouter&logoColor=white">
+</div>
 
-### UI & UX (Mobile First)
-* **Styling:** `styled-components` (디바이스별 반응형 및 모바일 웹 뷰 환경 최적화)
-* **Animation:** `Framer Motion` (바텀시트 드래그 및 페이지 전환 시 내추럴한 인터랙션 구현)
-* **Components:** `react-modal-sheet` (네이티브 앱 스타일의 드래그 가능한 바텀시트 UI 레이아웃 구현)
+### UI & UX
+<div>
+  <img src="https://img.shields.io/badge/styled--components-DB7093?style=for-the-badge&logo=styled-components&logoColor=white">
+  <img src="https://img.shields.io/badge/Framer%20Motion-000000?style=for-the-badge&logo=framer&logoColor=white">
+  <img src="https://img.shields.io/badge/react--modal--sheet-111111?style=for-the-badge">
+</div>
 
-### Map & Network
-* **Map SDK:** Kakao Maps SDK (실외 지도 렌더링 및 맞춤형 오버레이 제어)
-* **Search Engine:** Elasticsearch (자체 구축 초단위 텍스트 검색 및 오타 보정 엔진)
-* **HTTP Client:** Fetch API (백엔드 REST API 통신 및 데이터 정규화 파싱)
-* **Deployment:** Vercel (CI/CD 자동화 파이프라인 구축)
+### Form / Validation
+<div>
+  <img src="https://img.shields.io/badge/react--hook--form-EC5990?style=for-the-badge&logo=reacthookform&logoColor=white">
+  <img src="https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white">
+</div>
+
+### Map / Search / Network
+<div>
+  <img src="https://img.shields.io/badge/Kakao%20Maps-FFCD00?style=for-the-badge&logo=kakao&logoColor=000000">
+  <img src="https://img.shields.io/badge/Elasticsearch-005571?style=for-the-badge&logo=elasticsearch&logoColor=white">
+  <img src="https://img.shields.io/badge/Fetch%20API-005CFF?style=for-the-badge">
+</div>
+
+### Deployment
+<div>
+  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white">
+</div>
+
 
 ---
 

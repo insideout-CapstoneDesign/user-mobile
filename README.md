@@ -131,8 +131,6 @@ https://github.com/user-attachments/assets/d2c130c8-aa3d-442e-8456-7ac599e8f8f2
 <br>
 
 
----
-
 ## 🔥 기술적 도전 및 해결 과제 (Technical Challenges)
 
 > 💡 **핵심 요약:** 단순 기능 구현을 넘어, 사용자 경험(UX) 저하 요소와 이종 데이터 결합 문제를 아키텍처 및 알고리즘 고도화로 해결한 과정입니다.

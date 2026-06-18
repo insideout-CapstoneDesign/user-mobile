@@ -1,110 +1,119 @@
-# Git Flow & Convention
-간소화된 GitHub Flow를 기반으로, Issue를 먼저 생성하고 이를 해결하기 위해 Branch를 파고 PR을 보내는 순서로 개발합니다.
+# 📍 Insideout - AI 기반 실내외 통합 내비게이션 (User Web App)
 
-## ⚠️ 중요 규칙
-- main: 실제 서비스가 배포되는 최종 운영 코드 (직접 Push 절대 금지 ❌)
-- dev: 개발 중인 코드의 중심 (Base Branch)
-- feat/...: 실제 작업 브랜치 (develop에서 분기점 생성 후 다시 dev으로 머지)
+> **"건물 입구에서 끊기는 길 안내는 그만."**
+> Insideout 사용자 웹앱은 상용 실외 지도(위경도 좌표계)와 AI로 구축된 실내 지도(픽셀 위상 그래프)를 유기적으로 연결하여, 외부 도로에서 건물 내부의 최종 목적지(특정 강의실, 매장 등)까지 단절 없는 **하이브리드 턴바이턴 길찾기 경험**을 제공하는 모바일 최적화 웹 애플리케이션입니다.
 
-## 1️⃣ Commit Message Convention
-### Prefix: <subject> (#<issue_number>)
-예시)
-- feat: 구글 로그인 API 기능 구현 (#11)
-- fix: A* 알고리즘 무한 루프 버그 수정 (#10)
-- refactor: POI 검색 쿼리 성능 개선 (#3)
-- chore: lombok 의존성 추가 (#5)
-- docs: API 명세서 최신화 (#4)
+---
 
-## 🏷 prefix 목록
-- **feat** : 새로운 기능 구현 `[feat] 구글 로그인 API 기능 구현 (#11)`
-- **fix** : 코드 오류 수정 `[fix] 회원가입 비즈니스 로직 오류 수정 (#10)`
-- **design** : CSS, UI/UX 레이아웃 변경 `[design] 메인 화면 로그인 버튼 위치 변경 (#9)`
-- **del** : 쓸모없는 코드 삭제 `[del] 불필요한 import 제거 (#12)`
-- **docs** : README나 wiki 등의 문서 개정 `[docs] 리드미 수정(#14)`
-- **refactor** : 내부 로직은 변경 하지 않고 기존의 코드를 개선하는 리팩터링 `[refactor] 코드 로직 개선(#15)`
-- **chore** : 의존성 추가, yml 추가와 수정, 패키지 구조 변경, 파일 이동 `[chore] yml 수정(#21)`, `[chore] MAC-8 lombok 의존성 추가(#22)`
-- **test** : 테스트 코드 작성, 수정 `[test] 로그인 API 테스트 코드 작성(#20)`
-- **style** : 코드에 관련 없는 주석 달기, 줄바꿈
+## 🔗 프로덕션 배포 주소 (Live Demo)
 
-## 2️⃣ Issue Creation Rules
-기능 구현 전, 반드시 이슈를 먼저 생성합니다.
-1. 템플릿 선택: New Issue 버튼을 누르고 Feature 또는 Bug 템플릿을 선택합니다.
-2. 제목 작성: [Prefix] 명확한 작업 내용 형태로 작성합니다.
-   - 예: [feat] 엘리베이터 가중치 반영 API
-3. 개발라벨(Label) 설정: Feature, Bug, Refactor 등 작업의 성격을 지정합니다.
-4. Assignees 설정: 작업을 담당할 본인을 지정합니다.
+본 서비스는 클라우드 환경에 자동 배포되어 운영 중이며, 아래 링크를 통해 별도의 설치 없이 즉시 체험하실 수 있습니다.
 
-## 3️⃣ Issue Hierarchy (Parent-Child Structure)
-우리는 큰 단위의 작업(Epic)에 세부 구현 작업(Task)을 링크하여 진행률을 관리합니다.
-1. 상위 이슈(Epic) 생성먼저 며칠에 걸쳐 진행할 큰 단위의 기능(Epic)을 생성합니다. (예: [Epic] 하이브리드 길 찾기 엔진 구축)
-2. 하위 이슈(Task) 생성실제 하루 단위로 끝낼 수 있는 세부 구현 작업들을 생성합니다. (예: [feat] 노드 조회 레포지토리 로직 작성 (#12))
-3. 링크 연결 (Tracking)상위 이슈(Epic)의 본문에 하위 이슈 번호를 체크리스트 문법으로 작성하여 진행도를 한눈에 파악합니다.
+* **🌐 Insideout 웹 앱 바로가기:** [https://insideout-admin-web.vercel.app](https://insideout-admin-web.vercel.app)
 
-## 🎯 하위 작업 목록 (Tasks)
-- [x] #12  <-- 이슈 번호만 적으면 GitHub가 제목을 자동 완성해 줍니다.
-- [ ] #13
+> 💡 *본 서비스는 모바일 브라우저 환경에 최적화(Mobile-First)되어 있습니다. 모바일 기기나 브라우저의 개발자 도구(모바일 뷰)로 접속하시면 가장 이상적인 UX를 경험하실 수 있습니다.*
 
-## 4️⃣ Branch & PR Rules
-이슈가 생성되면 해당 이슈 번호를 기반으로 브랜치를 생성합니다.
+---
 
-### 🌱 Branch Naming
-타입/#이슈번호-영문설명
-- feat/#12-jwt-login
-- fix/#15-astar-timeout
+## 📱 서비스 핵심 기능 및 UI 시연 (Key Features & UI)
 
-### 🚀 Pull Request (PR)
-1. Process 작업 전 최신화: 작업 시작 전 항상 dev 브랜치를 pull 받아서 최신 상태를 유지합니다.
-2. PR 제목: 이슈 제목과 동일하게 맞추거나 작업 성격이 한눈에 보이게 작성합니다.
-   - 예: feat: 건물 관리자 JWT 로그인 구현 (#12)
-3. 이슈 연결: PR 내용(Description) 상단에 Closes #이슈번호를 반드시 적어 머지 시 이슈가 자동 종료되도록 합니다.
-4. 코드 리뷰: 최소 **1명 이상의 팀원에게 Approve(승인)**를 받아야 하며 리뷰를 모두 resolve해야 Merge 할 수 있습니다.
+### 🔍 1. Elasticsearch 기반 초단위 자동완성 및 오타 보정 검색
+글자 하나만 틀려도 결과가 나오지 않던 기존 검색의 한계를 극복했습니다. Elasticsearch를 도입하여 초단위 자동완성뿐만 아니라, **'신세계백화점'을 '신세게백화점'으로 검색해도 유연하게 목적지를 찾아내는 고도화된 오타 보정 기능**을 지원합니다. 내부에 실내 지도가 구축된 건물은 검색 결과에 `등록됨` 배지가 직관적으로 표시됩니다.
 
-## 5️⃣ 프론트엔드 디렉토리 가이드
-```text
-src/
-  apis/          API 클라이언트 및 요청 함수
-  assets/        정적 리소스(이미지, 아이콘)
-  components/    재사용 가능한 UI 컴포넌트
-  constants/     상수 및 enum 관리
-  hooks/         재사용 가능한 커스텀 훅
-  layouts/       페이지/앱 공통 레이아웃 컴포넌트
-  pages/         라우트(화면) 단위 페이지 컴포넌트
-  styles/        글로벌 스타일 및 테마 토큰
-  utils/         공통 유틸리티 함수
+| 길찾기 검색 및 장소 선택 페이지 |
+| :---: |
+| ![길찾기 검색 페이지](https://github.com/user-attachments/assets/c55ce812-4d7d-4704-840f-a0559aa11347) |
 
-네이밍 규칙
-컴포넌트/페이지 파일: PascalCase 사용 (예: LoginPage.jsx, PrimaryButton.jsx)
-훅 파일: use 접두사 + camelCase 사용 (예: useAuth.js)
-유틸/API 파일: camelCase 사용 (예: formatDate.js, authApi.js)
-파일/폴더는 하나의 주요 책임만 가지도록 구성합니다.
-```
+---
 
-## 6️⃣ 프론트엔드 구현화면
+### 🗺️ 2. 실외-실내 통합 하이브리드 길찾기
+Tmap/Kakao Map API 기반의 실외 도보 경로와 건물 내부 경로 그래프를 관리자가 매핑한 출입구(Entrance Node) 기준으로 결합하여 하나의 연속된 인터랙션으로 제공합니다. 
 
-길찾기 검색 페이지
+| 실외에서 실내로 이어지는 단절 없는 길찾기 |
+| :---: |
+| ![실외-실내 길찾기 화면](https://github.com/user-attachments/assets/c8e8908a-5fef-4d11-8777-433d7b864b6a) |
 
+---
 
-https://github.com/user-attachments/assets/c55ce812-4d7d-4704-840f-a0559aa11347
+### 🚌 3. 대중교통 연동 및 다중 경로 옵션
+단순 도보 이동뿐만 아니라, 목적지 건물 내부 POI까지 도달하기 위한 최적의 대중교통(지하철, 버스 등) 경로 옵션을 유기적으로 연동하여 하이브리드 내비게이션의 완성도를 높였습니다.
 
+| 멀티모달 대중교통 경로 옵션 화면 |
+| :---: |
+| ![대중교통 옵션](https://github.com/user-attachments/assets/d2c130c8-aa3d-442e-8456-7ac599e8f8f2) |
 
-실외-실내 길찾기 화면
+---
 
+### ⚡ 4. 다층(Multi-floor) 턴바이턴 안내
+수직 이동 수단(엘리베이터, 계단 등)을 통과할 때 지도 레이어가 자동으로 해당 층의 도면으로 전환되며, "엘리베이터로 3층 이동"과 같은 인간 친화적인 단계별 안내 문장을 제공합니다. 다익스트라(Dijkstra) 알고리즘 가중치 제어를 통해 계단 이용이 어려운 사용자를 위한 **'편안한 길'** 및 **'최단 거리'** 옵션을 지원합니다.
 
-https://github.com/user-attachments/assets/c8e8908a-5fef-4d11-8777-433d7b864b6a
+---
 
+## 🛠️ 기술 스택 (Tech Stack)
 
+### Frontend Core
+* **Framework:** React 18 (Vite 기반 Fast 배포 환경)
+* **Language:** JavaScript
+* **State & Routing:** React Router Dom, React Context API
 
+### UI & UX (Mobile First)
+* **Styling:** `styled-components` (디바이스별 반응형 및 모바일 웹 뷰 환경 최적화)
+* **Animation:** `Framer Motion` (바텀시트 드래그 및 페이지 전환 시 내추럴한 인터랙션 구현)
+* **Components:** `react-modal-sheet` (네이티브 앱 스타일의 드래그 가능한 바텀시트 UI 레이아웃 구현)
 
-대중교통 옵션
+### Map & Network
+* **Map SDK:** Kakao Maps SDK (실외 지도 렌더링 및 맞춤형 오버레이 제어)
+* **Search Engine:** Elasticsearch (자체 구축 초단위 텍스트 검색 및 오타 보정 엔진)
+* **HTTP Client:** Fetch API (백엔드 REST API 통신 및 데이터 정규화 파싱)
+* **Deployment:** Vercel (CI/CD 자동화 파이프라인 구축)
 
-https://github.com/user-attachments/assets/d2c130c8-aa3d-442e-8456-7ac599e8f8f2
+---
 
+## 🔥 기술적 도전 및 해결 과제 (Technical Challenges)
 
+> 💡 **핵심 요약:** 단순 기능 구현을 넘어, 사용자 경험(UX) 저하 요소와 이종 데이터 결합 문제를 아키텍처 및 알고리즘 고도화로 해결한 과정입니다.
 
+### 1. 오타 보정 검색 엔진 구현 (RDBMS ➔ Elasticsearch)
+* **문제:** 기존 RDBMS의 `LIKE` 쿼리는 완벽히 일치하는 텍스트만 파싱하여 '신세게백화점' 같은 모음 오타 시 검색 실패율 급증
 
+| 구분 | AS-IS (기존 방식) | TO-BE (개선 방식) |
+| :--- | :--- | :--- |
+| **적용 기술** | RDBMS `LIKE` 검색 | **Elasticsearch + Nori Tokenizer** |
+| **핵심 알고리즘**| 단순 문자열 매칭 | **퍼지 쿼리 (Fuzzy Query) / 레벤슈타인 거리 계산** |
+| **UX 결과** | 오타 입력 시 검색 결과 없음 | **미세 오타 자동 보정 및 초단위 자동완성 제안** |
 
+---
 
+### 2. 이종 좌표계 간 단절 없는 하이브리드 매핑 ($WGS84$ ➔ 픽셀)
+* **문제:** 실외 지도($\text{WGS84}$ 위경도)와 실내 도면(픽셀 상대 좌표 $X, Y$) 결합 시 뷰포트 급격 전환으로 인한 시각적 단절 발생
+* **해결:** 건물 출입구(`Entrance Node`)를 두 좌표계가 만나는 **최적의 앵커(Anchor)**로 정의했습니다. 유저가 진입하는 순간 Kakao Map 오버레이 위에 실내 SVG 레이어를 **자연스럽게 페이드인(Fade-in) 형태로 중첩 렌더링**하여 이질감을 원천 차단했습니다.
 
+---
 
+### 3. 모바일 웹 환경에서의 고부하 지도 UI 성능 최적화
+* **문제:** 대용량 도면 이미지, 수많은 POI 마커, 경로선(`Polyline`) 동시 로드로 인한 프레임 드랍
+* **해결:** 전체 층 데이터를 메모리에 상시 로드하지 않고 현재 활성화된 층(`selectedFloorId`) 리소스만 **조건부 렌더링(Conditional Rendering)** 처리했습니다. 또한 바텀시트 드래그 시 실시간 좌표 연산을 **Framer Motion의 GPU 하드웨어 가속 기법**으로 이관하여 끊김 없는 인터랙션을 구현했습니다.
 
+---
 
+### 4. 일관된 Place ID 파이프라인 구축을 통한 데이터 정합성 확보
+* **문제:** 진입 경로(검색, 지도 직접 터치, 상세 페이지) 마다 장소 데이터 형식이 파편화되어 경로 탐색 오류 가능성 존재
+* **해결:** `Search`, `Nearest`, `Detail` API가 프론트엔드에 응답할 때 반드시 동일한 구조의 고유 식별자(`placeId`, `poiId`) 메타데이터를 공유하도록 **백엔드 파이프라인 데이터 포맷을 단일화(Normalization)**하여 상태 관리의 정합성을 맞추었습니다.
+
+---
+
+### 5. 모바일 최적화 레이아웃 (가로 375px 고정 / 세로 반응형)
+* **문제:** 일반 웹 구조는 모바일에서 UI가 깨지고 터치 영역이 작아 가독성 저하
+* **해결:** 최대 너비를 **가로 375px로 고정**해 한 손 조작에 최적화하고, 세로는 기기 높이에 맞춘 **반응형(Flexbox)**으로 설계하여 모바일 환경에서 네이티브 앱과 유사한 몰입감을 제공합니다.
+
+---
+
+### 6. 네이티브 앱 대신 '웹앱(Web App)'을 채택한 이유
+* **문제:** "강의실/매장 하나 찾으려고 스토어에서 앱을 다운로드해야 한다"는 높은 유저 이탈 장벽
+
+| 구분 | 네이티브 앱 (App) | Insideout 웹앱 (Web App) |
+| :--- | :--- | :--- |
+| **설치 허들** | 스토어 검색 및 다운로드 필수 (이탈 유발) | **다운로드 없음 (QR 스캔, 링크 클릭 즉시 실행)** |
+| **접근성** | OS 종속적 (iOS/Android 별도 개발) | **기기/OS 상관없이 URL 하나로 3초 만에 진입** |
+
+* **결론:** 건물 앞에서 기다림 없이 **3초 만에 즉시 길 안내를 받는 경험(Zero-Install)**을 위해 웹앱 아키텍처를 선택하여 사용자 진입 장벽을 완전히 제거했습니다.

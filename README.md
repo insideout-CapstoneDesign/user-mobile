@@ -21,9 +21,8 @@
 글자 하나만 틀려도 결과가 나오지 않던 기존 검색의 한계를 극복했습니다. Elasticsearch를 도입하여 초단위 자동완성뿐만 아니라, **'신세계백화점'을 '신세게백화점'으로 검색해도 유연하게 목적지를 찾아내는 고도화된 오타 보정 기능**을 지원합니다. 내부에 실내 지도가 구축된 건물은 검색 결과에 `등록됨` 배지가 직관적으로 표시됩니다.
 
 | 길찾기 검색 및 장소 선택 페이지 |
-| :---: |
-| https://github.com/user-attachments/assets/36d5af15-9e01-49cf-9b06-4d0edd89adb7
-] 
+https://github.com/user-attachments/assets/36d5af15-9e01-49cf-9b06-4d0edd89adb7
+
 
 
 |

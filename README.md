@@ -43,7 +43,7 @@ https://github.com/user-attachments/assets/c8e8908a-5fef-4d11-8777-433d7b864b6a
 
 | 멀티모달 대중교통 경로 옵션 화면 |
 
-https://github.com/user-attachments/assets/d2c130c8-aa3d-442e-8456-7ac599e8f8f2) 
+https://github.com/user-attachments/assets/d2c130c8-aa3d-442e-8456-7ac599e8f8f2
 
 ---
 

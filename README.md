@@ -31,7 +31,14 @@ Tmap/Kakao Map API 기반의 실외 도보 경로와 건물 내부 경로 그래
 
 | 실외에서 실내로 이어지는 단절 없는 길찾기 |
 | :---: |
-| ![실외-실내 길찾기 화면](https://github.com/user-attachments/assets/c8e8908a-5fef-4d11-8777-433d7b864b6a) |
+| ![실내-실외 길찾기 화면](https://github.com/user-attachments/assets/c8e8908a-5fef-4d11-8777-433d7b864b6a) |
+| 실내에서 실외로 이어지는 단절 없는 길찾기 |
+| ![실외-실내 길찾기 화면](https://github.com/user-attachments/assets/27fb04cd-f511-47e0-a783-2e04b4270e38)  |
+| 실내에서 실내로 이어지는 단절 없는 길찾기 |
+| ![실외-실내 길찾기 화면](https://github.com/user-attachments/assets/08644421-835e-4474-bfcb-ff00a4b47d1b)  |
+
+
+
 
 ---
 

@@ -11,7 +11,7 @@
 
 * **🌐 Insideout 웹 앱 바로가기:** [https://insideout-admin-web.vercel.app](https://insideout-admin-web.vercel.app)
 
-> 💡 *본 서비스는 모바일 브라우저 환경에 최적화(Mobile-First)되어 있습니다. 모바일 기기나 브라우저의 개발자 도구(모바일 뷰)로 접속하시면 가장 이상적인 UX를 경험하실 수 있습니다.*
+> 💡 *본 서비스는 모바일 브라우저 환경에 최적화(Mobile-First)되어 있습니다. 브라우저의 개발자 도구(모바일 뷰)로 접속하시면 가장 이상적인 UX를 경험하실 수 있습니다.*
 
 ---
 
@@ -21,8 +21,11 @@
 글자 하나만 틀려도 결과가 나오지 않던 기존 검색의 한계를 극복했습니다. Elasticsearch를 도입하여 초단위 자동완성뿐만 아니라, **'신세계백화점'을 '신세게백화점'으로 검색해도 유연하게 목적지를 찾아내는 고도화된 오타 보정 기능**을 지원합니다. 내부에 실내 지도가 구축된 건물은 검색 결과에 `등록됨` 배지가 직관적으로 표시됩니다.
 
 | 길찾기 검색 및 장소 선택 페이지 |
-| :---: |
-| ![길찾기 검색 페이지](https://github.com/user-attachments/assets/c55ce812-4d7d-4704-840f-a0559aa11347) |
+
+https://github.com/user-attachments/assets/36d5af15-9e01-49cf-9b06-4d0edd89adb7
+
+
+
 
 ---
 
@@ -46,8 +49,8 @@ Tmap/Kakao Map API 기반의 실외 도보 경로와 건물 내부 경로 그래
 단순 도보 이동뿐만 아니라, 목적지 건물 내부 POI까지 도달하기 위한 최적의 대중교통(지하철, 버스 등) 경로 옵션을 유기적으로 연동하여 하이브리드 내비게이션의 완성도를 높였습니다.
 
 | 멀티모달 대중교통 경로 옵션 화면 |
-| :---: |
-| ![대중교통 옵션](https://github.com/user-attachments/assets/d2c130c8-aa3d-442e-8456-7ac599e8f8f2) |
+
+https://github.com/user-attachments/assets/d2c130c8-aa3d-442e-8456-7ac599e8f8f2
 
 ---
 

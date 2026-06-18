@@ -2,6 +2,19 @@
 
 > **"건물 입구에서 끊기는 길 안내는 그만."**
 > Insideout 사용자 웹앱은 상용 실외 지도(위경도 좌표계)와 AI로 구축된 실내 지도(픽셀 위상 그래프)를 유기적으로 연결하여, 외부 도로에서 건물 내부의 최종 목적지(특정 강의실, 매장 등)까지 단절 없는 **하이브리드 턴바이턴 길찾기 경험**을 제공하는 모바일 최적화 웹 애플리케이션입니다.
+> 
+
+## 👥 팀원 소개 (Contributors)
+
+> **Insideout 프로젝트를 이끈 양양양말을 소개합니다.**
+
+
+| **차승은** | **이민지** | **김민준** | **김세현** |
+| :---: | :---: | :---: | :---: |
+| [<img src="https://github.com/user-attachments/assets/35081664-ee95-49bf-9bbf-0340df69f54b" height="180" width="130" style="border-radius: 8px;"><br/>](https://github.com/cktmddms) | [<img src="https://github.com/user-attachments/assets/8d75a543-b6ef-4a57-86c2-e06d93e9376d" height="180" width="130" style="border-radius: 8px;"><br/>](https://github.com/thisminji) | [<img src="https://github.com/user-attachments/assets/d6335e5f-31a8-4ab6-9432-1269227ae012" height="180" width="130" style="border-radius: 8px;"><br/>](https://github.com/minjune0) | [<img src="https://github.com/user-attachments/assets/40120ba5-e3c7-4048-9d54-cdfa837f7a6d" height="180" width="130" style="border-radius: 8px;"><br/>](https://github.com/sekong11) |
+| 🔹 **Hybrid Navigation** <br> <sub>사용자 웹 - BE, FE</sub> | 🔹 **Auth, Search, Infra** <br> <sub>사용자 웹 - BE, FE</sub> | 🔹 **AI Map Builder** <br> <sub>관리자 웹 - AI, FE</sub> | 🔹 **Map Editor** <br> <sub>관리자 웹 - BE, FE</sub> |
+
+
 
 ---
 

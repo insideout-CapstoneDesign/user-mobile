@@ -9,7 +9,7 @@
 
 본 서비스는 클라우드 환경에 자동 배포되어 운영 중이며, 아래 링크를 통해 별도의 설치 없이 즉시 체험하실 수 있습니다.
 
-* **🌐 Insideout 웹 앱 바로가기:** [https://insideout-admin-web.vercel.app](https://insideout-admin-web.vercel.app)
+* **🌐 Insideout 웹 앱 바로가기:** [https://insideout-user-web.vercel.app](https://insideout-user-web.vercel.app)
 
 > 💡 *본 서비스는 모바일 브라우저 환경에 최적화(Mobile-First)되어 있습니다. 브라우저의 개발자 도구(모바일 뷰)로 접속하시면 가장 이상적인 UX를 경험하실 수 있습니다.*
 
@@ -35,10 +35,16 @@ Tmap/Kakao Map API 기반의 실외 도보 경로와 건물 내부 경로 그래
 | 실외에서 실내로 이어지는 단절 없는 길찾기 |
 | :---: |
 | ![실내-실외 길찾기 화면](https://github.com/user-attachments/assets/c8e8908a-5fef-4d11-8777-433d7b864b6a) |
+
+
 | 실내에서 실외로 이어지는 단절 없는 길찾기 |
+| :---: |
 | ![실외-실내 길찾기 화면](https://github.com/user-attachments/assets/27fb04cd-f511-47e0-a783-2e04b4270e38)  |
+
+
 | 실내에서 실내로 이어지는 단절 없는 길찾기 |
-| ![실외-실내 길찾기 화면](https://github.com/user-attachments/assets/08644421-835e-4474-bfcb-ff00a4b47d1b)  |
+| :---: |
+| ![실외-실내 길찾기 화면](https://github.com/user-attachments/assets/717ba9dd-1428-4436-a3ff-f151159c9c55)  |
 
 
 

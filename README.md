@@ -22,9 +22,9 @@
 
 | 길찾기 검색 및 장소 선택 페이지 |
 | :---: |
-| ![길찾기 검색 페이지] 
+| https://github.com/user-attachments/assets/36d5af15-9e01-49cf-9b06-4d0edd89adb7
+] 
 
-https://github.com/user-attachments/assets/36d5af15-9e01-49cf-9b06-4d0edd89adb7
 
 |
 
